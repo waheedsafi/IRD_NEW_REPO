@@ -13,4 +13,6 @@ enum PermissionEnum: string
     case ngo = "ngo";
     case projects = "projects";
     case donor = "donor";
+    case news = "management/news";
+    case about = "management/about";
 }

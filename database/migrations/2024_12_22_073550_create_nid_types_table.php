@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('nid_types', function (Blueprint $table) {
             $table->id();
-            $table->string('name',32);
             $table->timestamps();
         });
     }

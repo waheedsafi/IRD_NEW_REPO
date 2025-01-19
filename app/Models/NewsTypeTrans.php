@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Priority extends Model
+class NewsTypeTrans extends Model
 {
     protected $guarded = [];
 }

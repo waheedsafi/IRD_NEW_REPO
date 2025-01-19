@@ -25,6 +25,12 @@ use App\Enums\StatusTypeEnum;
 use App\Models\RolePermission;
 use App\Models\UserPermission;
 use App\Models\DestinationType;
+use App\Models\NewsType;
+use App\Models\NewsTypeTrans;
+use App\Models\NidType;
+use App\Models\NidTypeTrans;
+use App\Models\Priority;
+use App\Models\PriorityTrans;
 use App\Models\SettingTimeUnit;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -40,6 +46,9 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
         $this->languages();
         $this->settings();
+        $this->newsTypes();
+        $this->priorityTypes();
+        $this->nidTypes();
         $this->requestTypes();
         $email =  Email::factory()->create([
             "value" => "super@admin.com"
@@ -514,6 +523,128 @@ class DatabaseSeeder extends Seeder
             "ngo_type_id" => $domestic->id
         ]);
     }
+    public function newsTypes()
+    {
+        $newsType = NewsType::create([]);
+        NewsTypeTrans::create([
+            "value" => "اخبار صحی",
+            "language_name" => "fa",
+            "news_type_id" => $newsType->id
+        ]);
+        NewsTypeTrans::create([
+            "value" => "روغتیا خبرونه",
+            "language_name" => "ps",
+            "news_type_id" => $newsType->id
+        ]);
+        NewsTypeTrans::create([
+            "value" => "Health News",
+            "language_name" => "en",
+            "news_type_id" => $newsType->id
+        ]);
+
+        $newsType = Priority::create([]);
+        NewsTypeTrans::create([
+            "value" => "اخبار جهان",
+            "language_name" => "fa",
+            "news_type_id" => $newsType->id
+        ]);
+        NewsTypeTrans::create([
+            "value" => "نړیوال خبرونه",
+            "language_name" => "ps",
+            "news_type_id" => $newsType->id
+        ]);
+        NewsTypeTrans::create([
+            "value" => "International News",
+            "language_name" => "en",
+            "news_type_id" => $newsType->id
+        ]);
+    }
+    public function priorityTypes()
+    {
+        $priority = Priority::create([]);
+        PriorityTrans::create([
+            "value" => "اولویت بالا",
+            "language_name" => "fa",
+            "priority_id" => $priority->id
+        ]);
+        PriorityTrans::create([
+            "value" => "لوړ لومړیتوب",
+            "language_name" => "ps",
+            "priority_id" => $priority->id
+        ]);
+        PriorityTrans::create([
+            "value" => "High Priority",
+            "language_name" => "en",
+            "priority_id" => $priority->id
+        ]);
+        $priority = Priority::create([]);
+        PriorityTrans::create([
+            "value" => "اولویت متوسط",
+            "language_name" => "fa",
+            "priority_id" => $priority->id
+        ]);
+        PriorityTrans::create([
+            "value" => "منځنی لومړیتوب",
+            "language_name" => "ps",
+            "priority_id" => $priority->id
+        ]);
+        PriorityTrans::create([
+            "value" => "Medium Priority",
+            "language_name" => "en",
+            "priority_id" => $priority->id
+        ]);
+        $priority = Priority::create([]);
+        PriorityTrans::create([
+            "value" => "اولویت پایین",
+            "language_name" => "fa",
+            "priority_id" => $priority->id
+        ]);
+        PriorityTrans::create([
+            "value" => "ټیټ لومړیتوب",
+            "language_name" => "ps",
+            "priority_id" => $priority->id
+        ]);
+        PriorityTrans::create([
+            "value" => "Low Priority",
+            "language_name" => "en",
+            "priority_id" => $priority->id
+        ]);
+    }
+    public function nidTypes()
+    {
+        $nid = NidType::create([]);
+        NidTypeTrans::create([
+            "value" => "پاسپورت",
+            "language_name" => "fa",
+            "nid_type_id" => $nid->id
+        ]);
+        NidTypeTrans::create([
+            "value" => "پاسپورټ",
+            "language_name" => "ps",
+            "nid_type_id" => $nid->id
+        ]);
+        NidTypeTrans::create([
+            "value" => "Passport",
+            "language_name" => "en",
+            "nid_type_id" => $nid->id
+        ]);
+        $nid = NidType::create([]);
+        NidTypeTrans::create([
+            "value" => "تذکره",
+            "language_name" => "fa",
+            "nid_type_id" => $nid->id
+        ]);
+        NidTypeTrans::create([
+            "value" => "تذکره",
+            "language_name" => "ps",
+            "nid_type_id" => $nid->id
+        ]);
+        NidTypeTrans::create([
+            "value" => "ID card",
+            "language_name" => "en",
+            "nid_type_id" => $nid->id
+        ]);
+    }
     public function statusType()
     {
         $statustype = StatusType::factory()->create([
@@ -604,6 +735,7 @@ class DatabaseSeeder extends Seeder
 
         ]);
     }
+
     public function settings()
     {
         $day = TimeUnit::factory()->create([

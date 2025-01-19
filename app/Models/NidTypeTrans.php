@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Priority extends Model
+class NidTypeTrans extends Model
 {
     protected $guarded = [];
 }

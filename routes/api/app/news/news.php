@@ -7,15 +7,8 @@ use Illuminate\Support\Facades\Route;
 
 
 
-  Route::get('news',[NewsController::class, 'showNews']);
+Route::get('news', [NewsController::class, 'news']);
 
-  
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
-
-  
   Route::post('news/store', [NewsController::class, 'store']);
-
-
-
-
 });

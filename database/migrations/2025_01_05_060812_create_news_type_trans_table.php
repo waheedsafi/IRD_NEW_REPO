@@ -11,16 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('currency_trans', function (Blueprint $table) {
+        Schema::create('news_type_trans', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('currency_id');
-            $table->foreign('currency_id')->references('id')->on('currencies')
+            $table->unsignedBigInteger('news_type_id');
+            $table->foreign('news_type_id')->references('id')->on('news_types')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
             $table->string('language_name');
             $table->foreign('language_name')->references('name')->on('languages')->onUpdate('cascade')
                 ->onDelete('cascade');
-            $table->string('name');
+            $table->string('value');
             $table->timestamps();
         });
     }
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('currency_trans');
+        Schema::dropIfExists('news_type_trans');
     }
 };

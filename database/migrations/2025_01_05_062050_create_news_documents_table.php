@@ -18,7 +18,8 @@ return new class extends Migration
                 ->onUpdate('cascade')
                 ->onDelete('no action');
             $table->string('url');
-            $table->string('extintion',32);
+            $table->string('name');
+            $table->string('extintion', 32);
             $table->timestamps();
         });
     }

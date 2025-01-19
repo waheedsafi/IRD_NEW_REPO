@@ -17,146 +17,130 @@ class NewsController extends Controller
 {
     //
 
-    public function news(Request $request){
+    public function news(Request $request)
+    {
 
-       $locale = App::getLocale();
+        $locale = App::getLocale();
 
-       $query = News::with([
-        'newsTran' =>function ($query) use ($locale){
-            $query->where('language_name',$locale)->select('id','news_id','title');
-        },
-         'priority:id,name',
-        'newsType:id,name'
+        $query = News::with([
+            'newsTran' => function ($query) use ($locale) {
+                $query->where('language_name', $locale)->select('id', 'news_id', 'title');
+            },
+            'priority:id,name',
+            'newsType:id,name'
 
-       ]);
-
-       
-       
-    
-       
-
+        ]);
     }
     public function showNews(Request $request)
-{
+    {
 
 
-    // return News::with('newsDocument')->get();
+        // return News::with('newsDocument')->get();
 
-    $request->validate([
-        'searchValue' => 'string'
-    ]);
-
-    $locale = App::getLocale();
-
-    // Fetching news with optimized relations and filtering
-    $query = News::with([
-        'newsTran' => function ($query) use ($locale) {
-            $query->where('language_name', $locale)
-                ->select('id', 'news_id', 'title', 'contents');
-        },
-        'priority:id,name',
-        'newsType:id,name',
-        'newsDocument:id,news_id,url,extintion',
-    ])->where('visible', 1)
-      ->where('submited', 1);
-
-    // Add search condition if searchValue exists
-    if (!empty($request->searchValue)) {
-        $searchValue = $request->searchValue;
-
-        $query->whereHas('newsTran', function ($subQuery) use ($searchValue) {
-            $subQuery->where('title', 'like', "%{$searchValue}%")
-                ->orWhere('contents', 'like', "%{$searchValue}%");
-        });
-    }
-
-    return $query->get();
-}
-
-
-public function store(NewsStoreRequest $request)
-{
-    $validatedData = $request->validated();
-    $user_id = Auth::id(); // Get authenticated user's ID
-    
-    DB::beginTransaction();
-    
-    try {
-        $news ='';
-        if($request->news_id != ''){
-            $news = News::findOrFail($request->news_id);
-            $news->update([
-             'news_type_id' => $validatedData['news_type_id'],
-            'priority_id' => $validatedData['priority_id'],
-            'user_id' => $user_id,
-            'visible' => 1,
-            'expiry_date' => $validatedData['expiry_date'],
-            'submited' => 1
-            ]);
-        }else{
-        // Create News
-        $news = News::create([
-            
-            'news_type_id' => $validatedData['news_type_id'],
-            'priority_id' => $validatedData['priority_id'],
-            'user_id' => $user_id,
-            'visible' => 1,
-            'expiry_date' => $validatedData['expiry_date'],
-            'submited' => 1
-
+        $request->validate([
+            'searchValue' => 'string'
         ]);
-    }
-        // Create NewsTrans (translations)
-        $languages = [
-            ['name' => LanguageEnum::default->value, 'content' => $validatedData['contents_en'],'title' => $validatedData['title_en']],
-            ['name' => LanguageEnum::pashto->value, 'content' => $validatedData['contents_ps'],'title' => $validatedData['title_ps']],
-            ['name' => LanguageEnum::farsi->value, 'content' => $validatedData['contents_fa'],'title' => $validatedData['title_fa']],
 
-        ];
-        foreach ($languages as $language) {
-            NewsTran::create([
-                'news_id' => $news->id,
-                'language_name' => $language['name'],
-                'contents' => $language['content'],
-                'title' => $language['title']
-            ]);
+        $locale = App::getLocale();
+
+        // Fetching news with optimized relations and filtering
+        $query = News::with([
+            'newsTran' => function ($query) use ($locale) {
+                $query->where('language_name', $locale)
+                    ->select('id', 'news_id', 'title', 'contents');
+            },
+            'priority:id,name',
+            'newsType:id,name',
+            'newsDocument:id,news_id,url,extintion',
+        ])->where('visible', 1)
+            ->where('submited', 1);
+
+        // Add search condition if searchValue exists
+        if (!empty($request->searchValue)) {
+            $searchValue = $request->searchValue;
+
+            $query->whereHas('newsTran', function ($subQuery) use ($searchValue) {
+                $subQuery->where('title', 'like', "%{$searchValue}%")
+                    ->orWhere('contents', 'like', "%{$searchValue}%");
+            });
         }
 
-        // Create NewsDocuments
-    
-        $path = $this->storeDocument($request,'public',"news/{$news->id}");
-
-        NewsDocument::create([
-            'news_id' => $news->id,
-            'url' =>$path['path'],
-            'extintion' =>$path['extintion']
+        return $query->get();
+    }
 
 
+    public function store(NewsStoreRequest $request)
+    {
+        $validatedData = $request->validated();
+        $authUser = $request->user();
+
+        // Begin transaction
+        DB::beginTransaction();
+
+        $news = News::create([
+            "user_id" => $authUser->id,
+            "visible" => true,
+            "date" => $validatedData["date"],
+            "visibility_date" => $request->visibility_date,
+            "priority_id" => $validatedData["priority"],
+            "news_type_id" => $validatedData["type"]
+        ]);
+        NewsTran::create([
+            "news_id" => $news->id,
+            "language_name" => LanguageEnum::default->value,
+            "title" => $validatedData["title_english"],
+            "contents" => $validatedData["content_english"],
+        ]);
+        NewsTran::create([
+            "news_id" => $news->id,
+            "language_name" => LanguageEnum::pashto->value,
+            "title" => $validatedData["title_pashto"],
+            "contents" => $validatedData["content_pashto"],
+        ]);
+        NewsTran::create([
+            "news_id" => $news->id,
+            "language_name" => LanguageEnum::farsi->value,
+            "title" => $validatedData["title_farsi"],
+            "contents" => $validatedData["content_farsi"],
         ]);
 
+        // 3. Store documents
+        $document = $this->storeDocument($request, "public", "news", 'cover_pic');
+        NewsDocument::create([
+            "news_id" => $news->id,
+            "url" => $document['path'],
+            "extintion" => $document['extintion'],
+            "name" => $document['name'],
+        ]);
 
-        // Commit transaction
+        // If everything goes well, commit the transaction
         DB::commit();
-
         // Return a success response
-           return response()->json(
+
+        $title = $validatedData["title_english"];
+        $locale = App::getLocale();
+        if ($locale === LanguageEnum::farsi->value)
+            $title = $validatedData["title_farsi"];
+        else if ($locale === LanguageEnum::pashto->value)
+            $title = $validatedData["title_pashto"];
+
+        return response()->json(
             [
                 'message' => __('app_translation.success'),
-            
+                'news' => [
+                    "id" => $news->id,
+                    "user" => $authUser->username,
+                    "visible" => true,
+                    "visibility_date" => $request->visibility_date,
+                    "title" => $title,
+                    "news_type" => $request->type_name,
+                    "priority" => $request->priority_name,
+                    "created_at" => $news->created_at
+                ]
             ],
             200,
             [],
             JSON_UNESCAPED_UNICODE
         );
-
-    } catch (\Exception $e) {
-        // Rollback transaction on error
-        DB::rollBack();
-        return response()->json([
-            'message' => __('app_translation.server_error')
-        ],500);
     }
-}
-
-
 }

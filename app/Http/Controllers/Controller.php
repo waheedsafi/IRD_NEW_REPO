@@ -12,32 +12,28 @@ use Illuminate\Support\Facades\App;
 
 abstract class Controller
 {
-    public function storeProfile(Request $request,$dynamic_path ='user-profile')
+    public function storeProfile(Request $request, $dynamic_path = 'user-profile')
     {
-        try {
-            // 1. If storage not exist create it.
-           
-            $path = storage_path() . "/app/private/".$dynamic_path."/";
-            // Checks directory exist if not will be created.
-            !is_dir($path) &&
-                mkdir($path, 0777, true);
+        // 1. If storage not exist create it.
+        $path = storage_path() . "/app/private/" . $dynamic_path . "/";
+        // Checks directory exist if not will be created.
+        !is_dir($path) &&
+            mkdir($path, 0777, true);
 
-            // 2. Store image in filesystem
-            $fileName = null;
-            if ($request->hasFile('profile')) {
-                $file = $request->file('profile');
-                if ($file != null) {
-                    $fileName = Str::uuid() . '.' . $file->extension();
-                    $file->move($path, $fileName);
+        // 2. Store image in filesystem
+        $fileName = null;
+        if ($request->hasFile('profile')) {
+            $file = $request->file('profile');
+            if ($file != null) {
+                $fileName = Str::uuid() . '.' . $file->extension();
+                $file->move($path, $fileName);
 
-                    return "private/".$dynamic_path."/" . $fileName;
-                }
+                return "private/" . $dynamic_path . "/" . $fileName;
             }
-        } catch (Exception $err) {
         }
         return null;
     }
-    public function storeDocument(Request $request,$access ='private', $folder)
+    public function storeDocument(Request $request, $access = 'private', $folder, $docName = 'document')
     {
         // 1. If storage not exist create it.
         $path = storage_path() . "/app/{$access}/documents/{$folder}/";
@@ -47,9 +43,9 @@ abstract class Controller
 
         // 2. Store image in filesystem
         $fileName = null;
-        if ($request->hasFile('document')) {
-            $file = $request->file('document');
-            $fileExtention =$file->extension();
+        if ($request->hasFile($docName)) {
+            $file = $request->file($docName);
+            $fileExtention = $file->extension();
             if ($file != null) {
                 $fileName = Str::uuid() . '.' . $fileExtention;
                 $file->move($path, $fileName);

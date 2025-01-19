@@ -17,6 +17,7 @@ require __DIR__ . '/api/template/audit.php';
 require __DIR__ . '/api/template/dashboard.php';
 require __DIR__ . '/api/template/location.php';
 require __DIR__ . '/api/app/donor/donor.php';
+require __DIR__ . '/api/app/news/newsType.php';
 require __DIR__ . '/api/app/news/news.php';
 require __DIR__ . '/api/app/ngo/ngo.php';
 require __DIR__ . '/api/app/ngo/ngoType.php';
