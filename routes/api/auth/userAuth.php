@@ -5,7 +5,7 @@ use App\Http\Controllers\api\auth\AuthController;
 use App\Http\Controllers\api\auth\NgoAuthController;
 
 Route::prefix('v1')->middleware(['api.key'])->group(function () {
-    Route::post('/auth-login', [AuthController::class, 'login']);
+    Route::post('/auth-user', [AuthController::class, 'login']);
 
     Route::get('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
