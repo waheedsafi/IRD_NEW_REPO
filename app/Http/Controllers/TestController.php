@@ -22,6 +22,26 @@ class TestController extends Controller
     {
         $locale = "en";
 
+     $query =  DB::table('news as n')
+    ->join('news_trans as ntr', 'ntr.news_id', '=', 'n.id')
+    ->join('news_types as nt','nt.id','=','n.news_type_id')
+    ->join('news_type_trans as ntt','ntt.news_type_id','=','nt.id')
+    ->join('priorities as pri','pri.id','=','n.priority_id')
+    ->join('priority_trans as pt','pt.priority_id','=','pri.id')
+    ->join('users as us','us.id','=','n.user_id')
+    ->leftJoin('news_documents as nd','nd.news_id', '=', 'n.id')
+    ->where('ntr.language_name',$locale)
+    ->where('pt.language_name',$locale)
+    ->where('ntt.language_name',$locale)
+    ->select('ntr.contents')
+    ->get();
+    return $query;
+
+
+dd($query->toSql(), $query->getBindings());
+    // ->get();
+
+        // ->join('')
         $query = DB::table('news AS n')
             // Join for news translations (title, contents)
             ->join('news_trans AS ntr', function ($join) use ($locale) {
@@ -59,6 +79,8 @@ class TestController extends Controller
             )
             // Get the data
             ->get();
+
+            return $query;
 
         // $query  = DB::table('news AS n')
         //     ->leftJoin('news_trans AS ntr', function ($join) use ($locale) {
