@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\News;
 use App\Models\User;
 use App\Models\District;
-use Illuminate\Http\Request;
 
-use App\Enums\StatusTypeEnum;
 use App\Models\Province;
 use App\Models\Translate;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
+use App\Enums\StatusTypeEnum;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use function Laravel\Prompts\select;
 use Illuminate\Support\Facades\Redis;
@@ -19,8 +20,85 @@ class TestController extends Controller
 {
     public function index(Request $request)
     {
+        $locale = "en";
+
+        $query = DB::table('news AS n')
+            // Join for news translations (title, contents)
+            ->join('news_trans AS ntr', function ($join) use ($locale) {
+                $join->on('ntr.news_id', '=', 'n.id')
+                    ->where('ntr.language_name', '=', $locale); // Filter by language
+            })
+            // Join for news type translations
+            ->join('news_type_trans AS ntt', function ($join) use ($locale) {
+                $join->on('ntt.news_type_id', '=', 'n.news_type_id')
+                    ->where('ntt.language_name', '=', $locale); // Filter by language
+            })
+            // Join for priority translations
+            ->join('priority_trans AS pt', function ($join) use ($locale) {
+                $join->on('pt.priority_id', '=', 'n.priority_id')
+                    ->where('pt.language_name', '=', $locale); // Filter by language
+            })
+            // Join for user (assuming the `users` table has the `username` field)
+            ->join('users AS u', 'u.id', '=', 'n.user_id')
+            // Left join for documents (to get all documents related to the news)
+            ->leftJoin('news_documents AS nd', 'nd.news_id', '=', 'n.id')
+            // Select required fields from all tables
+            ->select(
+                'n.id',
+                'n.visible',
+                'n.date',
+                'n.visibility_date',
+                'n.news_type_id',
+                'ntt.value AS news_type',
+                'n.priority_id',
+                'pt.value AS priority',
+                'u.username AS user',
+                'ntr.title',
+                'ntr.contents',
+                'nd.url AS image'  // Assuming you want the first image URL
+            )
+            // Get the data
+            ->get();
+
+        // $query  = DB::table('news AS n')
+        //     ->leftJoin('news_trans AS ntr', function ($join) use ($locale) {
+        //         $join->on('ntr.news_id', '=', 'n.id')
+        //             ->where('ntr.language_name', '=', $locale);
+        //     })
+        //     ->leftJoin('news_type_trans AS ntt', function ($join) use ($locale) {
+        //         $join->on('ntt.news_type_id', '=', 'n.news_type_id')
+        //             ->where('ntt.language_name', '=', $locale);
+        //     })
+        //     ->leftJoin('priority_trans AS pt', function ($join) use ($locale) {
+        //         $join->on('pt.priority_id', '=', 'n.priority_id')
+        //             ->where('pt.language_name', '=', $locale);
+        //     })
+        //     ->leftJoin('users AS u', function ($join) {
+        //         $join->on('u.id', '=', 'n.user_id');
+        //     })
+        //     ->leftJoin('news_documents AS nd', 'nd.news_id', '=', 'n.id')
+        //     ->distinct()
+        //     ->select(
+        //         // 'n.id',
+        //         // "n.visible",
+        //         // "date",
+        //         // "visibility_date",
+        //         // 'n.news_type_id',
+        //         // 'ntt.value AS news_type',
+        //         // 'n.priority_id',
+        //         // 'pt.value AS priority',
+        //         // 'u.username AS user',
+        //         // 'ntr.title',
+        //         // 'ntr.contents',
+        //         // 'nd.url as image',
+        //     )
+        //     ->get();
+
+
+        return $query;
+
+
         $ngoId = 2;
-        $locale = "fa";
         $user = DB::table('ngos AS n')
             ->where('n.id', '=', $ngoId)
             ->join('ngo_trans AS ntr', function ($join) use ($locale) {

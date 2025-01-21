@@ -9,38 +9,28 @@ use Illuminate\Database\Eloquent\Model;
 
 class News extends Model
 {
-    //
-
-
     protected $guarded = [];
+    public function newsType()
+    {
 
-
-
-
-    
-   
-    public function newsType(){
-
-        return $this->belongsTo(NewsType::class,'news_type_id');
+        return $this->belongsTo(NewsType::class, 'news_type_id');
     }
 
-      public function priority(){
+    public function priority()
+    {
 
-        return $this->belongsTo(Priority::class,'priority_id');
+        return $this->belongsTo(Priority::class, 'priority_id');
     }
 
-    public function newsDocument(){
-        
+    public function newsDocument()
+    {
+
         return $this->hasMany(NewsDocument::class);
     }
 
-    public function newsTran(){
+    public function newsTran()
+    {
 
         return $this->hasMany(NewsTran::class);
-   
     }
-
-
-
-
 }

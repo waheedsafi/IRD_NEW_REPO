@@ -1,22 +1,23 @@
 <?php
 
-namespace App\Http\Controllers\api\app\news;
+namespace App\Http\Controllers\api\template;
 
-use App\Models\NewsType;
-use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
+use App\Models\Priority;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 
-class NewsTypeController extends Controller
+class PriorityController extends Controller
 {
-    public function newsTypes()
+    public function priorities()
     {
         $locale = App::getLocale();
-        $tr = NewsType::join("news_type_trans", function ($join) use ($locale) {
+        $tr = Priority::join("priority_trans", function ($join) use ($locale) {
             // Join Translate table with the related model (e.g., 'destinations') based on translable_id
-            $join->on('news_type_trans.news_type_id', '=', "news_types.id")
-                ->where('news_type_trans.language_name', '=', $locale);
+            $join->on('priority_trans.priority_id', '=', "priorities.id")
+                ->where('priority_trans.language_name', '=', $locale);
         })
-            ->select("news_type_trans.value AS name", 'news_types.id',)
+            ->select("priority_trans.value AS name", 'priorities.id',)
             ->get();
         return response()->json($tr, 200, [], JSON_UNESCAPED_UNICODE);
     }

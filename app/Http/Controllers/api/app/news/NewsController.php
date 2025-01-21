@@ -15,59 +15,17 @@ use Illuminate\Support\Facades\DB;
 
 class NewsController extends Controller
 {
-    //
-
-    public function news(Request $request)
+    public function authNewses(Request $request)
     {
-
         $locale = App::getLocale();
-
         $query = News::with([
             'newsTran' => function ($query) use ($locale) {
                 $query->where('language_name', $locale)->select('id', 'news_id', 'title');
             },
             'priority:id,name',
             'newsType:id,name'
-
         ]);
     }
-    public function showNews(Request $request)
-    {
-
-
-        // return News::with('newsDocument')->get();
-
-        $request->validate([
-            'searchValue' => 'string'
-        ]);
-
-        $locale = App::getLocale();
-
-        // Fetching news with optimized relations and filtering
-        $query = News::with([
-            'newsTran' => function ($query) use ($locale) {
-                $query->where('language_name', $locale)
-                    ->select('id', 'news_id', 'title', 'contents');
-            },
-            'priority:id,name',
-            'newsType:id,name',
-            'newsDocument:id,news_id,url,extintion',
-        ])->where('visible', 1)
-            ->where('submited', 1);
-
-        // Add search condition if searchValue exists
-        if (!empty($request->searchValue)) {
-            $searchValue = $request->searchValue;
-
-            $query->whereHas('newsTran', function ($subQuery) use ($searchValue) {
-                $subQuery->where('title', 'like', "%{$searchValue}%")
-                    ->orWhere('contents', 'like', "%{$searchValue}%");
-            });
-        }
-
-        return $query->get();
-    }
-
 
     public function store(NewsStoreRequest $request)
     {
@@ -118,11 +76,15 @@ class NewsController extends Controller
         // Return a success response
 
         $title = $validatedData["title_english"];
+        $contents = $validatedData["content_english"];
         $locale = App::getLocale();
-        if ($locale === LanguageEnum::farsi->value)
+        if ($locale === LanguageEnum::farsi->value) {
             $title = $validatedData["title_farsi"];
-        else if ($locale === LanguageEnum::pashto->value)
+            $contents = $validatedData["content_farsi"];
+        } else if ($locale === LanguageEnum::pashto->value) {
             $title = $validatedData["title_pashto"];
+            $contents = $validatedData["content_pashto"];
+        }
 
         return response()->json(
             [
@@ -135,7 +97,10 @@ class NewsController extends Controller
                     "title" => $title,
                     "news_type" => $request->type_name,
                     "priority" => $request->priority_name,
-                    "created_at" => $news->created_at
+                    "date" => $validatedData["date"],
+                    "created_at" => $news->created_at,
+                    "contents" => $contents,
+                    "image" => $document['path'],
                 ]
             ],
             200,
