@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('news', [NewsController::class, 'news']);
 
 Route::prefix('v1')->group(function () {
-  Route::get('/public/newses', [NewsController::class, "publicNewses"]);
+  Route::get('/public/newses/{page}', [NewsController::class, "publicNewses"]);
   Route::get('/public/news/{id}', [NewsController::class, "publicNews"]);
 });
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
