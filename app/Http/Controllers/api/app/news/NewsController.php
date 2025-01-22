@@ -9,6 +9,8 @@ use App\Http\Requests\app\news\NewsUpdateRequest;
 use App\Models\News;
 use App\Models\NewsDocument;
 use App\Models\NewsTran;
+use App\Models\NewsTypeTrans;
+use App\Models\PriorityTrans;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
@@ -74,6 +76,59 @@ class NewsController extends Controller
         );
     }
 
+  public function authNews(Request $request, $id)
+{
+    $locale = App::getLocale();
+
+    // Fetch the news along with its related data using eager loading
+    $news = News::with(['newsDocument', 'newsType.newsTypeTran', 'priority.priorityTran'])
+        ->find($id);
+
+    if (!$news) {
+        return response()->json(['message' => 'News not found'], 404);
+    }
+
+    // Fetch translations for the news
+    $translations = NewsTran::where('news_id', $id)
+        ->whereIn('language_name', ['en', 'ps', 'fa'])
+        ->get()
+        ->keyBy('language_name');
+
+    // Retrieve individual translations or set defaults
+    $newsEnTran = $translations->get('en', (object) ['title' => '', 'contents' => '']);
+    $newsPsTran = $translations->get('ps', (object) ['title' => '', 'contents' => '']);
+    $newsFaTran = $translations->get('fa', (object) ['title' => '', 'contents' => '']);
+
+    // Prepare the response
+    return response()->json([
+        'news' => [
+            'id' => $news->id,
+            'title_english' => $newsEnTran->title,
+            'title_pashto' => $newsPsTran->title,
+            'title_farsi' => $newsFaTran->title,
+            'contents_english' => $newsEnTran->contents,
+            'contents_pashto' => $newsPsTran->contents,
+            'contents_farsi' => $newsFaTran->contents,
+            'type' =>[ 'id'=>$news->news_type_id,
+             'value' =>$news->newsType->newsTypeTran
+                ->where('language_name', $locale)
+                ->first()->value ?? 'Type not found'
+            ],
+            'priority' =>[ 'id'=>$news->priority_id,
+                'value' =>$news->priority->priorityTran
+                ->where('language_name', $locale)
+                ->first()->value ?? 'Priority not found'],
+            'document' => [
+                'name' => $news->newsDocument->name ?? '',
+                'path' => $news->newsDocument->url ?? '',
+            ],
+            'date' => $news->date,
+            'visibility_date' => $news->visibility_date,
+        ]
+    ], 200, [], JSON_UNESCAPED_UNICODE);
+}
+
+
     public function authNews(Request $request)
     {
         $locale = App::getLocale();
@@ -106,7 +161,6 @@ class NewsController extends Controller
 
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
-
     public function publicNewses(Request $request, $page)
     {
         $perPage = $request->input('per_page', 10); // Number of records per page
