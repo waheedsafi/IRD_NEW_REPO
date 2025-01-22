@@ -27,7 +27,7 @@ return new class extends Migration
                 ->onDelete('no action');
             $table->boolean('visible');
             $table->string('date', 32);
-            $table->string('visibility_date', 32);
+            $table->string('visibility_date', 32)->nullable();
             $table->timestamps();
         });
     }

@@ -542,7 +542,7 @@ class DatabaseSeeder extends Seeder
             "news_type_id" => $newsType->id
         ]);
 
-        $newsType = Priority::create([]);
+        $newsType = NewsType::create([]);
         NewsTypeTrans::create([
             "value" => "اخبار جهان",
             "language_name" => "fa",
