@@ -348,7 +348,7 @@ class NewsController extends Controller
             // Delete the old document if it exists
             $existingDocument = NewsDocument::where('news_id', $news->id)->first();
             if ($existingDocument) {
-                Storage::delete($existingDocument->url);
+                Storage::delete('app/'.$existingDocument->url);
                 $existingDocument->delete();
             }
 
