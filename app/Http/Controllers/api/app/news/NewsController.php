@@ -76,91 +76,61 @@ class NewsController extends Controller
         );
     }
 
-  public function authNews(Request $request, $id)
-{
-    $locale = App::getLocale();
-
-    // Fetch the news along with its related data using eager loading
-    $news = News::with(['newsDocument', 'newsType.newsTypeTran', 'priority.priorityTran'])
-        ->find($id);
-
-    if (!$news) {
-        return response()->json(['message' => 'News not found'], 404);
-    }
-
-    // Fetch translations for the news
-    $translations = NewsTran::where('news_id', $id)
-        ->whereIn('language_name', ['en', 'ps', 'fa'])
-        ->get()
-        ->keyBy('language_name');
-
-    // Retrieve individual translations or set defaults
-    $newsEnTran = $translations->get('en', (object) ['title' => '', 'contents' => '']);
-    $newsPsTran = $translations->get('ps', (object) ['title' => '', 'contents' => '']);
-    $newsFaTran = $translations->get('fa', (object) ['title' => '', 'contents' => '']);
-
-    // Prepare the response
-    return response()->json([
-        'news' => [
-            'id' => $news->id,
-            'title_english' => $newsEnTran->title,
-            'title_pashto' => $newsPsTran->title,
-            'title_farsi' => $newsFaTran->title,
-            'contents_english' => $newsEnTran->contents,
-            'contents_pashto' => $newsPsTran->contents,
-            'contents_farsi' => $newsFaTran->contents,
-            'type' =>[ 'id'=>$news->news_type_id,
-             'value' =>$news->newsType->newsTypeTran
-                ->where('language_name', $locale)
-                ->first()->value ?? 'Type not found'
-            ],
-            'priority' =>[ 'id'=>$news->priority_id,
-                'value' =>$news->priority->priorityTran
-                ->where('language_name', $locale)
-                ->first()->value ?? 'Priority not found'],
-            'document' => [
-                'name' => $news->newsDocument->name ?? '',
-                'path' => $news->newsDocument->url ?? '',
-            ],
-            'date' => $news->date,
-            'visibility_date' => $news->visibility_date,
-        ]
-    ], 200, [], JSON_UNESCAPED_UNICODE);
-}
-
-
-    public function authNews(Request $request)
+    public function authNews(Request $request, $id)
     {
         $locale = App::getLocale();
-        $query =  DB::table('news as n')
-            ->join('news_trans as ntr', 'ntr.news_id', '=', 'n.id')
-            ->join('news_type_trans as ntt', 'ntt.news_type_id', '=', 'n.news_type_id')
-            ->join('priority_trans as pt', 'pt.priority_id', '=', 'n.priority_id')
-            ->join('users as us', 'us.id', '=', 'n.user_id')
-            ->leftJoin('news_documents as nd', 'nd.news_id', '=', 'n.id')
-            ->where('pt.language_name', $locale)
-            ->where('ntt.language_name', $locale)
-            ->select(
-                'n.id',
-                'n.visible',
-                'n.date',
-                'n.visibility_date',
-                'n.news_type_id',
-                'ntt.value AS news_type',
-                'n.priority_id',
-                'pt.value AS priority',
-                'us.username AS user',
-                'ntr.title',
-                'ntr.contents',
-                'nd.url AS image'  // Assuming you want the first image URL
-            )
-            ->get();
 
+        // Fetch the news along with its related data using eager loading
+        $news = News::with(['newsDocument', 'newsType.newsTypeTran', 'priority.priorityTran'])
+            ->find($id);
+
+        if (!$news) {
+            return response()->json(['message' => 'News not found'], 404);
+        }
+
+        // Fetch translations for the news
+        $translations = NewsTran::where('news_id', $id)
+            ->whereIn('language_name', ['en', 'ps', 'fa'])
+            ->get()
+            ->keyBy('language_name');
+
+        // Retrieve individual translations or set defaults
+        $newsEnTran = $translations->get('en', (object) ['title' => '', 'contents' => '']);
+        $newsPsTran = $translations->get('ps', (object) ['title' => '', 'contents' => '']);
+        $newsFaTran = $translations->get('fa', (object) ['title' => '', 'contents' => '']);
+
+        // Prepare the response
         return response()->json([
-            "news" => $query
-
+            'news' => [
+                'id' => $news->id,
+                'title_english' => $newsEnTran->title,
+                'title_pashto' => $newsPsTran->title,
+                'title_farsi' => $newsFaTran->title,
+                'contents_english' => $newsEnTran->contents,
+                'contents_pashto' => $newsPsTran->contents,
+                'contents_farsi' => $newsFaTran->contents,
+                'type' => [
+                    'id' => $news->news_type_id,
+                    'value' => $news->newsType->newsTypeTran
+                        ->where('language_name', $locale)
+                        ->first()->value ?? 'Type not found'
+                ],
+                'priority' => [
+                    'id' => $news->priority_id,
+                    'value' => $news->priority->priorityTran
+                        ->where('language_name', $locale)
+                        ->first()->value ?? 'Priority not found'
+                ],
+                'document' => [
+                    'name' => $news->newsDocument->name ?? '',
+                    'path' => $news->newsDocument->url ?? '',
+                ],
+                'date' => $news->date,
+                'visibility_date' => $news->visibility_date,
+            ]
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
+
     public function publicNewses(Request $request, $page)
     {
         $perPage = $request->input('per_page', 10); // Number of records per page
@@ -191,6 +161,7 @@ class NewsController extends Controller
             );
 
 
+        $this->applyDate($query, $request);
         $this->applyFilters($query, $request);
         $this->applySearch($query, $request);
 
@@ -328,10 +299,10 @@ class NewsController extends Controller
         $endDate = $request->input('filters.date.endDate');
 
         if ($startDate) {
-            $query->where('n.created_at', '>=', $startDate);
+            $query->where('n.date', '>=', $startDate);
         }
         if ($endDate) {
-            $query->where('n.created_at', '<=', $endDate);
+            $query->where('n.date', '<=', $endDate);
         }
     }
 
