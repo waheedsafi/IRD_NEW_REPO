@@ -23,8 +23,6 @@ class NewsController extends Controller
         $perPage = $request->input('per_page', 10); // Number of records per page
         $page = $request->input('page', 1); // Current page
         $locale = App::getLocale();
-        $perPage = $request->input('per_page', 10); // Number of records per page
-        $page = $request->input('page', 1); // Current page
 
         $query =  DB::table('news as n')
             ->join('news_trans as ntr', 'ntr.news_id', '=', 'n.id')
@@ -106,9 +104,9 @@ class NewsController extends Controller
                 'title_english' => $newsEnTran->title,
                 'title_pashto' => $newsPsTran->title,
                 'title_farsi' => $newsFaTran->title,
-                'contents_english' => $newsEnTran->contents,
-                'contents_pashto' => $newsPsTran->contents,
-                'contents_farsi' => $newsFaTran->contents,
+                'content_english' => $newsEnTran->contents,
+                'content_pashto' => $newsPsTran->contents,
+                'content_farsi' => $newsFaTran->contents,
                 'type' => [
                     'id' => $news->news_type_id,
                     'value' => $news->newsType->newsTypeTran
@@ -121,11 +119,12 @@ class NewsController extends Controller
                         ->where('language_name', $locale)
                         ->first()->value ?? 'Priority not found'
                 ],
-                'document' => [
+                'cover_pic' => [
                     'name' => $news->newsDocument->name ?? '',
                     'path' => $news->newsDocument->url ?? '',
                 ],
                 'date' => $news->date,
+                'visible' => $news->visible,
                 'visibility_date' => $news->visibility_date,
             ]
         ], 200, [], JSON_UNESCAPED_UNICODE);
@@ -149,7 +148,6 @@ class NewsController extends Controller
                 'n.id as id',
                 'n.visible',
                 'n.date',
-                'n.visibility_date',
                 'n.news_type_id',
                 'ntt.value AS news_type',
                 'n.priority_id',
@@ -157,9 +155,8 @@ class NewsController extends Controller
                 'ntr.title',
                 'ntr.contents',
                 'nd.url AS image',  // Assuming you want the first image URL
-                'n.create_at'
+                'n.created_at'
             );
-
 
         $this->applyDate($query, $request);
         $this->applyFilters($query, $request);
@@ -169,7 +166,7 @@ class NewsController extends Controller
 
         return response()->json(
             [
-                "users" => $result,
+                "newses" => $result,
             ],
             200,
             [],
@@ -291,6 +288,95 @@ class NewsController extends Controller
             JSON_UNESCAPED_UNICODE
         );
     }
+
+    public function update(NewsUpdateRequest $request)
+    {
+        $request->validated();
+        $authUser = $request->user();
+
+        $id = $request->id;
+        // Find the news record or throw an exception if not found
+        $news = News::find($id);
+        if (!$news) {
+            return response()->json(['message' => __('app_translation.news_not_found')], 404);
+        }
+
+        // Begin transaction
+        DB::beginTransaction();
+        $news->update([
+            "user_id" => $authUser->id,
+            "visible" => $request->visible,
+            "date" => $request->date,
+            "visibility_date" => $request->visibility_date,
+            "priority_id" => $request->priority,
+            "news_type_id" => $request->type
+        ]);
+
+        // Update translations
+        NewsTran::updateOrCreate(
+            ["news_id" => $news->id, "language_name" => LanguageEnum::default->value],
+            ["title" => $request->title_english, "contents" => $request->content_english]
+        );
+
+        NewsTran::updateOrCreate(
+            ["news_id" => $news->id, "language_name" => LanguageEnum::pashto->value],
+            ["title" => $request->title_pashto, "contents" => $request->content_pashto]
+        );
+
+        NewsTran::updateOrCreate(
+            ["news_id" => $news->id, "language_name" => LanguageEnum::farsi->value],
+            ["title" => $request->title_farsi, "contents" => $request->content_farsi]
+        );
+
+        // Update document if a new one is uploaded
+        $existingDocument = NewsDocument::where('news_id', $news->id)->first();
+        if (!$existingDocument) {
+            return response()->json(['message' => __('app_translation.cover_pic_not_found')], 404);
+        }
+        // 1. Check cover_pic is changed
+        if ($existingDocument->url !== $request->cover_pic) {
+            $path = storage_path('app/' . $existingDocument->url);
+
+            if (file_exists($path)) {
+                unlink($path);
+            }
+            // 1.2 update document
+            $document = $this->storeDocument($request, "public", "news", 'cover_pic');
+            $existingDocument->url = $document['path'];
+            $existingDocument->extintion = $document['extintion'];
+            $existingDocument->name = $document['name'];
+            $existingDocument->save();
+        }
+
+        // Commit transaction
+        DB::commit();
+
+        // Return a success response
+        return response()->json(
+            [
+                'message' => __('app_translation.success')
+            ],
+            200,
+            [],
+            JSON_UNESCAPED_UNICODE
+        );
+    }
+    public function destroy($id)
+    {
+        $news = News::find($id);
+        if ($news) {
+            // 1. Delete Translation
+
+            return response()->json([
+                'message' => __('app_translation.success'),
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+        } else
+            return response()->json([
+                'message' => __('app_translation.failed'),
+            ], 400, [], JSON_UNESCAPED_UNICODE);
+    }
+
+
     // date function 
     protected function applyDate($query, $request)
     {
@@ -305,106 +391,6 @@ class NewsController extends Controller
             $query->where('n.date', '<=', $endDate);
         }
     }
-
-    public function update(NewsUpdateRequest $request)
-    {
-        $validatedData = $request->validated();
-        $authUser = $request->user();
-
-        $id = $validatedData->id;
-        // Begin transaction
-        DB::beginTransaction();
-        // Find the news record or throw an exception if not found
-        $news = News::findOrFail($id);
-
-        // Update news fields
-        $news->update([
-            "user_id" => $authUser->id,
-            "visible" => $validatedData["visible"],
-            "date" => $validatedData["date"],
-            "visibility_date" => $validatedData["visibility_date"],
-            "priority_id" => $validatedData["priority"],
-            "news_type_id" => $validatedData["type"]
-        ]);
-
-        // Update translations
-        NewsTran::updateOrCreate(
-            ["news_id" => $news->id, "language_name" => LanguageEnum::default->value],
-            ["title" => $validatedData["title_english"], "contents" => $validatedData["content_english"]]
-        );
-
-        NewsTran::updateOrCreate(
-            ["news_id" => $news->id, "language_name" => LanguageEnum::pashto->value],
-            ["title" => $validatedData["title_pashto"], "contents" => $validatedData["content_pashto"]]
-        );
-
-        NewsTran::updateOrCreate(
-            ["news_id" => $news->id, "language_name" => LanguageEnum::farsi->value],
-            ["title" => $validatedData["title_farsi"], "contents" => $validatedData["content_farsi"]]
-        );
-
-        // Update document if a new one is uploaded
-        if ($request->hasFile('cover_pic')) {
-            // Delete the old document if it exists
-            $existingDocument = NewsDocument::where('news_id', $news->id)->first();
-            if ($existingDocument) {
-                Storage::delete('app/'.$existingDocument->url);
-                $existingDocument->delete();
-            }
-
-            // Store new document
-            $document = $this->storeDocument($request, "public", "news", 'cover_pic');
-
-            NewsDocument::create([
-                "news_id" => $news->id,
-                "url" => $document['path'],
-                "extintion" => $document['extintion'],
-                "name" => $document['name'],
-            ]);
-        }
-
-        // Commit transaction
-        DB::commit();
-
-        // Prepare localized title and content
-        $title = $validatedData["title_english"];
-        $contents = $validatedData["content_english"];
-        $locale = App::getLocale();
-
-        if ($locale === LanguageEnum::farsi->value) {
-            $title = $validatedData["title_farsi"];
-            $contents = $validatedData["content_farsi"];
-        } elseif ($locale === LanguageEnum::pashto->value) {
-            $title = $validatedData["title_pashto"];
-            $contents = $validatedData["content_pashto"];
-        }
-
-        // Return a success response
-        return response()->json(
-            [
-                'message' => __('app_translation.success'),
-                'news' => [
-                    "id" => $news->id,
-                    "user" => $authUser->username,
-                    "visible" => $news->visible,
-                    "visibility_date" => $news->visibility_date,
-                    "title" => $title,
-                    "news_type" => $request->type_name,
-                    "priority" => $request->priority_name,
-                    "date" => $news->date,
-                    "updated_at" => $news->updated_at,
-                    "contents" => $contents,
-                    "image" => $document['path'],
-
-                ]
-            ],
-            200,
-            [],
-            JSON_UNESCAPED_UNICODE
-        );
-    }
-
-
     // search function 
     protected function applySearch($query, $request)
     {

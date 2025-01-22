@@ -22,6 +22,8 @@ return [
     'email_not_found' => 'ایمیل پیدا نشد.',
     'file_not_found' => 'فایل پیدا نشد.',
     'destination_not_found' => 'موقعیت یافت نشد.',
-    "newPassword" => "رمز عبور جدید",
-    "confirmPassword" => "تایید رمز عبور"
+    "new_password" => "رمز عبور جدید",
+    "confirm_password" => "تایید رمز عبور",
+    'news_not_found' => 'اخبار یافت نشد.',
+    'cover_pic_not_found' => 'تصویر جلد یافت نشد.'
 ];
