@@ -19,6 +19,7 @@ return new class extends Migration
                 ->onDelete('no action');
             $table->string('contact',32);
             $table->string('email',64);
+            $table->string('profile');
     
             $table->timestamps();
         });

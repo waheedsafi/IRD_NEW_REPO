@@ -20,7 +20,6 @@ return new class extends Migration
             $table->string('language_name');
             $table->foreign('language_name')->references('name')->on('languages')->onUpdate('cascade')
              ->onDelete('cascade');
-             $table->string('detail',256);
              $table->string('name',64);
             $table->timestamps();
         });
