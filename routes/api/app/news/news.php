@@ -18,4 +18,6 @@ Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(
   Route::get('/user/newses/{page}', [NewsController::class, "authNewses"]);
   Route::get('/user/news/{id}', [NewsController::class, "authNews"]);
   Route::post('news/store', [NewsController::class, 'store']);
+  Route::post('/news/update', [NewsController::class, "update"]);
+  Route::delete('/news/{id}', [NewsController::class, "destroy"]);
 });

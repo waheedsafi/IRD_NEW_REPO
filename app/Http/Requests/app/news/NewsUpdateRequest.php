@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\app\news;
 
+use App\Rules\StringOrFileRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class NewsUpdateRequest extends FormRequest
@@ -21,27 +22,22 @@ class NewsUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+        $allowedExtensions = ['png', 'jpeg', 'gif'];
+
         return [
-            //
-            'id' =>'required|integer',
-            'visible' => 'required|boolean',
+            'id' => 'required|integer',
+            'visible' => 'required',
             'date' => 'required',
             'visibility_date' => 'nullable|date',
-             'cover_pic' => 'required|file|mimes:png,jpeg,gif|max:2048',
-
-            'type_name' => 'required ',
-            'priority_name' => 'required ',
-
-             'title_english' => 'required|unique:news_trans,title',
-            'title_farsi' => 'required|unique:news_trans,title',
-            'title_pashto' => 'required|unique:news_trans,title',
+            'cover_pic' => ['required', new StringOrFileRule($allowedExtensions)], // Pass the allowed extensions here
+            'title_english' => 'required',
+            'title_farsi' => 'required',
+            'title_pashto' => 'required',
             'content_english' => 'required',
             'content_farsi' => 'required',
             'content_pashto' => 'required',
             'type' => 'required|integer|exists:news_types,id',
             'priority' => 'required|integer|exists:priorities,id',
-            // For optimization
-        
         ];
     }
 }

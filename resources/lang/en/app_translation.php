@@ -11,7 +11,6 @@ return [
     'incorrect_credentials' => 'Provided credentials are incorrect.',
     "account_is_lock" => "Your account is lock.",
     "account_is_block" => "Your account is block.",
-    
     'profile_changed' => 'Profile updated successfully.',
     'password_changed' => 'Password updated successfully.',
     'incorrect_password' => 'Old password is incorrect.',
@@ -24,6 +23,8 @@ return [
     'email_not_found' => 'Email Not Found.',
     'file_not_found' => 'File Not Found.',
     'destination_not_found' => 'Destination Not Found.',
-    "newPassword" => "New password",
-    "confirmPassword" => "Confirm Password"
+    "new_password" => "New password",
+    "confirm_password" => "Confirm Password",
+    'news_not_found' => 'News Not Found.',
+    'cover_pic_not_found' => 'Cover Picture Not Found.'
 ];
