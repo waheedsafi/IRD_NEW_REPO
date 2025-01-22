@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Storage;
 
 class NewsController extends Controller
 {
-    public function authNewses(Request $request,$page)
+    public function authNewses(Request $request, $page)
     {
         $perPage = $request->input('per_page', 10); // Number of records per page
         $page = $request->input('page', 1); // Current page
@@ -58,19 +58,20 @@ class NewsController extends Controller
         return response()->json(
             [
                 "newses" => $result,
-                        'n.id',
-                        'n.visible',
-                        'n.date',
-                        'n.visibility_date',
-                        'n.news_type_id',
-                        'ntt.value AS news_type',
-                        'n.priority_id',
-                        'pt.value AS priority',
-                        'us.username AS user',
-                        'ntr.title',
-                        'ntr.contents',
-                        'nd.url AS image'  // Assuming you want the first image URL
-            );
+                'n.id',
+                'n.visible',
+                'n.date',
+                'n.visibility_date',
+                'n.news_type_id',
+                'ntt.value AS news_type',
+                'n.priority_id',
+                'pt.value AS priority',
+                'us.username AS user',
+                'ntr.title',
+                'ntr.contents',
+                'nd.url AS image'  // Assuming you want the first image URL
+            ]
+        );
     }
 
     public function authNews(Request $request)
@@ -100,62 +101,16 @@ class NewsController extends Controller
             )
             ->get();
 
-                return response()->json([
-                "news" => $query
-               
-            ], 200, [], JSON_UNESCAPED_UNICODE);
-           
+        return response()->json([
+            "news" => $query
+
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-        public function publicNewses(Request $request,$page)
+    public function publicNewses(Request $request, $page)
     {
-                $perPage = $request->input('per_page', 10); // Number of records per page
-            $page = $request->input('page', 1); // Current page
-            $locale = App::getLocale();
-            $query =  DB::table('news as n')
-                ->join('news_trans as ntr', 'ntr.news_id', '=', 'n.id')
-                ->join('news_type_trans as ntt','ntt.news_type_id','=','n.news_type_id')
-                ->join('priority_trans as pt','pt.priority_id','=','n.priority_id')
-                ->leftJoin('news_documents as nd','nd.news_id', '=', 'n.id')
-                ->where('ntr.language_name',$locale)
-                ->where('pt.language_name',$locale)
-                ->where('ntt.language_name',$locale)
-                ->where('n.visible',1)
-                ->select(
-                            'n.id as id',
-                            'n.visible',
-                            'n.date',
-                            'n.visibility_date',
-                            'n.news_type_id',
-                            'ntt.value AS news_type',
-                            'n.priority_id',
-                            'pt.value AS priority',
-                            'ntr.title',
-                            'ntr.contents',
-                            'nd.url AS image',  // Assuming you want the first image URL
-                            'n.create_at'
-            );
-        
-
-             $this->applyFilters($query,$request);
-             $this->applySearch($query,$request);
-
-          $result = $query->paginate($perPage, ['*'], 'page', $page);
-
-               return response()->json(
-            [
-                "users" => $result,
-            ],
-            200,
-            [],
-            JSON_UNESCAPED_UNICODE
-        );
-   
-   
-    }
-
-    public function publicNewses(Request $request)
-    {
+        $perPage = $request->input('per_page', 10); // Number of records per page
+        $page = $request->input('page', 1); // Current page
         $locale = App::getLocale();
         $query =  DB::table('news as n')
             ->join('news_trans as ntr', 'ntr.news_id', '=', 'n.id')
@@ -167,7 +122,7 @@ class NewsController extends Controller
             ->where('ntt.language_name', $locale)
             ->where('n.visible', 1)
             ->select(
-                'n.id',
+                'n.id as id',
                 'n.visible',
                 'n.date',
                 'n.visibility_date',
@@ -177,10 +132,24 @@ class NewsController extends Controller
                 'pt.value AS priority',
                 'ntr.title',
                 'ntr.contents',
-                'nd.url AS image'  // Assuming you want the first image URL
-            )
-            ->get();
-        return $query;
+                'nd.url AS image',  // Assuming you want the first image URL
+                'n.create_at'
+            );
+
+
+        $this->applyFilters($query, $request);
+        $this->applySearch($query, $request);
+
+        $result = $query->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json(
+            [
+                "users" => $result,
+            ],
+            200,
+            [],
+            JSON_UNESCAPED_UNICODE
+        );
     }
 
     public function publicNews(Request $request, $id)
@@ -210,10 +179,10 @@ class NewsController extends Controller
                 'nd.url AS image'  // Assuming you want the first image URL
             )
             ->get();
-                return response()->json([
-                "news" => $query
-               
-            ], 200, [], JSON_UNESCAPED_UNICODE);
+        return response()->json([
+            "news" => $query
+
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function store(NewsStoreRequest $request)
@@ -313,13 +282,13 @@ class NewsController extends Controller
     }
 
     public function update(NewsUpdateRequest $request)
-{
-    $validatedData = $request->validated();
-    $authUser = $request->user();
+    {
+        $validatedData = $request->validated();
+        $authUser = $request->user();
 
-    $id =$validatedData->id;
-    // Begin transaction
-    DB::beginTransaction();
+        $id = $validatedData->id;
+        // Begin transaction
+        DB::beginTransaction();
         // Find the news record or throw an exception if not found
         $news = News::findOrFail($id);
 
@@ -408,13 +377,12 @@ class NewsController extends Controller
             [],
             JSON_UNESCAPED_UNICODE
         );
-}
-
-
+    }
 
 
     // search function 
-      protected function applySearch($query,$request){
+    protected function applySearch($query, $request)
+    {
 
         $searchColumn = $request->input('filters.search.column');
         $searchValue = $request->input('filters.search.value');
