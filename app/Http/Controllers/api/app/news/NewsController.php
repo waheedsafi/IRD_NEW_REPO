@@ -148,7 +148,6 @@ class NewsController extends Controller
                 'n.id as id',
                 'n.visible',
                 'n.date',
-                'n.visibility_date',
                 'n.news_type_id',
                 'ntt.value AS news_type',
                 'n.priority_id',
@@ -159,7 +158,6 @@ class NewsController extends Controller
                 'n.created_at'
             );
 
-
         $this->applyDate($query, $request);
         $this->applyFilters($query, $request);
         $this->applySearch($query, $request);
@@ -168,7 +166,7 @@ class NewsController extends Controller
 
         return response()->json(
             [
-                "users" => $result,
+                "newses" => $result,
             ],
             200,
             [],
