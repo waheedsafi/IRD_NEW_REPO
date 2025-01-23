@@ -9,13 +9,10 @@ use App\Http\Requests\app\news\NewsUpdateRequest;
 use App\Models\News;
 use App\Models\NewsDocument;
 use App\Models\NewsTran;
-use App\Models\NewsTypeTrans;
-use App\Models\PriorityTrans;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class NewsController extends Controller
 {
@@ -124,11 +121,10 @@ class NewsController extends Controller
                     'name' => $news->newsDocument->name ?? '',
                     'path' => $news->newsDocument->url ?? '',
                 ],
-                'user' =>
-                [
-                    User::select('id','username')->where('id',$news->user->id)->first()
-                ],
-
+                'user' => User::select('id', 'username')
+                    ->where('id', $news->user_id)
+                    ->first()
+                    ->username,
                 'date' => $news->date,
                 'visible' => $news->visible,
                 'visibility_date' => $news->visibility_date,
@@ -371,8 +367,22 @@ class NewsController extends Controller
     {
         $news = News::find($id);
         if ($news) {
+            // Begin transaction
+            DB::beginTransaction();
             // 1. Delete Translation
+            NewsTran::where('news_id', $news->id)->delete();
+            $existingDocument = NewsDocument::where('news_id', $news->id)->first();
+            // Delete documents
+            $path = storage_path('app/' . $existingDocument->url);
 
+            if (file_exists($path)) {
+                unlink($path);
+            }
+            $existingDocument->delete();
+            $news->delete();
+
+            // Commit transaction
+            DB::commit();
             return response()->json([
                 'message' => __('app_translation.success'),
             ], 200, [], JSON_UNESCAPED_UNICODE);

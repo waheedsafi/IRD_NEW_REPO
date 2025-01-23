@@ -21,31 +21,27 @@ class TestController extends Controller
     public function index(Request $request)
     {
         $locale = "en";
-        $query =  DB::table('news as n')
-            ->join('news_trans as ntr', 'ntr.news_id', '=', 'n.id')
-            ->join('news_type_trans as ntt', 'ntt.news_type_id', '=', 'n.news_type_id')
-            ->join('priority_trans as pt', 'pt.priority_id', '=', 'n.priority_id')
-            ->join('users as us', 'us.id', '=', 'n.user_id')
-            ->leftJoin('news_documents as nd', 'nd.news_id', '=', 'n.id')
-            ->where('ntr.language_name', $locale)
-            ->where('pt.language_name', $locale)
+        $query =  DB::table('ngos as n')
+            ->join('ngo_trans as nt', 'nt.ngo_id', '=', 'n.id')
+            ->join('ngo_type_trans as ntt', 'ntt.ngo_type_id', '=', 'n.ngo_type_id')
+            ->join('ngo_statuses as ns', 'ns.ngo_id', '=', 'n.id')
+            ->leftJoin('status_type_trans as nstr', 'nstr.status_type_id', '=', 'ns.status_type_id')
+            ->join('emails as e', 'e.id', '=', 'n.email_id')
+            ->join('contacts as c', 'c.id', '=', 'n.contact_id')
+            ->where('nt.language_name', $locale)
             ->where('ntt.language_name', $locale)
             ->select(
-                'n.id',
-                'n.visible',
-                'n.date',
-                'n.visibility_date',
-                'n.news_type_id',
-                'ntt.value AS news_type',
-                'n.priority_id',
-                'pt.value AS priority',
-                'us.username AS user',
-                'ntr.title',
-                'ntr.contents',
-                'nd.url AS image'  // Assuming you want the first image URL
+                // 'n.id',
+                // 'n.profile',
+                // 'n.abbr',
+                // 'n.registration_no',
+                // 'n.registration_no',
+                // 'nt.name',
+                // 'nt.name',
             )
             ->get();
-        return $query;
+        return  $query;
+
 
         dd($query->toSql(), $query->getBindings());
         // ->get();

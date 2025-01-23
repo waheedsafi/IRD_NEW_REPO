@@ -27,53 +27,55 @@ class NgoController extends Controller
 
     public function ngos(Request $request, $page)
     {
+        $perPage = $request->input('per_page', 10); // Number of records per page
+        $page = $request->input('page', 1); // Current page
         $locale = App::getLocale();
-            $perPage = $request->input('per_page', 10); // Number of records per page
-            $page = $request->input('page', 1); // Current page
 
-        // Eager loading relationships
-        $query = Ngo::with([
-            'ngoTrans' => function ($query) use ($locale) {
-                $query->where('language_name', $locale)->select('id', 'ngo_id', 'name');
-            },
-            'ngoType' => function ($query) use ($locale) {
-                $query->with(['ngoTypeTrans' => function ($query) use ($locale) {
-                    $query->where('language_name', $locale)->select('ngo_type_id', 'value as name');
-                }]);
-            },
-            'ngoStatus' => function ($query) {
-                $query->select('ngo_id');
-            },
-            'agreement' => function ($query) {
-                $query->select('ngo_id', 'end_date');
-            },
-        ])
-            ->select([
-                'id',
-                'registration_no',
-                'date_of_establishment',
-                'ngo_type_id',
-            ]);
+        $query =  DB::table('ngos as n')
+            ->join('ngo_trans as nt', 'nt.ngo_id', '=', 'n.id')
+            ->join('ngo_type_trans as ntt', 'ntt.ngo_type_id', '=', 'n.ngo_type_id')
+            ->join('emails as e', 'e.id', '=', 'n.email_id')
+            ->leftJoin('contacts as c', 'c.id', '=', 'n.contact_id')
+            ->where('nt.language_name', $locale)
+            ->where('ntt.language_name', $locale)
+            ->select(
+                'n.id as id',
+                'n.visible',
+                'n.date',
+                'n.visibility_date',
+                'n.news_type_id',
+                'ntt.value AS news_type',
+                'n.priority_id',
+                'pt.value AS priority',
+                'ntr.title',
+                'ntr.contents',
+                'nd.url AS image',  // Assuming you want the first image URL
+                'n.created_at'
+            );
 
 
-        // Apply filters
-        $this->applyDateFilters($query, $request->input('filters.date.startDate'), $request->input('filters.date.endDate'));
-        $this->applySearchFilter($query, $request->input('filters.search'));
+        $this->applyDate($query, $request);
+        $this->applyFilters($query, $request);
+        $this->applySearch($query, $request);
 
-        // Apply sorting
-        $sort = $request->input('filters.sort', 'registration_no');
-        $order = $request->input('filters.order', 'asc');
-        $query->orderBy($sort, $order);
-
-        // Paginate results
         $result = $query->paginate($perPage, ['*'], 'page', $page);
 
-        // Return JSON response
         return response()->json(
-            ["ngos" => $result],
-            200,
-            [],
-            JSON_UNESCAPED_UNICODE
+            [
+                "newses" => $result,
+                'n.id',
+                'n.visible',
+                'n.date',
+                'n.visibility_date',
+                'n.news_type_id',
+                'ntt.value AS news_type',
+                'n.priority_id',
+                'pt.value AS priority',
+                'us.username AS user',
+                'ntr.title',
+                'ntr.contents',
+                'nd.url AS image'  // Assuming you want the first image URL
+            ]
         );
     }
 
@@ -299,5 +301,49 @@ class NgoController extends Controller
                 "unRegisteredCount" =>  $statistics[0]->unRegisteredCount
             ],
         ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    // date function 
+    protected function applyDate($query, $request)
+    {
+        // Apply date filtering conditionally if provided
+        $startDate = $request->input('filters.date.startDate');
+        $endDate = $request->input('filters.date.endDate');
+
+        if ($startDate) {
+            $query->where('n.date', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->where('n.date', '<=', $endDate);
+        }
+    }
+    // search function 
+    protected function applySearch($query, $request)
+    {
+
+        $searchColumn = $request->input('filters.search.column');
+        $searchValue = $request->input('filters.search.value');
+
+        if ($searchColumn && $searchValue) {
+            $allowedColumns = ['title', 'contents'];
+
+            // Ensure that the search column is allowed
+            if (in_array($searchColumn, $allowedColumns)) {
+                $query->where($searchColumn, 'like', '%' . $searchValue . '%');
+            }
+        }
+    }
+    // filter function
+    protected function applyFilters($query, $request)
+    {
+        $sort = $request->input('filters.sort'); // Sorting column
+        $order = $request->input('filters.order', 'asc'); // Sorting order (default 
+
+        if ($sort && in_array($sort, ['news_type_id', 'priority_id', 'visible', 'visibility_date', 'date'])) {
+            $query->orderBy($sort, $order);
+        } else {
+            // Default sorting if no sort is provided
+            $query->orderBy("created_at", 'desc');
+        }
     }
 }
