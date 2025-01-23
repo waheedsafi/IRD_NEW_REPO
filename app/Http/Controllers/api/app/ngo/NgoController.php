@@ -34,22 +34,26 @@ class NgoController extends Controller
         $query =  DB::table('ngos as n')
             ->join('ngo_trans as nt', 'nt.ngo_id', '=', 'n.id')
             ->join('ngo_type_trans as ntt', 'ntt.ngo_type_id', '=', 'n.ngo_type_id')
+            ->join('ngo_statuses as ns', 'ns.ngo_id', '=', 'n.id')
+            ->leftJoin('status_type_trans as nstr', 'nstr.status_type_id', '=', 'ns.status_type_id')
             ->join('emails as e', 'e.id', '=', 'n.email_id')
-            ->leftJoin('contacts as c', 'c.id', '=', 'n.contact_id')
+            ->join('contacts as c', 'c.id', '=', 'n.contact_id')
             ->where('nt.language_name', $locale)
+            ->where('nstr.language_name', $locale)
             ->where('ntt.language_name', $locale)
             ->select(
-                'n.id as id',
-                'n.visible',
-                'n.date',
-                'n.visibility_date',
-                'n.news_type_id',
-                'ntt.value AS news_type',
-                'n.priority_id',
-                'pt.value AS priority',
-                'ntr.title',
-                'ntr.contents',
-                'nd.url AS image',  // Assuming you want the first image URL
+                'n.id',
+                'n.profile',
+                'n.abbr',
+                'n.registration_no',
+                'n.date_of_establishment as establishment_date',
+                'ns.id as status_id',
+                'nstr.name as status',
+                'nt.name',
+                'ntt.ngo_type_id  as type_id',
+                'ntt.value as type',
+                'e.value as email',
+                'c.value as contact',
                 'n.created_at'
             );
 
@@ -60,62 +64,10 @@ class NgoController extends Controller
 
         $result = $query->paginate($perPage, ['*'], 'page', $page);
 
-        return response()->json(
-            [
-                "newses" => $result,
-                'n.id',
-                'n.visible',
-                'n.date',
-                'n.visibility_date',
-                'n.news_type_id',
-                'ntt.value AS news_type',
-                'n.priority_id',
-                'pt.value AS priority',
-                'us.username AS user',
-                'ntr.title',
-                'ntr.contents',
-                'nd.url AS image'  // Assuming you want the first image URL
-            ]
-        );
+        return response()->json([
+            'ngos' => $result
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
-
-    private function applySearchFilter($query, $search)
-    {
-        if (!empty($search['column']) && !empty($search['value'])) {
-            $allowedColumns = ['registration_no', 'id', 'ngoType.name', 'ngoTran.name'];
-
-            if (in_array($search['column'], $allowedColumns)) {
-                if ($search['column'] == 'ngoType.name') {
-                    // Search in ngoType's name (aliased as type_name)
-                    $query->whereHas('ngoType', function ($q) use ($search) {
-                        $q->where('name', 'like', '%' . $search['value'] . '%');
-                    });
-                } elseif ($search['column'] == 'ngoTran.name') {
-                    // Search in ngoTran's name (aliased as ngo_name)
-                    $query->whereHas('ngoTran', function ($q) use ($search) {
-                        $q->where('name', 'like', '%' . $search['value'] . '%');
-                    });
-                } else {
-                    // Default search for registration_no or id
-                    $query->where($search['column'], 'like', '%' . $search['value'] . '%');
-                }
-            }
-        }
-    }
-
-    private function applyDateFilters($query, $startDate, $endDate)
-    {
-        if ($startDate || $endDate) {
-            if ($startDate && $endDate) {
-                $query->whereBetween('ngos.date_of_establishment', [$startDate, $endDate]);
-            } elseif ($startDate) {
-                $query->where('ngos.date_of_establishment', '>=', $startDate);
-            } elseif ($endDate) {
-                $query->where('ngos.date_of_establishment', '<=', $endDate);
-            }
-        }
-    }
-
     public function store(NgoRegisterRequest $request)
     {
         $validatedData = $request->validated();
@@ -222,74 +174,73 @@ class NgoController extends Controller
 
         $validatedData = $request->validated();
 
-     
-            // Begin transaction
-            DB::beginTransaction();
 
-            $path = $this->storeProfile($request, 'ngo-profile');
-            $ngo->update([
-                "profile" =>  $path,
+        // Begin transaction
+        DB::beginTransaction();
+
+        $path = $this->storeProfile($request, 'ngo-profile');
+        $ngo->update([
+            "profile" =>  $path,
+        ]);
+
+        // Update default language record
+        $ngoTran = NgoTran::where('ngo_id', $id)
+            ->where('language_name', LanguageEnum::default->value)
+            ->first();
+
+        if ($ngoTran) {
+            $ngoTran->update([
+                'name' => $validatedData['name_english'],
+                'vision' => $validatedData['vision_english'],
+                'mission' => $validatedData['mission_english'],
+                'general_objective' => $validatedData['general_objective_english'],
+                'objective' => $validatedData['objective_english'],
+                'introduction' => $validatedData['introduction_english']
             ]);
-            
-            // Update default language record
-            $ngoTran = NgoTran::where('ngo_id', $id)
-                ->where('language_name', LanguageEnum::default->value)
-                ->first();
+        } else {
+            return response()->json(['message' => __('app_translation.not_found')], 404);
+        }
 
-            if ($ngoTran) {
-                $ngoTran->update([
-                    'name' => $validatedData['name_english'],
-                    'vision' => $validatedData['vision_english'],
-                    'mission' => $validatedData['mission_english'],
-                    'general_objective' => $validatedData['general_objective_english'],
-                    'objective' => $validatedData['objective_english'],
-                    'introduction' => $validatedData['introduction_english']
-                ]);
-            } else {
-                return response()->json(['message' => __('app_translation.not_found')], 404);
-            }
+        // Manage multilingual NgoTran records
+        $languages = [
+            'pashto',
+            'farsi'
 
-            // Manage multilingual NgoTran records
-            $languages = [
-                'pashto',
-                'farsi'
+        ];
 
-            ];
+        NgoTran::create([
+            'ngo_id' => $id,
+            'language_name ' => 'ps',
+            'name' => $validatedData["name_pashto"],
+            'vision' => $validatedData["vision_pashto"],
+            'mission' => $validatedData["mission_pashto"],
+            'general_objective' => $validatedData["general_objective_pashto"],
+            'objective' => $validatedData["objective_pashto"],
+            'introduction' => $validatedData["introduction_pashto"]
 
-            NgoTran::create([
-                'ngo_id' =>$id,
-                'language_name '=> 'ps',
-                'name' => $validatedData["name_pashto"],
-                'vision' => $validatedData["vision_pashto"],
-                'mission' => $validatedData["mission_pashto"],
-                'general_objective' => $validatedData["general_objective_pashto"],
-                'objective' => $validatedData["objective_pashto"],
-                'introduction' => $validatedData["introduction_pashto"]
+        ]);
+        NgoTran::create([
+            'ngo_id' => $id,
+            'language_name ' => 'fa',
+            'name' => $validatedData["name_farsi"],
+            'vision' => $validatedData["vision_farsi"],
+            'mission' => $validatedData["mission_farsi"],
+            'general_objective' => $validatedData["general_objective_farsi"],
+            'objective' => $validatedData["objective_farsi"],
+            'introduction' => $validatedData["introduction_farsi"]
 
-            ]);
-                NgoTran::create([
-                'ngo_id' =>$id,
-                'language_name '=> 'fa',
-                'name' => $validatedData["name_farsi"],
-                'vision' => $validatedData["vision_farsi"],
-                'mission' => $validatedData["mission_farsi"],
-                'general_objective' => $validatedData["general_objective_farsi"],
-                'objective' => $validatedData["objective_farsi"],
-                'introduction' => $validatedData["introduction_farsi"]
+        ]);
 
-            ]);
 
-   
 
-            // Instantiate DirectorController and call its store method
-            $directorController = new \App\Http\Controllers\api\app\director\DirectorController();
-            $directorController->store($request, $id);
+        // Instantiate DirectorController and call its store method
+        $directorController = new \App\Http\Controllers\api\app\director\DirectorController();
+        $directorController->store($request, $id);
 
-            // store document
-            // Commit transaction
-            DB::commit();
-            return response()->json(['message' => __('app_translation.success')], 200);
-     
+        // store document
+        // Commit transaction
+        DB::commit();
+        return response()->json(['message' => __('app_translation.success')], 200);
     }
     public function ngoCount()
     {
@@ -301,14 +252,14 @@ class NgoController extends Controller
          (SELECT COUNT(*) FROM ngos n JOIN ngo_statuses ns ON n.id = ns.ngo_id WHERE ns.status_type_id = ?) AS unRegisteredCount
         FROM ngos
             ", [StatusTypeEnum::active->value, StatusTypeEnum::unregistered->value]);
-                return response()->json([
-                    'counts' => [
-                        "count" => $statistics[0]->count,
-                        "todayCount" => $statistics[0]->todayCount,
-                        "activeCount" => $statistics[0]->activeCount,
-                        "unRegisteredCount" =>  $statistics[0]->unRegisteredCount
-                    ],
-                ], 200, [], JSON_UNESCAPED_UNICODE);
+        return response()->json([
+            'counts' => [
+                "count" => $statistics[0]->count,
+                "todayCount" => $statistics[0]->todayCount,
+                "activeCount" => $statistics[0]->activeCount,
+                "unRegisteredCount" =>  $statistics[0]->unRegisteredCount
+            ],
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     // date function 
@@ -319,10 +270,10 @@ class NgoController extends Controller
         $endDate = $request->input('filters.date.endDate');
 
         if ($startDate) {
-            $query->where('n.date', '>=', $startDate);
+            $query->where('n.created_at', '>=', $startDate);
         }
         if ($endDate) {
-            $query->where('n.date', '<=', $endDate);
+            $query->where('n.created_at', '<=', $endDate);
         }
     }
     // search function 
@@ -347,7 +298,7 @@ class NgoController extends Controller
         $sort = $request->input('filters.sort'); // Sorting column
         $order = $request->input('filters.order', 'asc'); // Sorting order (default 
 
-        if ($sort && in_array($sort, ['news_type_id', 'priority_id', 'visible', 'visibility_date', 'date'])) {
+        if ($sort && in_array($sort, ['id', 'name', 'type', 'contact', 'status'])) {
             $query->orderBy($sort, $order);
         } else {
             // Default sorting if no sort is provided

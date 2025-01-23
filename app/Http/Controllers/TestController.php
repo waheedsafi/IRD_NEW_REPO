@@ -29,15 +29,20 @@ class TestController extends Controller
             ->join('emails as e', 'e.id', '=', 'n.email_id')
             ->join('contacts as c', 'c.id', '=', 'n.contact_id')
             ->where('nt.language_name', $locale)
+            ->where('nstr.language_name', $locale)
             ->where('ntt.language_name', $locale)
             ->select(
-                // 'n.id',
-                // 'n.profile',
-                // 'n.abbr',
-                // 'n.registration_no',
-                // 'n.registration_no',
-                // 'nt.name',
-                // 'nt.name',
+                'n.id',
+                'n.profile',
+                'n.abbr',
+                'n.registration_no',
+                'ns.id as status_id',
+                'nstr.name as status_name',
+                'nt.name',
+                'ntt.ngo_type_id',
+                'ntt.value as ngo_type_name',
+                'e.value as email',
+                'c.value as contact',
             )
             ->get();
         return  $query;
