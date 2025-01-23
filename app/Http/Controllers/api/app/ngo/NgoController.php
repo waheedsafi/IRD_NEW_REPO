@@ -220,7 +220,7 @@ class NgoController extends Controller
 
         $validatedData = $request->validated();
 
-        try {
+     
             // Begin transaction
             DB::beginTransaction();
 
@@ -228,6 +228,7 @@ class NgoController extends Controller
             $ngo->update([
                 "profile" =>  $path,
             ]);
+            
             // Update default language record
             $ngoTran = NgoTran::where('ngo_id', $id)
                 ->where('language_name', LanguageEnum::default->value)
@@ -235,12 +236,12 @@ class NgoController extends Controller
 
             if ($ngoTran) {
                 $ngoTran->update([
-                    'name' => $validatedData['name_en'],
-                    'vision' => $validatedData['vision_en'],
-                    'mission' => $validatedData['mission_en'],
-                    'general_objective' => $validatedData['general_objective_en'],
-                    'objective' => $validatedData['objective_en'],
-                    'introduction' => $validatedData['introduction_en']
+                    'name' => $validatedData['name_english'],
+                    'vision' => $validatedData['vision_english'],
+                    'mission' => $validatedData['mission_english'],
+                    'general_objective' => $validatedData['general_objective_english'],
+                    'objective' => $validatedData['objective_english'],
+                    'introduction' => $validatedData['introduction_english']
                 ]);
             } else {
                 return response()->json(['message' => __('app_translation.not_found')], 404);
@@ -248,24 +249,35 @@ class NgoController extends Controller
 
             // Manage multilingual NgoTran records
             $languages = [
-                'ps',
-                'fa'
+                'pashto',
+                'farsi'
 
             ];
 
-            foreach ($languages as   $suffix) {
-                NgoTran::updateOrCreate(
-                    ['ngo_id' => $id, 'language_name' => $suffix],
-                    [
-                        'name' => $validatedData["name_{$suffix}"],
-                        'vision' => $validatedData["vision_{$suffix}"],
-                        'mission' => $validatedData["mission_{$suffix}"],
-                        'general_objective' => $validatedData["general_objective_{$suffix}"],
-                        'objective' => $validatedData["objective_{$suffix}"],
-                        'introduction' => $validatedData["introduction_{$suffix}"]
-                    ]
-                );
-            }
+            NgoTran::create([
+                'ngo_id' =>$id,
+                'language_name '=> 'ps',
+                'name' => $validatedData["name_pashto"],
+                'vision' => $validatedData["vision_pashto"],
+                'mission' => $validatedData["mission_pashto"],
+                'general_objective' => $validatedData["general_objective_pashto"],
+                'objective' => $validatedData["objective_pashto"],
+                'introduction' => $validatedData["introduction_pashto"]
+
+            ]);
+                NgoTran::create([
+                'ngo_id' =>$id,
+                'language_name '=> 'fa',
+                'name' => $validatedData["name_farsi"],
+                'vision' => $validatedData["vision_farsi"],
+                'mission' => $validatedData["mission_farsi"],
+                'general_objective' => $validatedData["general_objective_farsi"],
+                'objective' => $validatedData["objective_farsi"],
+                'introduction' => $validatedData["introduction_farsi"]
+
+            ]);
+
+   
 
             // Instantiate DirectorController and call its store method
             $directorController = new \App\Http\Controllers\api\app\director\DirectorController();
@@ -275,11 +287,7 @@ class NgoController extends Controller
             // Commit transaction
             DB::commit();
             return response()->json(['message' => __('app_translation.success')], 200);
-        } catch (\Exception $e) {
-            // Rollback on error
-            DB::rollBack();
-            return response()->json(['message' => __('app_translation.server_error') . $e->getMessage()], 500);
-        }
+     
     }
     public function ngoCount()
     {
@@ -290,14 +298,14 @@ class NgoController extends Controller
             (SELECT COUNT(*) FROM ngos n JOIN ngo_statuses ns ON n.id = ns.ngo_id WHERE ns.status_type_id = ?) AS activeCount,
          (SELECT COUNT(*) FROM ngos n JOIN ngo_statuses ns ON n.id = ns.ngo_id WHERE ns.status_type_id = ?) AS unRegisteredCount
         FROM ngos
-    ", [StatusTypeEnum::active->value, StatusTypeEnum::unregistered->value]);
-        return response()->json([
-            'counts' => [
-                "count" => $statistics[0]->count,
-                "todayCount" => $statistics[0]->todayCount,
-                "activeCount" => $statistics[0]->activeCount,
-                "unRegisteredCount" =>  $statistics[0]->unRegisteredCount
-            ],
-        ], 200, [], JSON_UNESCAPED_UNICODE);
+            ", [StatusTypeEnum::active->value, StatusTypeEnum::unregistered->value]);
+                return response()->json([
+                    'counts' => [
+                        "count" => $statistics[0]->count,
+                        "todayCount" => $statistics[0]->todayCount,
+                        "activeCount" => $statistics[0]->activeCount,
+                        "unRegisteredCount" =>  $statistics[0]->unRegisteredCount
+                    ],
+                ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }
