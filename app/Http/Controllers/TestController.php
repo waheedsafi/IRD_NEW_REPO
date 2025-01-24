@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\StaffEnum;
 use App\Models\News;
 use App\Models\User;
 use App\Models\District;
@@ -21,31 +22,26 @@ class TestController extends Controller
     public function index(Request $request)
     {
         $locale = "en";
-        $query =  DB::table('ngos as n')
-            ->join('ngo_trans as nt', 'nt.ngo_id', '=', 'n.id')
-            ->join('ngo_type_trans as ntt', 'ntt.ngo_type_id', '=', 'n.ngo_type_id')
-            ->join('ngo_statuses as ns', 'ns.ngo_id', '=', 'n.id')
-            ->leftJoin('status_type_trans as nstr', 'nstr.status_type_id', '=', 'ns.status_type_id')
-            ->join('emails as e', 'e.id', '=', 'n.email_id')
-            ->join('contacts as c', 'c.id', '=', 'n.contact_id')
-            ->where('nt.language_name', $locale)
-            ->where('nstr.language_name', $locale)
-            ->where('ntt.language_name', $locale)
+        $query = DB::table('staff as s')
+            ->join('staff_trans as st', 'st.staff_id', '=', 's.id')
+            ->where('staff_type_id', StaffEnum::director->value)
             ->select(
-                'n.id',
-                'n.profile',
-                'n.abbr',
-                'n.registration_no',
-                'ns.id as status_id',
-                'nstr.name as status_name',
-                'nt.name',
-                'ntt.ngo_type_id',
-                'ntt.value as ngo_type_name',
-                'e.value as email',
-                'c.value as contact',
+                's.id',
+                's.staff_type_id',
+                's.contact',
+                's.email',
+                's.profile as picture',
+                's.created_at',
+                's.updated_at',
+                DB::raw("MAX(CASE WHEN st.language_name = 'en' THEN st.name END) as name_english"),
+                DB::raw("MAX(CASE WHEN st.language_name = 'fa' THEN st.name END) as name_farsi"),
+                DB::raw("MAX(CASE WHEN st.language_name = 'ps' THEN st.name END) as name_pashto")
             )
-            ->get();
-        return  $query;
+            ->groupBy('s.id', 's.staff_type_id', 's.contact', 's.email', 's.profile', 's.created_at', 's.updated_at')
+            ->first();
+
+        return $query;
+
 
 
         dd($query->toSql(), $query->getBindings());

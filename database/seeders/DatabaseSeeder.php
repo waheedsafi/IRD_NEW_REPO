@@ -6,6 +6,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Models\Email;
 use App\Enums\RoleEnum;
+use App\Enums\StaffEnum;
 use App\Models\Contact;
 use App\Models\Country;
 use App\Models\NgoType;
@@ -32,6 +33,7 @@ use App\Models\NidTypeTrans;
 use App\Models\Priority;
 use App\Models\PriorityTrans;
 use App\Models\SettingTimeUnit;
+use App\Models\StaffType;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -50,6 +52,7 @@ class DatabaseSeeder extends Seeder
         $this->priorityTypes();
         $this->nidTypes();
         $this->requestTypes();
+        $this->staffTypes();
         $email =  Email::factory()->create([
             "value" => "super@admin.com"
         ]);
@@ -733,6 +736,21 @@ class DatabaseSeeder extends Seeder
             'language_name' => 'fa',
             'name' => 'ثبت شوی نه دی'
 
+        ]);
+    }
+    public function staffTypes()
+    {
+        DB::table('staff_types')->insert([
+            'id' => StaffEnum::manager,
+            'name' => "manager",
+        ]);
+        DB::table('staff_types')->insert([
+            'id' => StaffEnum::director,
+            'name' => "director",
+        ]);
+        DB::table('staff_types')->insert([
+            'id' => StaffEnum::technical_support,
+            'name' => "technical_support",
         ]);
     }
 
