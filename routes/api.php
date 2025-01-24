@@ -23,5 +23,6 @@ require __DIR__ . '/api/app/news/newsType.php';
 require __DIR__ . '/api/app/news/news.php';
 require __DIR__ . '/api/app/ngo/ngo.php';
 require __DIR__ . '/api/app/ngo/ngoType.php';
+require __DIR__ . '/api/app/ngo/registerationForm.php';
 require __DIR__ . '/api/app/project/project.php';
 require __DIR__ . '/api/app/file/file.php';
