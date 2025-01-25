@@ -30,7 +30,6 @@ class NewsController extends Controller
             ->where('ntr.language_name', $locale)
             ->where('pt.language_name', $locale)
             ->where('ntt.language_name', $locale)
-            ->where('n.visible', 1)
             ->select(
                 'n.id as id',
                 'n.visible',
@@ -180,6 +179,7 @@ class NewsController extends Controller
     {
         $locale = App::getLocale();
         $query =  DB::table('news as n')
+            ->join('users as u', 'u.id', '=', 'n.user_id')
             ->join('news_trans as ntr', 'ntr.news_id', '=', 'n.id')
             ->join('news_type_trans as ntt', 'ntt.news_type_id', '=', 'n.news_type_id')
             ->join('priority_trans as pt', 'pt.priority_id', '=', 'n.priority_id')
@@ -191,18 +191,17 @@ class NewsController extends Controller
             ->where('n.id', $id)
             ->select(
                 'n.id',
-                'n.visible',
                 'n.date',
-                'n.visibility_date',
                 'n.news_type_id',
                 'ntt.value AS news_type',
                 'n.priority_id',
                 'pt.value AS priority',
                 'ntr.title',
                 'ntr.contents',
+                'u.username as user',
                 'nd.url AS image'  // Assuming you want the first image URL
             )
-            ->get();
+            ->first();
         return response()->json([
             "news" => $query
 

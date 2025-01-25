@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Models\AddressTran;
 use App\Models\NgoStatus;
+use App\Models\StatusTypeTran;
 
 class NgoController extends Controller
 {
@@ -33,21 +34,21 @@ class NgoController extends Controller
 
         $query =  DB::table('ngos as n')
             ->join('ngo_trans as nt', 'nt.ngo_id', '=', 'n.id')
+            ->where('nt.language_name', $locale)
             ->join('ngo_type_trans as ntt', 'ntt.ngo_type_id', '=', 'n.ngo_type_id')
+            ->where('ntt.language_name', $locale)
             ->join('ngo_statuses as ns', 'ns.ngo_id', '=', 'n.id')
-            ->leftJoin('status_type_trans as nstr', 'nstr.status_type_id', '=', 'ns.status_type_id')
+            ->join('status_type_trans as nstr', 'nstr.status_type_id', '=', 'ns.status_type_id')
+            ->where('nstr.language_name', $locale)
             ->join('emails as e', 'e.id', '=', 'n.email_id')
             ->join('contacts as c', 'c.id', '=', 'n.contact_id')
-            ->where('nt.language_name', $locale)
-            ->where('nstr.language_name', $locale)
-            ->where('ntt.language_name', $locale)
             ->select(
                 'n.id',
                 'n.profile',
                 'n.abbr',
                 'n.registration_no',
                 'n.date_of_establishment as establishment_date',
-                'ns.id as status_id',
+                'nstr.status_type_id as status_id',
                 'nstr.name as status',
                 'nt.name',
                 'ntt.ngo_type_id  as type_id',
@@ -144,16 +145,40 @@ class NgoController extends Controller
         }
         // If everything goes well, commit the transaction
         DB::commit();
+
+        $status = StatusTypeTran::where('status_type_id', StatusTypeEnum::not_logged_in->value)
+            ->select('name')->first();
         return response()->json(
             [
                 'message' => __('app_translation.success'),
                 "ngo" => [
                     "id" => $newNgo->id,
                     "profile" => $newNgo->profile,
-                    "registrationNo" => $newNgo->registration_no,
+                    "abbr" => $newNgo->abbr,
+                    "registration_no" => $newNgo->registration_no,
+                    "status_id" => StatusTypeEnum::not_logged_in->value,
+                    "status" => $status->name,
+                    "type_id" => $validatedData['ngo_type_id'],
+                    "establishment_date" => null,
                     "name" => $name,
-                    "contact" => $contact,
+                    "contact" => $validatedData['contact'],
+                    "email" => $validatedData['email'],
+                    "created_at" => $newNgo->created_at,
                 ]
+            ],
+            200,
+            [],
+            JSON_UNESCAPED_UNICODE
+        );
+    }
+    public function ngo($id)
+    {
+        $locale = App::getLocale();
+
+        return response()->json(
+            [
+                'message' => __('app_translation.success'),
+                "ngo" => []
             ],
             200,
             [],

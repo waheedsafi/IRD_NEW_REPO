@@ -12,6 +12,7 @@ use App\Models\District;
 use App\Models\News;
 use App\Models\Ngo;
 
+use App\Models\District;
 use App\Models\Province;
 use App\Models\Staff;
 use App\Models\Translate;
@@ -71,31 +72,14 @@ class TestController extends Controller
  return    $this->getCompleteAddress($ngo->address_id,'en');
     
         $locale = "en";
-        $query =  DB::table('ngos as n')
-            ->join('ngo_trans as nt', 'nt.ngo_id', '=', 'n.id')
-            ->join('ngo_type_trans as ntt', 'ntt.ngo_type_id', '=', 'n.ngo_type_id')
-            ->join('ngo_statuses as ns', 'ns.ngo_id', '=', 'n.id')
-            ->leftJoin('status_type_trans as nstr', 'nstr.status_type_id', '=', 'ns.status_type_id')
-            ->join('emails as e', 'e.id', '=', 'n.email_id')
-            ->join('contacts as c', 'c.id', '=', 'n.contact_id')
-            ->where('nt.language_name', $locale)
-            ->where('nstr.language_name', $locale)
-            ->where('ntt.language_name', $locale)
-            ->select(
-                'n.id',
-                'n.profile',
-                'n.abbr',
-                'n.registration_no',
-                'ns.id as status_id',
-                'nstr.name as status_name',
-                'nt.name',
-                'ntt.ngo_type_id',
-                'ntt.value as ngo_type_name',
-                'e.value as email',
-                'c.value as contact',
-            )
+        $query = NgoType::join('ngo_type_trans', 'ngo_types.id', '=', 'ngo_type_trans.ngo_type_id')
+            ->where('ngo_type_trans.language_name', $locale)
+            ->select('ngo_type_trans.value as name', 'ngo_types.id')
+            ->orderBy('ngo_types.id', 'desc')
             ->get();
-        return  $query;
+
+        return $query;
+
 
 
         dd($query->toSql(), $query->getBindings());
