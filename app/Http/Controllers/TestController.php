@@ -8,11 +8,9 @@ use App\Enums\StatusTypeEnum;
 use App\Models\Address;
 
 use App\Models\Director;
-use App\Models\District;
 use App\Models\News;
 use App\Models\Ngo;
 
-use App\Models\District;
 use App\Models\Province;
 use App\Models\Staff;
 use App\Models\Translate;
@@ -32,55 +30,44 @@ class TestController extends Controller
 
 
 
-     return   $this->getCompleteAddress(1,'fa');
-        $lang ='en';
-        $id =1;
-    
-   $irdDirector = Staff::with([
-    'staffTran' =>function ($query) use ($lang){
-        $query->select('staff_id','name','last_name')->where('language_name',$lang);
-    } 
-   ])->select('id')->where('staff_type_id',StaffEnum::director->value)->first();
-   
+        return   $this->getCompleteAddress(1, 'fa');
+        $lang = 'en';
+        $id = 1;
 
-   return $irdDirector->staffTran[0]->name.'  '.$irdDirector->staffTran[0]->last_name;
-    
-    $lang ='en';
-       $ngo = Ngo::with([
-            'ngoTrans' => function ($query) use ($lang){
-                $query->select('ngo_id','name','vision','mission','general_objective','objective')->where('language_name',$lang);
-
-            },
-            'email:id,value',
-            'contact:id,value',
-  
-
-        ]   
-
-    )->select(
-        'id',
-        'email_id',
-        'contact_id',
-        'address_id',
-        'abbr',
-        'registration_no',
-        'date_of_establishment',
-        'moe_registration_no',
-
-    )->where('id',1)->first();
-
- return    $this->getCompleteAddress($ngo->address_id,'en');
-    
-        $locale = "en";
-        $query = NgoType::join('ngo_type_trans', 'ngo_types.id', '=', 'ngo_type_trans.ngo_type_id')
-            ->where('ngo_type_trans.language_name', $locale)
-            ->select('ngo_type_trans.value as name', 'ngo_types.id')
-            ->orderBy('ngo_types.id', 'desc')
-            ->get();
-
-        return $query;
+        $irdDirector = Staff::with([
+            'staffTran' => function ($query) use ($lang) {
+                $query->select('staff_id', 'name', 'last_name')->where('language_name', $lang);
+            }
+        ])->select('id')->where('staff_type_id', StaffEnum::director->value)->first();
 
 
+        return $irdDirector->staffTran[0]->name . '  ' . $irdDirector->staffTran[0]->last_name;
+
+        $lang = 'en';
+        $ngo = Ngo::with(
+            [
+                'ngoTrans' => function ($query) use ($lang) {
+                    $query->select('ngo_id', 'name', 'vision', 'mission', 'general_objective', 'objective')->where('language_name', $lang);
+                },
+                'email:id,value',
+                'contact:id,value',
+
+
+            ]
+
+        )->select(
+            'id',
+            'email_id',
+            'contact_id',
+            'address_id',
+            'abbr',
+            'registration_no',
+            'date_of_establishment',
+            'moe_registration_no',
+
+        )->where('id', 1)->first();
+
+        return    $this->getCompleteAddress($ngo->address_id, 'en');
 
         dd($query->toSql(), $query->getBindings());
         // ->get();
