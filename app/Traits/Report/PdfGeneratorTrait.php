@@ -66,14 +66,13 @@ trait PdfGeneratorTrait
 
     }
 
-    public function pdfFilePart($mpdf,$view,$data =[]){
-        
-                // Render and write the first part of the PDF
-            $part = view("{$view}", compact( $data ))->render(); // Use compact for data passing
-            $mpdf->WriteHTML($part);
+    public function pdfFilePart($mpdf, $view, $data = [])
+{
+    // Directly pass the associative $data array to the view method
+    $part = view($view, $data)->render();
+    $mpdf->WriteHTML($part);
+}
 
-
-    }
 
 
 
