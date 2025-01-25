@@ -2,26 +2,75 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\News;
-use App\Models\User;
-use App\Models\NgoType;
+use App\Enums\LanguageEnum;
 use App\Enums\StaffEnum;
+use App\Enums\StatusTypeEnum;
+use App\Models\Address;
+
+use App\Models\Director;
+use App\Models\District;
+use App\Models\News;
+use App\Models\Ngo;
 
 use App\Models\District;
 use App\Models\Province;
+use App\Models\Staff;
 use App\Models\Translate;
-use Illuminate\Http\Request;
-
-use App\Enums\StatusTypeEnum;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\App;
+use App\Models\User;
+use App\Traits\Address\AddressTrait;
 use function Laravel\Prompts\select;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 
 class TestController extends Controller
 {
+    use AddressTrait;
     public function index(Request $request)
     {
+
+
+
+     return   $this->getCompleteAddress(1,'fa');
+        $lang ='en';
+        $id =1;
+    
+   $irdDirector = Staff::with([
+    'staffTran' =>function ($query) use ($lang){
+        $query->select('staff_id','name','last_name')->where('language_name',$lang);
+    } 
+   ])->select('id')->where('staff_type_id',StaffEnum::director->value)->first();
+   
+
+   return $irdDirector->staffTran[0]->name.'  '.$irdDirector->staffTran[0]->last_name;
+    
+    $lang ='en';
+       $ngo = Ngo::with([
+            'ngoTrans' => function ($query) use ($lang){
+                $query->select('ngo_id','name','vision','mission','general_objective','objective')->where('language_name',$lang);
+
+            },
+            'email:id,value',
+            'contact:id,value',
+  
+
+        ]   
+
+    )->select(
+        'id',
+        'email_id',
+        'contact_id',
+        'address_id',
+        'abbr',
+        'registration_no',
+        'date_of_establishment',
+        'moe_registration_no',
+
+    )->where('id',1)->first();
+
+ return    $this->getCompleteAddress($ngo->address_id,'en');
+    
         $locale = "en";
         $query = NgoType::join('ngo_type_trans', 'ngo_types.id', '=', 'ngo_type_trans.ngo_type_id')
             ->where('ngo_type_trans.language_name', $locale)
