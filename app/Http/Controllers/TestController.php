@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\StaffEnum;
 use App\Models\News;
 use App\Models\User;
-use App\Models\District;
+use App\Models\NgoType;
+use App\Enums\StaffEnum;
 
+use App\Models\District;
 use App\Models\Province;
 use App\Models\Translate;
 use Illuminate\Http\Request;
-use App\Enums\StatusTypeEnum;
 
+use App\Enums\StatusTypeEnum;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use function Laravel\Prompts\select;
@@ -22,23 +23,11 @@ class TestController extends Controller
     public function index(Request $request)
     {
         $locale = "en";
-        $query = DB::table('staff as s')
-            ->join('staff_trans as st', 'st.staff_id', '=', 's.id')
-            ->where('staff_type_id', StaffEnum::director->value)
-            ->select(
-                's.id',
-                's.staff_type_id',
-                's.contact',
-                's.email',
-                's.profile as picture',
-                's.created_at',
-                's.updated_at',
-                DB::raw("MAX(CASE WHEN st.language_name = 'en' THEN st.name END) as name_english"),
-                DB::raw("MAX(CASE WHEN st.language_name = 'fa' THEN st.name END) as name_farsi"),
-                DB::raw("MAX(CASE WHEN st.language_name = 'ps' THEN st.name END) as name_pashto")
-            )
-            ->groupBy('s.id', 's.staff_type_id', 's.contact', 's.email', 's.profile', 's.created_at', 's.updated_at')
-            ->first();
+        $query = NgoType::join('ngo_type_trans', 'ngo_types.id', '=', 'ngo_type_trans.ngo_type_id')
+            ->where('ngo_type_trans.language_name', $locale)
+            ->select('ngo_type_trans.value as name', 'ngo_types.id')
+            ->orderBy('ngo_types.id', 'desc')
+            ->get();
 
         return $query;
 
