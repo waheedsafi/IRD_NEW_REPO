@@ -19,6 +19,7 @@ return new class extends Migration
                 ->onDelete('no action');
             $table->string('file_extensions');
             $table->boolean('isOptional')->default(false);
+            $table->integer('file_size')->default('512')->comment('file size in KB');
             $table->string('description', 128);
             $table->timestamps();
         });
