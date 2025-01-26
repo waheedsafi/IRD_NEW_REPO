@@ -113,6 +113,12 @@ public function getCountry($country_id,$lang){
 }
 
 
+public function getProvince($province_id,$lang){
+    
+}
+
+
+
 
 
 
