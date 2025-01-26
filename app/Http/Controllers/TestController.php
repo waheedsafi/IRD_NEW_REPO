@@ -2,24 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\LanguageEnum;
-use App\Enums\StaffEnum;
-use App\Enums\StatusTypeEnum;
-use App\Models\Address;
-
-use App\Models\Director;
-use App\Models\News;
 use App\Models\Ngo;
+use App\Models\News;
+use App\Models\User;
+use App\Models\Staff;
+
+use App\Models\Address;
+use App\Enums\StaffEnum;
+use App\Models\Director;
 
 use App\Models\Province;
-use App\Models\Staff;
+use App\Models\CheckList;
 use App\Models\Translate;
-use App\Models\User;
+use App\Enums\LanguageEnum;
+use Illuminate\Http\Request;
+use App\Enums\StatusTypeEnum;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\App;
 use App\Traits\Address\AddressTrait;
 use function Laravel\Prompts\select;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 
 class TestController extends Controller
@@ -27,7 +28,13 @@ class TestController extends Controller
     use AddressTrait;
     public function index(Request $request)
     {
+        $locale = "fa";
 
+        return CheckList::join('check_list_trans as ct', 'ct.check_list_id', '=', 'check_lists.id')
+            ->where('ct.language_name', $locale)
+            ->select('ct.value as name', 'check_lists.id', 'check_lists.file_extensions', 'check_lists.description')
+            ->orderBy('check_lists.id', 'desc')
+            ->get();
 
 
         return   $this->getCompleteAddress(1, 'fa');

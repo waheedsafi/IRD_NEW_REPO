@@ -17,8 +17,8 @@ return new class extends Migration
             $table->foreign('check_list_type_id')->references('id')->on('check_list_types')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
-            $table->string('file_extensions');
-            $table->boolean('isOptional')->default(false);
+            $table->json('file_extensions');
+            $table->boolean('is_optional')->default(false);
             $table->integer('file_size')->default('512')->comment('file size in KB');
             $table->string('description', 128);
             $table->timestamps();

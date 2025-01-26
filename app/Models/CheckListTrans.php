@@ -9,4 +9,5 @@ class CheckListTrans extends Model
 {
     /** @use HasFactory<\Database\Factories\CheckListTransFactory> */
     use HasFactory;
+    protected $guarded = [];
 }

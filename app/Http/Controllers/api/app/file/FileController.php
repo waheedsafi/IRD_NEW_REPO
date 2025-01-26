@@ -2,73 +2,61 @@
 
 namespace App\Http\Controllers\api\app\file;
 
-use App\Http\Controllers\Controller;
-use App\Models\CheckList;
 use App\Models\News;
+use App\Models\CheckList;
 use App\Models\NewsDocument;
 use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
-use Pion\Laravel\ChunkUpload\Exceptions\UploadMissingFileException;
-use Pion\Laravel\ChunkUpload\Handler\HandlerFactory;
+use Illuminate\Support\Facades\Storage;
 use Pion\Laravel\ChunkUpload\Receiver\FileReceiver;
+use Pion\Laravel\ChunkUpload\Handler\HandlerFactory;
+use Pion\Laravel\ChunkUpload\Exceptions\UploadMissingFileException;
 
 class FileController extends Controller
 {
     //
     // documentation from this site https://shouts.dev/articles/laravel-upload-large-file-with-resumablejs-and-laravel-chunk-upload
+
     public function fileUpload(Request $request)
     {
-        $request->validate([
-            'check_list_id' => 'required|integer',
-            'file' => [
-                'required',
-                'file',
-                function ($attribute, $value, $fail) use ($request) {
-                    $checkListId = $request->input('check_list_id');
+        $checklist = CheckList::find($request->check_list_id);
 
-                    // Fetch allowed extensions based on `check_list_id`.
-                    $allowedExtensions = CheckList::find($checkListId)?->file_extensions;
-                    // Assume file_extensions is an array, e.g., ['pdf', 'docx']
+        $checklist_name = $checklist->name;
+        $userId = $request->user()->id;
 
-                    if (!$allowedExtensions || !in_array($value->getClientOriginalExtension(), $allowedExtensions)) {
-                        $fail("The $attribute must be a file of type: " . implode(', ', $allowedExtensions) . '.');
-                    }
-                },
-            ],
-        ]);
+        // Define the storage path
+        $path = "app/private/temp/" . $userId . '/' . $checklist_name;
 
-        // create the file receiver
-
-        $checklist =  CheckList::find($request->check_list_id);
-
-        $checklist_name =   $checklist->name;
-        $userId = Auth::user()->id;
-        $path =  "app/private/temp/" . $userId . '/' . $checklist_name;
+        // Ensure the destination directory exists
+        $fullPath = storage_path('app/' . $path);
+        if (!file_exists($fullPath)) {
+            // Create the directory with 0755 permissions, and allow subdirectories
+            mkdir($fullPath, 0755, true);
+        }
 
         return $this->uploadChunk($request, $path);
     }
 
-    protected function uploadChunk($request, $path)
+    protected function uploadChunk(Request $request, $path)
     {
         $receiver = new FileReceiver("file", $request, HandlerFactory::classFromRequest($request));
 
-        // check if the upload is success, throw exception or return response you need
+        // Check if the upload is successful, otherwise throw exception
         if ($receiver->isUploaded() === false) {
             throw new UploadMissingFileException();
         }
 
-        // receive the file
+        // Receive the file chunk
         $save = $receiver->receive();
 
-        // check if the upload has finished (in chunk mode it will send smaller files)
+        // Check if the upload has finished
         if ($save->isFinished()) {
-            // save the file and return any response you need, current example uses `move` function. If you are
-            // not using move, you need to manually delete the file by unlink($save->getFile()->getPathname())
+            // Save the file to the specified path using Storage facade
             return $this->saveFile($save->getFile(), $path);
         }
 
-        // we are in chunk mode, lets send the current progress
+        // We are in chunk mode, let's send the current progress
         $handler = $save->handler();
 
         return response()->json([
@@ -77,28 +65,24 @@ class FileController extends Controller
         ]);
     }
 
-    protected function saveFile(UploadedFile $file, $path)
+    protected function saveFile($file, $path)
     {
-        $extension = $file->getClientOriginalExtension();
-        $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-        $fileName = $filename . "_" . md5(time()) . "." . $extension;
+        // Get the original file name
+        $fileName = $file->getClientOriginalName();
 
-        // Ensure directory exists
-        $finalPath = storage_path($path);
-        if (!file_exists($finalPath)) {
-            mkdir($finalPath, 0777, true);
-        }
+        // Save the file using Laravel's Storage facade to the specified path
+        $destinationPath = $path . '/' . $fileName;
 
-        // Save the file
-        $file->move($finalPath, $fileName);
+        // Store the file using Storage facade
+        Storage::disk('local')->put($destinationPath, file_get_contents($file->getPathname()));
 
-        return [
-            'path' => asset("storage/$path/$fileName"),
-            'name' => $fileName,
-            'original_name' => $filename,
-            'mime' => $extension,
-        ];
+        // Return a response indicating success and the file's final location
+        return response()->json([
+            'status' => 'success',
+            'file_path' => storage_path('app/' . $destinationPath)
+        ]);
     }
+
 
 
     public function newsFileUpload(Request $request)

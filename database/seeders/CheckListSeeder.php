@@ -43,8 +43,15 @@ class CheckListSeeder extends Seeder
         $checklists = [
             [
                 'type' => CheckListTypeEnum::internal,
-                'file_extensions' => ['pdf', 'docx'],
+                'file_extensions' => [
+                    "image/png",
+                    "image/jpeg",
+                    "image/gif",
+                    "application/pdf",
+                ],
                 'description' => '',
+                'is_optional' => false,
+                'file_size' => 2048,
                 'translations' => [
                     ['language_name' => 'en', 'value' => 'Article of Association'],
                     ['language_name' => 'ps', 'value' => 'د اساسنامی کاپی'],
@@ -53,8 +60,15 @@ class CheckListSeeder extends Seeder
             ],
             [
                 'type' => CheckListTypeEnum::internal,
-                'file_extensions' => ['pdf', 'docx'],
+                'file_extensions' => [
+                    "image/png",
+                    "image/jpeg",
+                    "image/gif",
+                    "application/pdf",
+                ],
                 'description' => '',
+                'is_optional' => false,
+                'file_size' => 2048,
                 'translations' => [
                     ['language_name' => 'en', 'value' => 'Copy of NID or Password of GD'],
                     ['language_name' => 'ps', 'value' => 'د سکن کاپی'],
