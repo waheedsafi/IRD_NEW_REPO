@@ -3,7 +3,16 @@
 
 use App\Enums\PermissionEnum;
 use App\Http\Controllers\api\app\ngo\NgoController;
+use App\Http\Controllers\api\app\ngo\NgoPublicController;
 use Illuminate\Support\Facades\Route;
+
+
+
+
+Route::prefix('v1')->group(function () {
+    Route::get('public/ngos/{page}', [NgoPublicController::class, 'ngos']);
+});
+
 
 
 
