@@ -26,3 +26,4 @@ require __DIR__ . '/api/app/ngo/ngoType.php';
 require __DIR__ . '/api/app/ngo/registerationForm.php';
 require __DIR__ . '/api/app/project/project.php';
 require __DIR__ . '/api/app/file/file.php';
+require __DIR__ . '/api/app/checklist/checklist.php';

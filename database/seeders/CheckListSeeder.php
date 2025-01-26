@@ -19,70 +19,62 @@ class CheckListSeeder extends Seeder
         //
         $this->CheckListType();
         $this->registerationCheckList();
-
     }
 
-    protected function CheckListType(){
-
-
+    protected function CheckListType()
+    {
         CheckListType::create(
             [
                 'id' => CheckListTypeEnum::internal,
                 'name' => 'Internal'
             ]
-            );
-        
+        );
+
         CheckListType::create(
             [
                 'id' => CheckListTypeEnum::externel,
                 'name' => 'External'
             ]
-            );
+        );
     }
 
-    protected function registerationCheckList(){
-
-
- 
-    $checklists = [
-        [
-            'type' => CheckListTypeEnum::internal,
-            'file_extensions' => ['pdf', 'docx'],
-            'description' => '',
-            'translations' => [
-                ['language_name' => 'en', 'value' => 'Article of Association'],
-                ['language_name' => 'ps', 'value' => 'د اساسنامی کاپی'],
-                ['language_name' => 'fa', 'value' => 'کاپی اساسنامه'],
+    protected function registerationCheckList()
+    {
+        $checklists = [
+            [
+                'type' => CheckListTypeEnum::internal,
+                'file_extensions' => ['pdf', 'docx'],
+                'description' => '',
+                'translations' => [
+                    ['language_name' => 'en', 'value' => 'Article of Association'],
+                    ['language_name' => 'ps', 'value' => 'د اساسنامی کاپی'],
+                    ['language_name' => 'fa', 'value' => 'کاپی اساسنامه'],
+                ],
             ],
-        ],
-        [
-            'type' => CheckListTypeEnum::internal,
-            'file_extensions' => ['pdf', 'docx'],
-            'description' => '',
-            'translations' => [
-                ['language_name' => 'en', 'value' => 'Copy of NID or Password of GD'],
-                ['language_name' => 'ps', 'value' => 'د سکن کاپی'],
-                ['language_name' => 'fa', 'value' => 'کاپی سکن'],
+            [
+                'type' => CheckListTypeEnum::internal,
+                'file_extensions' => ['pdf', 'docx'],
+                'description' => '',
+                'translations' => [
+                    ['language_name' => 'en', 'value' => 'Copy of NID or Password of GD'],
+                    ['language_name' => 'ps', 'value' => 'د سکن کاپی'],
+                    ['language_name' => 'fa', 'value' => 'کاپی سکن'],
+                ],
+
             ],
-         
-        ],
-    ];
+        ];
 
-    foreach ($checklists as $checklistData) {
-        $checklist = CheckList::create([
-            'check_list_type_id' => $checklistData['type'],
-            'file_extensions' => json_encode($checklistData['file_extensions']),
-            'description' => $checklistData['description'],
-        ]);
+        foreach ($checklists as $checklistData) {
+            $checklist = CheckList::create([
+                'check_list_type_id' => $checklistData['type'],
+                'file_extensions' => json_encode($checklistData['file_extensions']),
+                'description' => $checklistData['description'],
+            ]);
 
-        foreach ($checklistData['translations'] as $translation) {
-            $translation['check_list_id'] = $checklist->id;
-            CheckListTrans::create($translation);
+            foreach ($checklistData['translations'] as $translation) {
+                $translation['check_list_id'] = $checklist->id;
+                CheckListTrans::create($translation);
+            }
         }
-    
-
-
-    }
-
     }
 }
