@@ -114,7 +114,25 @@ public function getCountry($country_id,$lang){
 
 
 public function getProvince($province_id,$lang){
-    
+
+
+
+      
+        if($lang!=LanguageEnum::default->value){
+        $province =   Province::join('translates','translable_id','provinces.id')
+        ->where('translable_type',Province::class)
+        ->where('provinces.id',$province_id)
+        ->where('language_name',$lang)
+        ->select('value as name','country_id')->first();
+
+            }else{
+  
+             $province =   Province::select('country_id','name')->where('id',$province_id)->first();
+
+            }
+
+
+            return $province->name;
 }
 
 
