@@ -12,5 +12,5 @@ Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(
 });
 
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
-  Route::post('file/upload', [FileController::class, 'fileUpload']);
+  Route::post('file/upload', [FileController::class, 'uploadFile'])->withoutMiddleware('throttle');
 });
