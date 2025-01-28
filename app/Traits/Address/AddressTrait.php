@@ -4,6 +4,7 @@ namespace App\Traits\Address;
 
 use App\Enums\LanguageEnum;
 use App\Models\Address;
+use App\Models\AddressTran;
 use App\Models\Country;
 use App\Models\District;
 use App\Models\Province;
@@ -133,6 +134,40 @@ public function getProvince($province_id,$lang){
 
 
             return $province->name;
+}
+
+
+
+public function getDistrict($district_id,$lang){
+
+
+
+      
+       $district ='';
+            if($lang !=LanguageEnum::default->value){
+                 $district =     District::join('translates','translable_id','districts.id')
+                ->where('translable_type',District::class)
+                ->where('districts.id',$district_id)
+                ->where('language_name',$lang)
+                ->select('value as name')->first();
+            }
+            else{
+
+                $district =District::select('name')->where('id',$district_id)->first();
+                
+            }
+
+
+            return $district->name;
+}
+
+
+
+private function getAddressArea($address_id, $lang)
+{
+    return AddressTran::where('address_id', $address_id)
+        ->where('language_name', $lang)
+        ->value('area');
 }
 
 
