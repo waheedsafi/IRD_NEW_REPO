@@ -1,163 +1,158 @@
 <?php
-
 namespace App\Http\Controllers\api\app\file;
 
-use App\Models\News;
-use App\Models\CheckList;
-use Illuminate\Support\Str;
-use App\Models\NewsDocument;
-use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
 use App\Http\Controllers\Controller;
+use App\Models\CheckList;
 use App\Models\PendingTask;
 use App\Models\PendingTaskDocument;
-use Illuminate\Support\Facades\Auth;
-use Pion\Laravel\ChunkUpload\Receiver\FileReceiver;
-use Pion\Laravel\ChunkUpload\Handler\HandlerFactory;
+use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Pion\Laravel\ChunkUpload\Exceptions\UploadMissingFileException;
+use Pion\Laravel\ChunkUpload\Handler\HandlerFactory;
+use Pion\Laravel\ChunkUpload\Receiver\FileReceiver;
 
 class FileController extends Controller
 {
-
     /**
-     * Handles the file upload
-     *
-     * @param Request $request
-     *
-     * @return JsonResponse
-     *
-     * @throws UploadMissingFileException
-     * @throws UploadFailedException
+     * Handles the file upload.
      */
     public function uploadFile(Request $request)
     {
-
-
-        $this->checkListCheck($request);
-        //Turn Off The Throttle API
-        //from web route
-        // create the file receiver
         $receiver = new FileReceiver("file", $request, HandlerFactory::classFromRequest($request));
 
-        // check if the upload is success, throw exception or return response you need
-        if ($receiver->isUploaded() === false) {
+        if (!$receiver->isUploaded()) {
             throw new UploadMissingFileException();
         }
 
-        // receive the file
         $save = $receiver->receive();
 
-        // check if the upload has finished (in chunk mode it will send smaller files)
         if ($save->isFinished()) {
-            // save the file and return any response you need, current example uses `move` function. If you are
-            // not using move, you need to manually delete the file by unlink($save->getFile()->getPathname())
             return $this->saveFile($save->getFile(), $request);
         }
 
-        // we are in chunk mode, lets send the current progress
-        /** @var AbstractHandler $handler */
+        // If not finished, send current progress.
         $handler = $save->handler();
 
         return response()->json([
             "done" => $handler->getPercentageDone(),
-            'status' => true
+            "status" => true,
         ]);
     }
 
     /**
-     * Saves the file
-     *
-     * @param UploadedFile $file
-     *
-     * @return JsonResponse
+     * Saves the file and validates it.
      */
     protected function saveFile(UploadedFile $file, Request $request)
     {
-
         $fileActualName = $file->getClientOriginalName();
         $fileName = $this->createFilename($file);
-
         $fileSize = $file->getSize();
-        // move the file name
         $finalPath = $this->getTempPath();
+        $fileFullPath = "{$finalPath}/{$fileName}";
+
         $file->move($finalPath, $fileName);
+
+        // Validate the file against checklist rules
+        $validationResult = $this->checkListCheck($request, $fileFullPath);
+
+        if ($validationResult !== true) {
+            return $validationResult; // Return validation errors
+        }
+
+        // Process pending task and document creation
         $extension = $file->getClientOriginalExtension();
+        $mimeType = $file->getMimeType();
         $pending = $request->pending_id ?? $this->pending($request);
 
         $data = [
-            'pending_id' => $pending->id,
-            'name' => $fileActualName,
-            'size' => $fileSize,
-            "extension" => $extension,
+            "pending_id" => $pending->id,
+            "name" => $fileActualName,
+            "size" => $fileSize,
+            "extension" => $mimeType,
+            "path" => $fileFullPath,
         ];
 
         $this->pendingDocument($data);
-        return response()->json([
-            $data
-        ]);
-    }
-    public function pending($request)
-    {
-        $user_id  =  $request->user()->id;
-        $role_id =  $request->user()->role_id;
-        $task_type =  $request->task_type;
 
-        PendingTask::where('task_type', $task_type)
-            ->where('user_id', $user_id)
-            ->where('user_type', $role_id)
-            ->delete();
-
-        $pending =  PendingTask::create([
-            'task_type' => $task_type,
-            'content' => '',
-            'user_id' => $user_id,
-            'user_type' => $role_id
-
-        ]);
-        return $pending;
+        return response()->json($data, 201);
     }
 
-    public function pendingDocument($data)
-    {
-
-        PendingTaskDocument::create([
-            'pending_task_id' => $data['pending_id'],
-            'size' => $data['size'],
-            'path' => $data['path'],
-            'actual_name' => $data['name'],
-            'extension' => $data['extension']
-
-        ]);
-    }
     /**
-     * Create unique filename for uploaded file
-     * @param UploadedFile $file
-     * @return string
+     * Validate file using checklist settings.
      */
-
-    public function checkListCheck($request)
+    public function checkListCheck($request, $filePath)
     {
-        $checklist_id = $request->checklist_id;
+        $checklist = CheckList::find($request->checklist_id);
 
-        // Fetch the checklist, handling the case where it's not found
-        $checklist = CheckList::find($checklist_id);
         if (!$checklist) {
-            return response()->json(['error' => 'Checklist not found.'], 404);
+            return response()->json(["error" => "Checklist not found."], 404);
         }
 
-        // Validate the request
-        $request->validate([
-            'file' => [
-                'required',
+        $rules = [
+            "file" => [
+                "required",
                 "mimes:{$checklist->file_extensions}",
-                "max:{$checklist->file_size}", // Laravel's file size uses kilobytes (KB)
+                "max:{$checklist->file_size}",
             ],
+            'task_type' => ['required']
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            Storage::delete($filePath); // Cleanup invalid file
+            return response()->json(["errors" => $validator->errors()], 422);
+        }
+
+        return true;
+    }
+
+    /**
+     * Create or retrieve pending task.
+     */
+    protected function pending(Request $request)
+    {
+        $user = $request->user();
+
+        PendingTask::where([
+            "task_type" => $request->task_type,
+            "user_id" => $user->id,
+            "user_type" => $user->role_id,
+        ])->delete();
+
+        return PendingTask::create([
+            "task_type" => $request->task_type,
+            "content" => "",
+            "user_id" => $user->id,
+            "user_type" => $user->role_id,
         ]);
     }
 
-    protected function createFilename(UploadedFile $file)
+    /**
+     * Save pending task document.
+     */
+    protected function pendingDocument(array $data)
     {
-        $extension = $file->getClientOriginalExtension();
-        return  Str::uuid() . "." . $extension;
+        PendingTaskDocument::create([
+            "pending_task_id" => $data["pending_id"],
+            "size" => $data["size"],
+            "path" => $data["path"],
+            "actual_name" => $data["name"],
+            "extension" => $data["extension"],
+        ]);
     }
+
+    /**
+     * Generate a unique filename.
+     */
+    protected function createFilename(UploadedFile $file): string
+    {
+        return Str::uuid() . "." . $file->getClientOriginalExtension();
+    }
+
+  
+
 }
