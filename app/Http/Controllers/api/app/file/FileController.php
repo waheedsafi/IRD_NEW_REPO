@@ -31,12 +31,7 @@ class FileController extends Controller
      */
     public function uploadFile(Request $request)
     {
-
-
         $this->checkListCheck($request);
-        //Turn Off The Throttle API
-        //from web route
-        // create the file receiver
         $receiver = new FileReceiver("file", $request, HandlerFactory::classFromRequest($request));
 
         // check if the upload is success, throw exception or return response you need
