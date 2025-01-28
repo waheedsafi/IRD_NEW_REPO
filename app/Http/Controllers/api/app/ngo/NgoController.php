@@ -21,9 +21,11 @@ use App\Http\Controllers\Controller;
 use App\Models\AddressTran;
 use App\Models\NgoStatus;
 use App\Models\StatusTypeTran;
+use App\Traits\Address\AddressTrait;
 
 class NgoController extends Controller
 {
+    use AddressTrait;
 
 
     public function ngos(Request $request, $page)
@@ -185,6 +187,79 @@ class NgoController extends Controller
             JSON_UNESCAPED_UNICODE
         );
     }
+
+public function ngoInit(Request $request, $ngo_id)
+{
+    $locale = App::getLocale();
+
+    // Joining necessary tables to fetch the NGO data
+    $ngo = Ngo::join('contacts', 'contact_id', '=', 'contacts.id')
+        ->leftJoin('emails', 'email_id', '=', 'emails.id')
+        ->leftJoin('ngo_type_trans', function ($join) use ($locale) {
+            $join->on('ngos.ngo_type_id', '=', 'ngo_type_trans.ngo_type_id')
+                 ->where('ngo_type_trans.language_name', '=', $locale);
+        })
+        ->leftJoin('addresses', 'address_id', '=', 'addresses.id')
+        ->select(
+            'abbr',
+            'ngos.ngo_type_id',
+            'ngo_type_trans.value as type_name',
+            'province_id',
+            'district_id',
+            'addresses.id as address_id',
+            'ngos.email_id',
+            'emails.value as email',
+            'contacts.value as contact',
+            'ngos.contact_id'
+        )
+        ->where('ngos.id', $ngo_id)
+        ->first();
+
+    // Handle NGO not found
+    if (!$ngo) {
+        return response()->json([
+            'message' => __('app_translation.ngo_not_found'),
+        ], 404);
+    }
+
+    // Fetching translations using a separate query
+    $translations = NgoTran::where('ngo_id', $ngo_id)
+        ->select('language_name', 'name')
+        ->get()
+        ->keyBy('language_name');
+
+    $data = [
+        'name_english' => $translations['en']->name ?? null,
+        'name_pashto' => $translations['ps']->name ?? null,
+        'name_farsi' => $translations['fa']->name ?? null,
+        'abbr' =>[ 'name' => $ngo->abbr,'id' =>$ngo->ngo_type_id],
+        'type' => $ngo->type_name,
+        'contact' => $ngo->contact,
+        'email' => $ngo->email, 
+        'province' => [ 'name' => $this->getProvince($ngo->province_id, $locale),'id' =>$ngo->province_id],
+        'district' => ['name' =>$this->getDistrict($ngo->district_id, $locale) ,'id'=>$ngo->district_id],
+        'area_english' => $this->getAddressArea($ngo->address_id, 'en'),
+        'area_pashto' => $this->getAddressArea($ngo->address_id, 'ps'),
+        'area_farsi' => $this->getAddressArea($ngo->address_id, 'fa'),
+    ];
+
+    return response()->json([
+        'message' => __('app_translation.success'),
+        'ngo' => $data,
+    ], 200, [], JSON_UNESCAPED_UNICODE);
+}
+
+private function getAddressArea($address_id, $language)
+{
+    return AddressTran::where('address_id', $address_id)
+        ->where('language_name', $language)
+        ->value('area');
+}
+
+
+
+
+
     public function profileUpdate(NgoProfileUpdateRequest $request, $id)
     {
 

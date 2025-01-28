@@ -21,8 +21,16 @@ Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(
   Route::get('/ngos/{page}', [NgoController::class, 'ngos'])->middleware(["hasViewPermission:" . PermissionEnum::ngo->value]);
   Route::get('/ngo/{id}', [NgoController::class, 'ngo'])->middleware(["hasViewPermission:" . PermissionEnum::ngo->value]);
   Route::post('/ngo/store', [NgoController::class, 'store'])->middleware(["hasAddPermission:" . PermissionEnum::ngo->value]);
+
+
 });
 
 
 // ngo user 
-Route::prefix('v1')->middleware(['api.key', "authorized:" . 'ngo:api'])->group(function () {});
+  Route::get('/ngoInit/{id}', [NgoController::class, 'ngoInit']);
+
+Route::prefix('v1')->middleware(['api.key', "authorized:" . 'ngo:api'])->group(function () {
+
+  Route::get('/ngo/{id}', [NgoController::class, 'ngo']);
+
+});

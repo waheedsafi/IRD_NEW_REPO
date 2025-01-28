@@ -137,6 +137,31 @@ public function getProvince($province_id,$lang){
 
 
 
+public function getDistrict($district_id,$lang){
+
+
+
+      
+       $district ='';
+            if($lang !=LanguageEnum::default->value){
+                 $district =     District::join('translates','translable_id','districts.id')
+                ->where('translable_type',District::class)
+                ->where('districts.id',$district_id)
+                ->where('language_name',$lang)
+                ->select('value as name')->first();
+            }
+            else{
+
+                $district =District::select('name')->where('id',$district_id)->first();
+                
+            }
+
+
+            return $district->name;
+}
+
+
+
 
 
 
