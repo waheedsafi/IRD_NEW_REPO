@@ -249,13 +249,6 @@ public function ngoInit(Request $request, $ngo_id)
     ], 200, [], JSON_UNESCAPED_UNICODE);
 }
 
-private function getAddressArea($address_id, $language)
-{
-    return AddressTran::where('address_id', $address_id)
-        ->where('language_name', $language)
-        ->value('area');
-}
-
 
 
 
