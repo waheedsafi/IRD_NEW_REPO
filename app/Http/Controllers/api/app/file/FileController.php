@@ -9,6 +9,8 @@ use App\Models\NewsDocument;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use App\Http\Controllers\Controller;
+use App\Models\PendingTask;
+use App\Models\PendingTaskDocument;
 use Illuminate\Support\Facades\Auth;
 use Pion\Laravel\ChunkUpload\Receiver\FileReceiver;
 use Pion\Laravel\ChunkUpload\Handler\HandlerFactory;
@@ -29,6 +31,9 @@ class FileController extends Controller
      */
     public function uploadFile(Request $request)
     {
+
+
+       $this->checkListCheck($request);
         //Turn Off The Throttle API
         //from web route
         // create the file receiver
@@ -69,28 +74,98 @@ class FileController extends Controller
     protected function saveFile(UploadedFile $file, Request $request)
     {
 
+        $fileActualName =$file->getClientOriginalName();
         $fileName = $this->createFilename($file);
 
 
         $fileSize = $file->getSize();
         // move the file name
-        $finalPath = storage_path() . "/app/private/testing/";
+        $finalPath = storage_path() . "/app/private/temp/";
 
         $file->move($finalPath, $fileName);
+
         $extension = $file->getClientOriginalExtension();
 
-        return response()->json([
-            'name' => $fileName,
+      $pending_id = $request->pending_id ?? $this->pending($request);
+
+
+       
+            $data =[
+            'pending_id' =>$pending_id,
+            'name' => $fileActualName,
             'size' => $fileSize,
-            "extension" => $extension,
-        ]);
+            "extension" => $extension,];
+
+
+        $this->pendingDocument($data);
+         return response()->json([
+            $data
+         ]);
+    }
+    public function pending($request){
+
+            
+            $user_id  =      $request->user()->id;
+            $role_id =  $request->user()->role_id;
+            $task_type =  $request->task_type;
+
+
+            PendingTask::where('task_type', $task_type)
+        ->where('user_id', $user_id)
+        ->where('user_type', $role_id)
+        ->delete();
+
+            $pending_id =  PendingTask::create([
+                    'task_type' => $task_type,
+                    'content' =>'',
+                    'user_id' => $user_id,
+                    'user_type' =>$role_id
+
+                ]);
+                return $pending_id;
+
     }
 
+    public function pendingDocument($data){
+
+        PendingTaskDocument::create([
+            'pending_task_id' =>$data['pending_id'],
+            'size' => $data['size'],
+            'path' =>$data['path'],
+            'actual_name' =>$data['name'],
+            'extension' =>$data['extension']
+
+        ]);
+
+
+    }
     /**
      * Create unique filename for uploaded file
      * @param UploadedFile $file
      * @return string
      */
+
+   public function checkListCheck($request)
+{
+    $checklist_id = $request->checklist_id;
+
+    // Fetch the checklist, handling the case where it's not found
+    $checklist = CheckList::find($checklist_id);
+    if (!$checklist) {
+        return response()->json(['error' => 'Checklist not found.'], 404);
+    }
+
+    // Validate the request
+    $request->validate([
+        'file' => [
+            'required',
+            "mimes:{$checklist->file_extensions}",
+            "max:{$checklist->file_size}", // Laravel's file size uses kilobytes (KB)
+        ],
+    ]);
+
+}
+
     protected function createFilename(UploadedFile $file)
     {
         $extension = $file->getClientOriginalExtension();
