@@ -64,13 +64,14 @@ class FileController extends Controller
 
         // Process pending task and document creation
         $extension = $file->getClientOriginalExtension();
+        $mimeType = $file->getMimeType();
         $pending = $request->pending_id ?? $this->pending($request);
 
         $data = [
             "pending_id" => $pending->id,
             "name" => $fileActualName,
             "size" => $fileSize,
-            "extension" => $extension,
+            "extension" => $mimeType,
             "path" => $fileFullPath,
         ];
 
@@ -96,6 +97,7 @@ class FileController extends Controller
                 "mimes:{$checklist->file_extensions}",
                 "max:{$checklist->file_size}",
             ],
+            'task_type' => ['required']
         ];
 
         $validator = Validator::make($request->all(), $rules);
