@@ -29,6 +29,28 @@ class TestController extends Controller
     public function index(Request $request)
     {
         $locale = "fa";
+        $ngo_id = 1;
+        return DB::table('ngos as n')
+            ->join('ngo_type_trans as ntt', 'ntt.ngo_type_id', '=', 'n.ngo_type_id')  // Join the ngo_type_trans table
+            ->leftJoin('addresses as ad', 'ad.id', '=', 'n.address_id')
+            ->leftJoin('address_trans as adt', function ($join) use ($locale) {
+                $join->on('ad.id', '=', 'adt.address_id')
+                    ->where('adt.language_name', '=', $locale);
+            })
+            ->leftJoin('emails as em', 'em.id', '=', 'n.email_id')
+            ->leftJoin('contacts as c', 'c.id', '=', 'n.contact_id')
+            ->where('n.id', $ngo_id)
+            ->select(
+                'n.id',
+                'em.value',
+                'c.value',
+                DB::raw("MAX(CASE WHEN ntt.language_name = 'en' THEN ntt.value END) as name_english"),  // English translation
+                DB::raw("MAX(CASE WHEN ntt.language_name = 'fa' THEN ntt.value END) as name_farsi"),   // Farsi translation
+                DB::raw("MAX(CASE WHEN ntt.language_name = 'ps' THEN ntt.value END) as name_pashto")   // Pashto translation
+            )
+            ->groupBy('n.id', 'em.value', 'c.value')
+            ->first();
+
 
         return CheckList::join('check_list_trans as ct', 'ct.check_list_id', '=', 'check_lists.id')
             ->where('ct.language_name', $locale)

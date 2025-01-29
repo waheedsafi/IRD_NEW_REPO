@@ -10,27 +10,20 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::prefix('v1')->group(function () {
-    Route::get('public/ngos/{page}', [NgoPublicController::class, 'ngos']);
+  Route::get('public/ngos/{page}', [NgoPublicController::class, 'ngos']);
 });
 
 
 
 
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
+  Route::get('/ngoInit/{id}', [NgoController::class, 'ngoInit']);
   Route::get('/ngos/record/count', [NgoController::class, "ngoCount"])->middleware(["hasViewPermission:" . PermissionEnum::ngo->value]);
   Route::get('/ngos/{page}', [NgoController::class, 'ngos'])->middleware(["hasViewPermission:" . PermissionEnum::ngo->value]);
   Route::get('/ngo/{id}', [NgoController::class, 'ngo'])->middleware(["hasViewPermission:" . PermissionEnum::ngo->value]);
   Route::post('/ngo/store', [NgoController::class, 'store'])->middleware(["hasAddPermission:" . PermissionEnum::ngo->value]);
-
-
 });
 
-
-// ngo user 
-  Route::get('/ngoInit/{id}', [NgoController::class, 'ngoInit']);
-
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'ngo:api'])->group(function () {
-
   Route::get('/ngo/{id}', [NgoController::class, 'ngo']);
-
 });
