@@ -2,6 +2,7 @@
 <?php
 
 use App\Enums\PermissionEnum;
+use App\Http\Controllers\api\app\director\DirectorController;
 use App\Http\Controllers\api\app\ngo\NgoController;
 use App\Http\Controllers\api\app\ngo\NgoPublicController;
 use Illuminate\Support\Facades\Route;
@@ -27,7 +28,10 @@ Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(
 
 
 // ngo user 
+
   Route::get('/ngoInit/{id}', [NgoController::class, 'ngoInit']);
+  Route::get('/ngo/details/{id}', [NgoController::class, 'ngoDetail']);
+  Route::get('/director/details/{ngo_id}', [DirectorController::class, 'directorDetails']);
 
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'ngo:api'])->group(function () {
 

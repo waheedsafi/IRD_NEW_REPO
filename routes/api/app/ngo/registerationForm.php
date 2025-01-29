@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Route;
 
 
 
-Route::get('/ngo/generate/registeration',[RegistertionFormController::class, 'generateForm']);
+Route::get('/ngo/generate/registeration/{id}',[RegistertionFormController::class, 'generateForm']);
 
 
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {

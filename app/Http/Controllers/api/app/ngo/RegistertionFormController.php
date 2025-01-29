@@ -36,8 +36,8 @@ class RegistertionFormController extends Controller
         $lang =$request->input('language_name');
         $this->setFooter($mpdf,PdfFooterEnum::REGISTER_FOOTER->value);
 
-        // $lang='en';
-        // $id =1;
+        $lang='ps';
+        $id =1;
         $data =$this->loadNgoData($lang,$id);
 
  

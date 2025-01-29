@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('model_jobs', function (Blueprint $table) {
+        Schema::create('ngo_representers', function (Blueprint $table) {
             $table->id();
-            $table->string("name")->unique();
-            $table->integer('type');
+            $table->unsignedBigInteger('agreement_id');
+            $table->foreign('agreement_id')->references('id')->on('agreements')->onUpdate('cascade')
+             ->onDelete('no action');
             $table->timestamps();
         });
     }
@@ -24,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('model_jobs');
+        Schema::dropIfExists('ngo_representers');
     }
 };

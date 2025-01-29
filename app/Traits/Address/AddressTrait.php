@@ -171,6 +171,19 @@ private function getAddressArea($address_id, $lang)
 }
 
 
+private function getAddressAreaTran($address_id)
+{
+   
+           $translations = AddressTran::where('address_id', $address_id)
+            ->select('language_name', 'area')
+            ->get()
+            ->keyBy('language_name');
+
+            return $translations;
+
+}
+
+
 
 
 
