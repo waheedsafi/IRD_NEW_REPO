@@ -28,7 +28,6 @@ class NgoController extends Controller
 {
     use AddressTrait,NgoTrait;
 
-
     public function ngos(Request $request, $page)
     {
         $perPage = $request->input('per_page', 10); // Number of records per page
@@ -227,6 +226,7 @@ class NgoController extends Controller
            $translations = $this->ngoNameTrans($ngo_id);
         $areaTrans = $this->getAddressAreaTran($ngo->address_id);
         $address = $this->getCompleteAddress($ngo->address_id,$locale);
+
 
         $data = [
             'name_english' => $translations['en']->name ?? null,

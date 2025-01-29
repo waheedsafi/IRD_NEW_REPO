@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\api\app\file;
 
 use App\Http\Controllers\Controller;
@@ -152,7 +153,4 @@ class FileController extends Controller
     {
         return Str::uuid() . "." . $file->getClientOriginalExtension();
     }
-
-  
-
 }
