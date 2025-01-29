@@ -16,7 +16,7 @@ use App\Models\CheckList;
 use App\Models\Translate;
 use App\Enums\LanguageEnum;
 use Illuminate\Http\Request;
-use App\Enums\StatusTypeEnum;
+use App\Enums\Type\StatusTypeEnum;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Traits\Address\AddressTrait;

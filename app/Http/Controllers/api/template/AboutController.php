@@ -79,7 +79,7 @@ class AboutController extends Controller
     }
 
     public function technicalSupports()
-    {
+    { 
         $query = DB::table('staff as s')
             ->join('staff_trans as st', 'st.staff_id', '=', 's.id')
             ->where('staff_type_id', StaffEnum::technical_support->value)
