@@ -26,9 +26,6 @@ use Illuminate\Support\Facades\Hash;
 
 class StoresNgoController extends Controller
 {
-    //
-
-
     public function store(NgoRegisterRequest $request)
     {
         $validatedData = $request->validated();
@@ -132,112 +129,92 @@ class StoresNgoController extends Controller
         );
     }
 
-    public function storePersonalDetial(Request $request,$id){
-
-
+    public function storePersonalDetial(Request $request, $id)
+    {
         $request->validate([
-           
-            
             'contents' => 'required|string',
-     
-
         ]);
-        
-       $user = $request->user();
-       $user_id =$user->id;
-       $role = $user->role_id;
-       $task_type = TaskTypeEnum::ngo_registeration;
 
-       $task = PendingTask::where('user_id', $user_id)
-        ->where('user_type', $role)
-        ->where('task_type', $task_type)
-        ->first(); // Retrieve the first matching record
+
+        $user = $request->user();
+        $user_id = $user->id;
+        $role = $user->role_id;
+        $task_type = TaskTypeEnum::ngo_registeration;
+
+        $task = PendingTask::where('user_id', $user_id)
+            ->where('user_type', $role)
+            ->where('task_type', $task_type)
+            ->first(); // Retrieve the first matching record
 
         if ($task) {
-           $maxStep = PendingTaskContent::where('pending_task_id', $task->id)
-            ->max('step'); // Get the maximum step value
+            $maxStep = PendingTaskContent::where('pending_task_id', $task->id)
+                ->max('step'); // Get the maximum step value
 
-            if(!$maxStep){
+            if (!$maxStep) {
                 PendingTaskContent::create([
-                    'step'=>1,
-                    'content' =>$request->contents,
-                    'pending_task_id' =>$task->id
+                    'step' => 1,
+                    'content' => $request->contents,
+                    'pending_task_id' => $task->id
 
                 ]);
 
-                  return response()->json(
-            [
-                'message' => __('app_translation.success'),
-               
+                return response()->json(
+                    [
+                        'message' => __('app_translation.success'),
 
-            ],
-           
-            200,
-            [],
-            JSON_UNESCAPED_UNICODE
-           );
-              
-            }
-            else{
 
-                 PendingTaskContent::create([
-                    'step'=>$maxStep+1,
-                    'content' =>$request->contents,
-                    'pending_task_id' =>$task->id
+                    ],
+
+                    200,
+                    [],
+                    JSON_UNESCAPED_UNICODE
+                );
+            } else {
+
+                PendingTaskContent::create([
+                    'step' => $maxStep + 1,
+                    'content' => $request->contents,
+                    'pending_task_id' => $task->id
 
                 ]);
 
-           return response()->json(
-            [
-                'message' => __('app_translation.success'),
-               
+                return response()->json(
+                    [
+                        'message' => __('app_translation.success'),
 
-            ],
-           
-            200,
-            [],
-            JSON_UNESCAPED_UNICODE
-           );
 
+                    ],
+
+                    200,
+                    [],
+                    JSON_UNESCAPED_UNICODE
+                );
             }
+        } else {
 
-        }
-        else{
-
-          $task =  PendingTask::create([
+            $task =  PendingTask::create([
                 'user_id' => $user_id,
-                'user_type' =>$role,
-                'task_type' =>$task_type
+                'user_type' => $role,
+                'task_type' => $task_type
 
             ]);
             PendingTaskContent::create([
-                    'step'=>1,
-                    'content' =>$request->contents,
-                    'pending_task_id' =>$task->id
+                'step' => 1,
+                'content' => $request->contents,
+                'pending_task_id' => $task->id
+            ]);
 
-                ]);
+            return response()->json(
+                [
+                    'message' => __('app_translation.success'),
 
-                  return response()->json(
-            [
-                'message' => __('app_translation.success'),
-               
 
-            ],
-           
-            200,
-            [],
-            JSON_UNESCAPED_UNICODE
-           );
+                ],
 
+                200,
+                [],
+                JSON_UNESCAPED_UNICODE
+            );
         }
-
-
-
-       
- 
-
     }
-
-
-
 }

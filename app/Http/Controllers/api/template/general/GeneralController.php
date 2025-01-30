@@ -13,15 +13,11 @@ class GeneralController extends Controller
 {
     //
 
-    public function gender(){
-
-        $locale =App::getLocale();
-
-        $gender =    Gender::select('id',"name_{$locale}")->get();
-
-        
-     return response()->json($gender);
-
+    public function gender()
+    {
+        $locale = App::getLocale();
+        $gender = Gender::select('id', "name_{$locale}")->get();
+        return response()->json($gender);
     }
 
     public function nidType(){
@@ -38,11 +34,5 @@ class GeneralController extends Controller
 
      return response()->json($nidtype);
 
-
-        
-
-
     }
-
-    
 }

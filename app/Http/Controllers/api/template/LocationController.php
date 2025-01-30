@@ -17,7 +17,7 @@ class LocationController extends Controller
     {
         $locale = App::getLocale();
         $tr = [];
-        if ($locale == LanguageEnum::default) {
+        if ($locale == LanguageEnum::default->value) {
             $tr = Country::select('id', 'name')->get();
         } else {
             $tr = Translate::where('translable_type', Country::class)
