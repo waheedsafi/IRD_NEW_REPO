@@ -23,9 +23,6 @@ use Illuminate\Support\Facades\Hash;
 
 class StoresNgoController extends Controller
 {
-    //
-
-
     public function store(NgoRegisterRequest $request)
     {
         $validatedData = $request->validated();
@@ -129,28 +126,17 @@ class StoresNgoController extends Controller
         );
     }
 
-    public function storePersonalDetial(Request $request,$id){
-
-
+    public function storePersonalDetial(Request $request, $id)
+    {
         $request->validate([
-           
-            
+
             'contents' => 'required|string',
-     
+
 
         ]);
-        
-       $user = $request->user();
-       $user_id =$user->id;
-       $role = $user->role_id;
-       $task_type =
 
-
-       
- 
-
+        $user = $request->user();
+        $user_id = $user->id;
+        $role = $user->role_id;
     }
-
-
-
 }

@@ -220,7 +220,7 @@ class ViewsNgoController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-        public function ngosPublic(Request $request, $page)
+    public function ngosPublic(Request $request, $page)
     {
         $perPage = $request->input('per_page', 10); // Number of records per page
         $page = $request->input('page', 1); // Current page
@@ -249,18 +249,15 @@ class ViewsNgoController extends Controller
             ->select(
                 'n.id',
                 'n.abbr',
-                'n.registration_no',
                 'n.date_of_establishment as establishment_date',
+                'n.created_at',
                 'nstr.name as status',
-                'nt.name as ngo_name',
+                'nt.name',
                 'ntt.value as type',
-                'dirt.name as director_name',
+                'dirt.name as director',
                 'add.province_id as province',
-                'n.created_at'
             );
 
-        // Apply the filters and pagination
-        $this->applyDatePublic($query, $request);
         $this->applyFiltersPublic($query, $request);
         $this->applySearchPublic($query, $request);
 
@@ -294,20 +291,6 @@ class ViewsNgoController extends Controller
             ['path' => url()->current()]  // Set path for the paginator links
         );
     }
-
-    protected function applyDatePublic($query, $request)
-    {
-        // Apply date filtering conditionally if provided
-        $startDate = $request->input('filters.date.startDate');
-        $endDate = $request->input('filters.date.endDate');
-
-        if ($startDate) {
-            $query->where('n.created_at', '>=', $startDate);
-        }
-        if ($endDate) {
-            $query->where('n.created_at', '<=', $endDate);
-        }
-    }
     // search function 
     protected function applySearchPublic($query, $request)
     {
@@ -329,16 +312,11 @@ class ViewsNgoController extends Controller
     {
         $sort = $request->input('filters.sort'); // Sorting column
         $order = $request->input('filters.order', 'asc'); // Sorting order (default 
-
-        if ($sort && in_array($sort, ['name', 'type', 'status'])) {
-            $query->orderBy($sort, $order);
-        } else {
-            // Default sorting if no sort is provided
-            $query->orderBy("created_at", 'desc');
-        }
+        // Default sorting if no sort is provided
+        $query->orderBy("created_at", 'desc');
     }
 
-    
+
     protected function applyDate($query, $request)
     {
         // Apply date filtering conditionally if provided
@@ -381,5 +359,4 @@ class ViewsNgoController extends Controller
             $query->orderBy("created_at", 'desc');
         }
     }
-
 }

@@ -8,13 +8,9 @@ use App\Http\Controllers\api\app\ngo\ViewsNgoController;
 use Illuminate\Support\Facades\Route;
 
 
-
-
 Route::prefix('v1')->group(function () {
   Route::get('public/ngos/{page}', [ViewsNgoController::class, 'ngosPublic']);
 });
-
-
 
 
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
@@ -27,7 +23,7 @@ Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(
 
 // ngo user 
 
-Route::get('/ngo/details/{id}', [NgoController::class, 'ngoDetail']);
+// Route::get('/ngo/details/{id}', [NgoController::class, 'ngoDetail']);
 Route::get('/director/details/{ngo_id}', [DirectorController::class, 'directorDetails']);
 
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'ngo:api'])->group(function () {

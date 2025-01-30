@@ -2,19 +2,15 @@
 <?php
 
 use App\Enums\PermissionEnum;
-use App\Http\Controllers\api\app\ngo\NgoController;
 use App\Http\Controllers\api\app\ngo\NgoPdfController;
-use App\Http\Controllers\api\app\ngo\RegistertionFormController;
 use Illuminate\Support\Facades\Route;
 
 
 
-Route::get('/ngo/generate/registeration/{id}',[NgoPdfController::class, 'generateForm']);
+Route::get('/ngo/generate/registeration/{id}', [NgoPdfController::class, 'generateForm']);
 
 
-Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
-
-});
+Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {});
 
 
 // ngo user 
