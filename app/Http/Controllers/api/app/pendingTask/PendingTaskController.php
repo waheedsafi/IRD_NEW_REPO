@@ -18,7 +18,7 @@ class PendingTaskController extends Controller
 
         if($request->pending_id){
 
-               $request->validate([
+            $request->validate([
             'contents' =>'required|string'
         ]);
 
