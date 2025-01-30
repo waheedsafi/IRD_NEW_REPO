@@ -5,6 +5,7 @@ namespace App\Http\Controllers\api\app\ngo;
 use App\Enums\LanguageEnum;
 use App\Enums\RoleEnum;
 use App\Enums\Type\StatusTypeEnum;
+use App\Enums\Type\TaskTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\app\ngo\NgoRegisterRequest;
 use App\Models\Address;
@@ -14,6 +15,8 @@ use App\Models\Email;
 use App\Models\Ngo;
 use App\Models\NgoStatus;
 use App\Models\NgoTran;
+use App\Models\PendingTask;
+use App\Models\PendingTaskContent;
 use App\Models\StatusTypeTran;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -129,6 +132,95 @@ class StoresNgoController extends Controller
     public function storePersonalDetial(Request $request, $id)
     {
         $request->validate([
+        ]);
+        
+       $user = $request->user();
+       $user_id =$user->id;
+       $role = $user->role_id;
+       $task_type = TaskTypeEnum::ngo_registeration;
+
+       $task = PendingTask::where('user_id', $user_id)
+        ->where('user_type', $role)
+        ->where('task_type', $task_type)
+        ->first(); // Retrieve the first matching record
+
+        if ($task) {
+           $maxStep = PendingTaskContent::where('pending_task_id', $task->id)
+            ->max('step'); // Get the maximum step value
+
+            if(!$maxStep){
+                PendingTaskContent::create([
+                    'step'=>1,
+                    'content' =>$request->contents,
+                    'pending_task_id' =>$task->id
+
+                ]);
+
+                  return response()->json(
+            [
+                'message' => __('app_translation.success'),
+               
+
+            ],
+           
+            200,
+            [],
+            JSON_UNESCAPED_UNICODE
+           );
+              
+            }
+            else{
+
+                 PendingTaskContent::create([
+                    'step'=>$maxStep+1,
+                    'content' =>$request->contents,
+                    'pending_task_id' =>$task->id
+
+                ]);
+
+           return response()->json(
+            [
+                'message' => __('app_translation.success'),
+               
+
+            ],
+           
+            200,
+            [],
+            JSON_UNESCAPED_UNICODE
+           );
+
+            }
+
+        }
+        else{
+
+          $task =  PendingTask::create([
+                'user_id' => $user_id,
+                'user_type' =>$role,
+                'task_type' =>$task_type
+
+            ]);
+            PendingTaskContent::create([
+                    'step'=>1,
+                    'content' =>$request->contents,
+                    'pending_task_id' =>$task->id
+
+                ]);
+
+                  return response()->json(
+            [
+                'message' => __('app_translation.success'),
+               
+
+            ],
+           
+            200,
+            [],
+            JSON_UNESCAPED_UNICODE
+           );
+
+        }
 
             'contents' => 'required|string',
 
