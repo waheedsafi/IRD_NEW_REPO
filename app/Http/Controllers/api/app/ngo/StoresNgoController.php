@@ -131,7 +131,10 @@ class StoresNgoController extends Controller
 
     public function storePersonalDetial(Request $request, $id)
     {
-        $request->validate([]);
+        $request->validate([
+            'contents' => 'required|string',
+        ]);
+
 
         $user = $request->user();
         $user_id = $user->id;
@@ -199,7 +202,6 @@ class StoresNgoController extends Controller
                 'step' => 1,
                 'content' => $request->contents,
                 'pending_task_id' => $task->id
-
             ]);
 
             return response()->json(

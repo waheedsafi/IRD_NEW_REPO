@@ -225,6 +225,7 @@ class ViewsNgoController extends Controller
         $perPage = $request->input('per_page', 10); // Number of records per page
         $page = $request->input('page', 1); // Current page
         $locale = App::getLocale();
+        $includedIds  = [StatusTypeEnum::active->value, StatusTypeEnum::active->value];
 
         $query = DB::table('ngos as n')
             ->join('ngo_trans as nt', function ($join) use ($locale) {
@@ -232,6 +233,7 @@ class ViewsNgoController extends Controller
                     ->where('nt.language_name', $locale);
             })
             ->leftjoin('ngo_statuses as ns', 'ns.ngo_id', '=', 'n.id')
+            ->whereIn('ns.status_type_id', $includedIds)
             ->leftjoin('status_type_trans as nstr', function ($join) use ($locale) {
                 $join->on('nstr.status_type_id', '=', 'ns.status_type_id')
                     ->where('nstr.language_name', $locale);
