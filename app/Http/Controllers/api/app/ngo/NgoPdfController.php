@@ -2,31 +2,21 @@
 
 namespace App\Http\Controllers\api\app\ngo;
 
-use Mpdf\Mpdf;
 use App\Models\Ngo;
 use App\Models\Staff;
-use App\Models\Address;
 use App\Enums\StaffEnum;
 use App\Models\Director;
-use App\Services\PdfService;
 use Illuminate\Http\Request;
-use Mpdf\Config\FontVariables;
-use Mpdf\Config\ConfigVariables;
 use App\Http\Controllers\Controller;
 use App\Traits\Address\AddressTrait;
 use App\Enums\pdfFooter\PdfFooterEnum;
 use App\Traits\Report\PdfGeneratorTrait;
 
-class RegistertionFormController extends Controller
+class NgoPdfController extends Controller
 {
     //
     use PdfGeneratorTrait, AddressTrait;
-    protected $pdfService;
 
-    public function __construct(PdfService $pdfService)
-    {
-        $this->pdfService = $pdfService;
-    }
     public function generateForm(Request $request, $id)
     {
         $mpdf =  $this->generatePdf();
