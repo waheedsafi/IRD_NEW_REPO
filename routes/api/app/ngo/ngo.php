@@ -27,8 +27,7 @@ Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(
 
 // ngo user 
 
-Route::get('/ngoInit/{id}', [ViewsNgoController::class, 'ngoInit']);
-Route::get('/ngo/details/{id}', [ViewsNgoController::class, 'ngoDetail']);
+Route::get('/ngo/details/{id}', [NgoController::class, 'ngoDetail']);
 Route::get('/director/details/{ngo_id}', [DirectorController::class, 'directorDetails']);
 
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'ngo:api'])->group(function () {
