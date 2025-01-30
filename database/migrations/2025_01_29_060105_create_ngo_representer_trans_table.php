@@ -13,19 +13,18 @@ return new class extends Migration
     {
         Schema::create('ngo_representer_trans', function (Blueprint $table) {
             $table->id();
-               $table->id();
             $table->unsignedBigInteger('ngo_representer_id');
             $table->foreign('ngo_representer_id')->references('id')->on('ngo_representers')->onUpdate('cascade')
-             ->onDelete('no action');
+                ->onDelete('no action');
             $table->string('language_name');
             $table->foreign('language_name')->references('name')->on('languages')->onUpdate('cascade')
-            ->onDelete('no action');
+                ->onDelete('no action');
             $table->unsignedBigInteger('job_id')->nullable();
             $table->foreign('job_id')->references('id')->on('model_jobs')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
-            $table->string('name',64);
-            $table->string('last_name',64)->nullable();
+            $table->string('name', 64);
+            $table->string('last_name', 64)->nullable();
             $table->timestamps();
         });
     }

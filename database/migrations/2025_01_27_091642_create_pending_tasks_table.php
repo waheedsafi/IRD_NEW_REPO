@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('pending_tasks', function (Blueprint $table) {
             $table->id();
-            $table->longText('content');
             $table->unsignedBigInteger('user_id');
             $table->integer('user_type');
             $table->integer('task_type');

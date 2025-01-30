@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::create('pending_task_documents', function (Blueprint $table) {
             $table->id();
-             $table->unsignedBigInteger('pending_task_id');
+            $table->unsignedBigInteger('pending_task_id');
             $table->foreign('pending_task_id')->references('id')->on('pending_tasks')->onUpdate('cascade')
-             ->onDelete('cascade');
-            $table->string('size',32);
-            $table->string('path',256);
-            $table->string('actual_name',64);
-            $table->string('extension',32);
+                ->onDelete('cascade');
+            $table->string('size', 32);
+            $table->string('path', 256);
+            $table->string('actual_name', 64);
+            $table->string('extension', 32);
             $table->timestamps();
         });
     }

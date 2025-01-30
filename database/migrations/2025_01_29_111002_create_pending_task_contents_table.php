@@ -11,13 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ngo_representers', function (Blueprint $table) {
+        Schema::create('pending_task_contents', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('agreement_id');
-            $table->foreign('agreement_id')->references('id')
-                ->on('agreements')
+            $table->longText('content');
+            $table->unsignedBigInteger('pending_task_id');
+            $table->foreign('pending_task_id')->references('id')
+                ->on('pending_tasks')
                 ->onUpdate('cascade')
-                ->onDelete('no action');
+                ->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -27,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ngo_representers');
+        Schema::dropIfExists('pending_task_contents');
     }
 };
