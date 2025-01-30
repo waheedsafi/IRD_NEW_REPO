@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('pending_task_contents', function (Blueprint $table) {
             $table->id();
+            $table->integer('step');
             $table->longText('content');
             $table->unsignedBigInteger('pending_task_id');
             $table->foreign('pending_task_id')->references('id')
