@@ -2,19 +2,20 @@
 
 namespace App\Http\Controllers\api\app\file;
 
-use App\Enums\Type\TaskTypeEnum;
-use App\Http\Controllers\Controller;
 use App\Models\CheckList;
 use App\Models\PendingTask;
-use App\Models\PendingTaskDocument;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Enums\Type\TaskTypeEnum;
 use Illuminate\Http\UploadedFile;
+use App\Models\PendingTaskDocument;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
-use Pion\Laravel\ChunkUpload\Exceptions\UploadMissingFileException;
-use Pion\Laravel\ChunkUpload\Handler\HandlerFactory;
 use Pion\Laravel\ChunkUpload\Receiver\FileReceiver;
+use Pion\Laravel\ChunkUpload\Handler\HandlerFactory;
+use Pion\Laravel\ChunkUpload\Exceptions\UploadMissingFileException;
 
 class FileController extends Controller
 {
@@ -82,6 +83,7 @@ class FileController extends Controller
         $fileSize = $file->getSize();
         $finalPath = $this->getTempPath();
         $fileFullPath = "{$finalPath}/{$fileName}";
+        $mimeType = $file->getMimeType();
 
         $file->move($finalPath, $fileName);
 
@@ -91,17 +93,17 @@ class FileController extends Controller
         if ($validationResult !== true) {
             return $validationResult; // Return validation errors
         }
-
         // Process pending task and document creation
         $extension = $file->getClientOriginalExtension();
-        $mimeType = $file->getMimeType();
+        Log::info('START');
+        Log::info('END');
         $pending =  $this->pending($request, $id, $task_type);
 
         $data = [
             "pending_id" => $pending,
             "name" => $fileActualName,
             "size" => $fileSize,
-            "check_list_id" => $request->check_list_id,
+            "check_list_id" => $request->checklist_id,
             "extension" => $mimeType,
             "path" => $fileFullPath,
         ];
@@ -122,13 +124,19 @@ class FileController extends Controller
     {
         $checklist = CheckList::find($request->checklist_id);
 
+
+
+        // If you want to include file_extensions in a valid response, you could return it here if needed
+
         if (!$checklist) {
-            return response()->json(["error" => "Checklist not found."], 404);
+            return response()->json(["error" => $checklist->file_extensions . "Checklist not found."], 404);
         }
+
 
         $rules = [
             "file" => [
                 "required",
+                // "mimes:pdf",
                 "mimes:{$checklist->file_extensions}",
                 "max:{$checklist->file_size}",
             ],

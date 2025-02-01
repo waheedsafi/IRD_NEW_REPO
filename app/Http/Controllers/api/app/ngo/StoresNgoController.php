@@ -133,8 +133,8 @@ class StoresNgoController extends Controller
     {
         $request->validate([
             'contents' => 'required|string',
+            'step' => 'required|string',
         ]);
-
 
         $user = $request->user();
         $user_id = $user->id;
@@ -151,21 +151,28 @@ class StoresNgoController extends Controller
             $maxStep = PendingTaskContent::where('pending_task_id', $task->id)
                 ->max('step'); // Get the maximum step value
 
+            // 1. Check if current step is same as prevous
+            if ($maxStep == $request->step) {
+                return response()->json(
+                    [
+                        'message' => __('app_translation.success'),
+                    ],
+                    200,
+                    [],
+                    JSON_UNESCAPED_UNICODE
+                );
+            }
             if (!$maxStep) {
                 PendingTaskContent::create([
                     'step' => 1,
                     'content' => $request->contents,
                     'pending_task_id' => $task->id
-
                 ]);
 
                 return response()->json(
                     [
                         'message' => __('app_translation.success'),
-
-
                     ],
-
                     200,
                     [],
                     JSON_UNESCAPED_UNICODE
@@ -182,8 +189,6 @@ class StoresNgoController extends Controller
                 return response()->json(
                     [
                         'message' => __('app_translation.success'),
-
-
                     ],
 
                     200,
