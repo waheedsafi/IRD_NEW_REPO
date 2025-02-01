@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\api\app\file;
 
+use App\Enums\Type\TaskTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Models\CheckList;
 use App\Models\PendingTask;
@@ -20,7 +21,7 @@ class FileController extends Controller
     /**
      * Handles the file upload.
      */
-    public function uploadFile(Request $request)
+    public function uploadNgoFile(Request $request)
     {
         $receiver = new FileReceiver("file", $request, HandlerFactory::classFromRequest($request));
 
@@ -31,7 +32,9 @@ class FileController extends Controller
         $save = $receiver->receive();
 
         if ($save->isFinished()) {
-            return $this->saveFile($save->getFile(), $request);
+            $task_type = TaskTypeEnum::ngo_registeration;
+            $ngo_id = $request->ngo_id;
+            return $this->saveFile($save->getFile(), $request, $ngo_id, $task_type);
         }
 
         // If not finished, send current progress.
@@ -43,10 +46,36 @@ class FileController extends Controller
         ]);
     }
 
+    public function uploadProjectFile(Request $request,)
+    {
+        $receiver = new FileReceiver("file", $request, HandlerFactory::classFromRequest($request));
+
+        if (!$receiver->isUploaded()) {
+            throw new UploadMissingFileException();
+        }
+
+        $save = $receiver->receive();
+
+        if ($save->isFinished()) {
+            $task_type = TaskTypeEnum::project_registeration;
+            $project_id = $request->project_id;
+            return $this->saveFile($save->getFile(), $request, $project_id, $task_type);
+        }
+
+        // If not finished, send current progress.
+        $handler = $save->handler();
+
+        return response()->json([
+            "done" => $handler->getPercentageDone(),
+            "status" => true,
+        ]);
+    }
+
+
     /**
      * Saves the file and validates it.
      */
-    protected function saveFile(UploadedFile $file, Request $request)
+    protected function saveFile(UploadedFile $file, Request $request, $id, $task_type)
     {
         $fileActualName = $file->getClientOriginalName();
         $fileName = $this->createFilename($file);
@@ -66,15 +95,20 @@ class FileController extends Controller
         // Process pending task and document creation
         $extension = $file->getClientOriginalExtension();
         $mimeType = $file->getMimeType();
-        $pending = $request->pending_id ?? $this->pending($request);
+        $pending =  $this->pending($request, $id, $task_type);
 
         $data = [
-            "pending_id" => $pending->id,
+            "pending_id" => $pending,
             "name" => $fileActualName,
             "size" => $fileSize,
+            "check_list_id" => $request->check_list_id,
             "extension" => $mimeType,
             "path" => $fileFullPath,
         ];
+
+
+
+
 
         $this->pendingDocument($data);
 
@@ -98,7 +132,7 @@ class FileController extends Controller
                 "mimes:{$checklist->file_extensions}",
                 "max:{$checklist->file_size}",
             ],
-            'task_type' => ['required']
+
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -114,22 +148,20 @@ class FileController extends Controller
     /**
      * Create or retrieve pending task.
      */
-    protected function pending(Request $request)
+    protected function pending(Request $request, $id, $task_type)
     {
         $user = $request->user();
+        $user_id = $user->id;
+        $role = $user->role_id;
 
-        PendingTask::where([
-            "task_type" => $request->task_type,
-            "user_id" => $user->id,
-            "user_type" => $user->role_id,
-        ])->delete();
 
-        return PendingTask::create([
-            "task_type" => $request->task_type,
-            "content" => "",
-            "user_id" => $user->id,
-            "user_type" => $user->role_id,
-        ]);
+        $task = PendingTask::where('user_id', $user_id)
+            ->where('user_type', $role)
+            ->where('task_type', $task_type)
+            ->where('task_id', $id)
+            ->first();
+
+        return $task->id;
     }
 
     /**
@@ -141,6 +173,7 @@ class FileController extends Controller
             "pending_task_id" => $data["pending_id"],
             "size" => $data["size"],
             "path" => $data["path"],
+            "check_list_id" => $data["check_list_id"],
             "actual_name" => $data["name"],
             "extension" => $data["extension"],
         ]);
