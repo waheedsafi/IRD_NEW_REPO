@@ -11,28 +11,19 @@ use Illuminate\Support\Facades\App;
 
 class GeneralController extends Controller
 {
-    //
-
-    public function gender()
+    public function genders()
     {
         $locale = App::getLocale();
-        $gender = Gender::select('id', "name_{$locale}")->get();
+        $gender = Gender::select('id', "name_{$locale} as name")->get();
         return response()->json($gender);
     }
 
-    public function nidType(){
-
-
-        $locale =App::getLocale();
-
-       $nidtype =  NidTypeTrans::select('value as name','nid_type_id as id ')
-         ->where('language_name',$locale)
-         ->get();
-
-
-        
-
-     return response()->json($nidtype);
-
+    public function nidTypes()
+    {
+        $locale = App::getLocale();
+        $nidtype =  NidTypeTrans::select('value as name', 'nid_type_id as id')
+            ->where('language_name', $locale)
+            ->get();
+        return response()->json($nidtype);
     }
 }

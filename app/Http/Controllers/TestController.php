@@ -7,15 +7,17 @@ use App\Models\News;
 use App\Models\User;
 use App\Models\Staff;
 
+use App\Models\Gender;
 use App\Models\Address;
 use App\Models\Country;
-use App\Enums\StaffEnum;
 
+use App\Enums\StaffEnum;
 use App\Models\Director;
 use App\Models\Province;
 use App\Models\CheckList;
 use App\Models\Translate;
 use App\Enums\LanguageEnum;
+use App\Models\NidTypeTrans;
 use Illuminate\Http\Request;
 use App\Enums\Type\StatusTypeEnum;
 use Illuminate\Support\Facades\DB;
@@ -29,8 +31,10 @@ class TestController extends Controller
     use AddressTrait;
     public function index(Request $request)
     {
+        $locale = "en";
+        return  Gender::select('id', "name_{$locale}")->get();
 
-        $locale = "fa";
+
         $ngo_id = 1;
         return DB::table('ngos as n')
             ->join('ngo_type_trans as ntt', 'ntt.ngo_type_id', '=', 'n.ngo_type_id')  // Join the ngo_type_trans table

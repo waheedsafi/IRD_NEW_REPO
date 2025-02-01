@@ -13,15 +13,14 @@ return new class extends Migration
     {
         Schema::create('staff_trans', function (Blueprint $table) {
             $table->id();
-              $table->unsignedBigInteger('staff_id');
+            $table->unsignedBigInteger('staff_id');
             $table->foreign('staff_id')->references('id')->on('staff')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
             $table->string('language_name');
             $table->foreign('language_name')->references('name')->on('languages')->onUpdate('cascade')
-             ->onDelete('cascade');
-             $table->string('name',64);
-             $table->string('last_name',64);
+                ->onDelete('cascade');
+            $table->string('name', 64);
             $table->timestamps();
         });
     }
