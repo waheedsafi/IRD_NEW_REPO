@@ -83,6 +83,10 @@ class ViewsNgoController extends Controller
 
         $personalDetail = $this->personalDetial($request, $ngo_id);
         if ($personalDetail['content']) {
+            return response()->json([
+                'message' => __('app_translation.success'),
+                'content' => $personalDetail['content']
+            ], 200);
         }
 
         // Joining necessary tables to fetch the NGO data
@@ -368,7 +372,7 @@ class ViewsNgoController extends Controller
             $query->orderBy("created_at", 'desc');
         }
     }
-    public function personalDetial(Request $request, $id)
+    public function personalDetial(Request $request, $id): array
     {
         $user = $request->user();
         $user_id = $user->id;
@@ -384,8 +388,8 @@ class ViewsNgoController extends Controller
 
         if ($task) {
             // Get the maximum step value
-            $maxStep = PendingTaskContent::where('pending_task_id', $task->id)
-                ->max('step');
+            // $maxStep = PendingTaskContent::where('pending_task_id', $task->id)
+            //     ->max('step');
 
             // Fetch and concatenate content
             $contents = PendingTaskContent::where('pending_task_id', $task->id)
@@ -393,15 +397,13 @@ class ViewsNgoController extends Controller
                 ->implode(' '); // Join them with a space (or another separator)
 
             return [
-                'max_step' => $maxStep,
+                // 'max_step' => $maxStep,
                 'content' => $contents
             ];
         }
 
-        return response()->json([
-
-            "message" => __('app_translation.not_found'),
-
-        ], 200, [], JSON_UNESCAPED_UNICODE);
+        return [
+            'content' => null
+        ];
     }
 }
