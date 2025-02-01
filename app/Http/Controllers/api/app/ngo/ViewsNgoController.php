@@ -81,7 +81,7 @@ class ViewsNgoController extends Controller
     {
         $locale = App::getLocale();
 
-        $personalDetail = $this->personalDetial($request);
+        $personalDetail = $this->personalDetial($request, $ngo_id);
         if ($personalDetail['content']) {
         }
 
@@ -368,7 +368,7 @@ class ViewsNgoController extends Controller
             $query->orderBy("created_at", 'desc');
         }
     }
-    public function personalDetial(Request $request)
+    public function personalDetial(Request $request, $id)
     {
         $user = $request->user();
         $user_id = $user->id;
@@ -379,6 +379,7 @@ class ViewsNgoController extends Controller
         $task = PendingTask::where('user_id', $user_id)
             ->where('user_type', $role)
             ->where('task_type', $task_type)
+            ->where('task_id', $id)
             ->first();
 
         if ($task) {
