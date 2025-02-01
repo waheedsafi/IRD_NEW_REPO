@@ -144,6 +144,7 @@ class StoresNgoController extends Controller
         $task = PendingTask::where('user_id', $user_id)
             ->where('user_type', $role)
             ->where('task_type', $task_type)
+            ->where('task_id', $id)
             ->first(); // Retrieve the first matching record
 
         if ($task) {
@@ -195,7 +196,9 @@ class StoresNgoController extends Controller
             $task =  PendingTask::create([
                 'user_id' => $user_id,
                 'user_type' => $role,
-                'task_type' => $task_type
+                'task_type' => $task_type,
+                'task_id' => $id
+
 
             ]);
             PendingTaskContent::create([
