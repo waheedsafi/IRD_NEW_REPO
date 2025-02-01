@@ -31,8 +31,22 @@ class TestController extends Controller
     use AddressTrait;
     public function index(Request $request)
     {
-        $locale = "en";
-        return  Gender::select('id', "name_{$locale}")->get();
+        $locale = App::getLocale();
+        $query = DB::table('staff as s')
+            ->where('staff_type_id', StaffEnum::manager->value)
+            ->join('staff_trans as st', function ($join) use ($locale) {
+                $join->on('st.staff_id', '=', 's.id')
+                    ->where('st.language_name', '=', $locale);
+            })
+            ->select(
+                's.id',
+                's.contact',
+                's.email',
+                's.profile as picture',
+                'st.name'
+            )
+            ->first();
+        return $query;
 
 
         $ngo_id = 1;
