@@ -81,6 +81,10 @@ class ViewsNgoController extends Controller
     {
         $locale = App::getLocale();
 
+        $personalDetail = $this->personalDetial($request);
+        if ($personalDetail['content']) {
+        }
+
         // Joining necessary tables to fetch the NGO data
         $ngo = Ngo::join('contacts', 'contact_id', '=', 'contacts.id')
             ->leftJoin('emails', 'email_id', '=', 'emails.id')
@@ -364,7 +368,7 @@ class ViewsNgoController extends Controller
             $query->orderBy("created_at", 'desc');
         }
     }
-    public function personalDetial(Request $request, $id)
+    public function personalDetial(Request $request)
     {
         $user = $request->user();
         $user_id = $user->id;
@@ -387,24 +391,16 @@ class ViewsNgoController extends Controller
                 ->pluck('content') // Get an array of content values
                 ->implode(' '); // Join them with a space (or another separator)
 
-            return response()->json([
+            return [
                 'max_step' => $maxStep,
                 'content' => $contents
-            ]);
-            return response()->json([
-                
-                    "message" => __('app_translation.success'),
-                    'max_step' =>$maxSetep,
-                    'content' => $contents
-            
-            ], 200, [], JSON_UNESCAPED_UNICODE);
+            ];
         }
 
         return response()->json([
-                
-                    "message" => __('app_translation.not_found'),
-            
-            ], 200, [], JSON_UNESCAPED_UNICODE);
 
+            "message" => __('app_translation.not_found'),
+
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }
