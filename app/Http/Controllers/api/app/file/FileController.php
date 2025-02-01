@@ -21,7 +21,7 @@ class FileController extends Controller
     /**
      * Handles the file upload.
      */
-    public function uploadNgoFile(Request $request, $ngo_id)
+    public function uploadNgoFile(Request $request)
     {
         $receiver = new FileReceiver("file", $request, HandlerFactory::classFromRequest($request));
 
@@ -33,6 +33,7 @@ class FileController extends Controller
 
         if ($save->isFinished()) {
             $task_type = TaskTypeEnum::ngo_registeration;
+            $ngo_id = $request->ngo_id;
             return $this->saveFile($save->getFile(), $request, $ngo_id, $task_type);
         }
 
@@ -45,7 +46,7 @@ class FileController extends Controller
         ]);
     }
 
-    public function uploadProjectFile(Request $request, $project_id)
+    public function uploadProjectFile(Request $request,)
     {
         $receiver = new FileReceiver("file", $request, HandlerFactory::classFromRequest($request));
 
@@ -57,7 +58,7 @@ class FileController extends Controller
 
         if ($save->isFinished()) {
             $task_type = TaskTypeEnum::project_registeration;
-
+            $project_id = $request->project_id;
             return $this->saveFile($save->getFile(), $request, $project_id, $task_type);
         }
 
