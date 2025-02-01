@@ -6,12 +6,6 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::prefix('v1')->middleware(['api.key'])->group(function () {
-
-    Route::get('/gender', [GeneralController::class, "gender"]);
-    Route::get('/nid/type', [GeneralController::class, "nidType"]);
-
+    Route::get('/nid/types', [GeneralController::class, "nidTypes"]);
+    Route::get('/genders', [GeneralController::class, "genders"]);
 });
-
-
-
-
