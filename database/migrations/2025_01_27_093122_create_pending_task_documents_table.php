@@ -16,6 +16,9 @@ return new class extends Migration
             $table->unsignedBigInteger('pending_task_id');
             $table->foreign('pending_task_id')->references('id')->on('pending_tasks')->onUpdate('cascade')
                 ->onDelete('cascade');
+            $table->unsignedBigInteger('check_list_id')->nullable();
+            $table->foreign('check_list_id')->references('id')->on('check_lists')->onUpdate('cascade')
+                ->onDelete('no action');
             $table->string('size', 32);
             $table->string('path', 256);
             $table->string('actual_name', 64);
