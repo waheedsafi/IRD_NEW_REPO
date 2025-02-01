@@ -3,6 +3,7 @@
 
 use App\Enums\PermissionEnum;
 use App\Http\Controllers\api\app\director\DirectorController;
+use App\Http\Controllers\api\app\ngo\DeletesNgoController;
 use App\Http\Controllers\api\app\ngo\StoresNgoController;
 use App\Http\Controllers\api\app\ngo\ViewsNgoController;
 use Illuminate\Support\Facades\Route;
@@ -10,6 +11,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
   Route::get('public/ngos/{page}', [ViewsNgoController::class, 'ngosPublic']);
+  Route::get('ngos/storePersonalDetial/{id}', [ViewsNgoController::class, 'storePersonalDetial']);
+  Route::get('ngos/personalDetail/{id}', [ViewsNgoController::class, 'personalDetial']);
+  Route::get('ngos/personalDetail/destory/{id}', [DeletesNgoController::class, 'destroyPersonalDetail']);
+
 });
 
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {

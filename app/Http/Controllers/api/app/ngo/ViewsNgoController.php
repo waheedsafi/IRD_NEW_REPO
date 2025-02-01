@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\api\app\ngo;
 
 use App\Enums\Type\StatusTypeEnum;
+use App\Enums\Type\TaskTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Models\Ngo;
+use App\Models\PendingTask;
+use App\Models\PendingTaskContent;
 use App\Traits\Address\AddressTrait;
 use App\Traits\Ngo\NgoTrait;
 use Illuminate\Http\Request;
@@ -360,5 +363,48 @@ class ViewsNgoController extends Controller
             // Default sorting if no sort is provided
             $query->orderBy("created_at", 'desc');
         }
+    }
+    public function personalDetial(Request $request, $id)
+    {
+        $user = $request->user();
+        $user_id = $user->id;
+        $role = $user->role_id;
+        $task_type = TaskTypeEnum::ngo_registeration;
+
+        // Retrieve the first matching pending task
+        $task = PendingTask::where('user_id', $user_id)
+            ->where('user_type', $role)
+            ->where('task_type', $task_type)
+            ->first();
+
+        if ($task) {
+            // Get the maximum step value
+            $maxStep = PendingTaskContent::where('pending_task_id', $task->id)
+                ->max('step');
+
+            // Fetch and concatenate content
+            $contents = PendingTaskContent::where('pending_task_id', $task->id)
+                ->pluck('content') // Get an array of content values
+                ->implode(' '); // Join them with a space (or another separator)
+
+            return response()->json([
+                'max_step' => $maxStep,
+                'content' => $contents
+            ]);
+            return response()->json([
+                
+                    "message" => __('app_translation.success'),
+                    'max_step' =>$maxSetep,
+                    'content' => $contents
+            
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        return response()->json([
+                
+                    "message" => __('app_translation.not_found'),
+            
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+
     }
 }
