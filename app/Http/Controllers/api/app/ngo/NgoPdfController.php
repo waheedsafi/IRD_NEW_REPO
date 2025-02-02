@@ -22,8 +22,10 @@ class NgoPdfController extends Controller
         $mpdf =  $this->generatePdf();
         $this->setWatermark($mpdf);
         $lang = $request->input('language_name');
+
         $this->setFooter($mpdf, PdfFooterEnum::REGISTER_FOOTER->value);
-        $lang = 'ps';
+        $this->setFooter($mpdf, PdfFooterEnum::MOU_FOOTER_en->value);
+        $lang = 'en';
         $id = 1;
         $data = $this->loadNgoData($lang, $id);
 

@@ -83,7 +83,10 @@ class FileController extends Controller
         $fileSize = $file->getSize();
         $finalPath = $this->getTempPath();
         $fileFullPath = "{$finalPath}/{$fileName}";
+        $path = "/app/temp/" . $fileName;
         $mimeType = $file->getMimeType();
+        $extension = $file->getClientOriginalExtension();
+
 
         $file->move($finalPath, $fileName);
 
@@ -94,9 +97,7 @@ class FileController extends Controller
             return $validationResult; // Return validation errors
         }
         // Process pending task and document creation
-        $extension = $file->getClientOriginalExtension();
-        Log::info('START');
-        Log::info('END');
+
         $pending =  $this->pending($request, $id, $task_type);
 
         $data = [
@@ -105,7 +106,7 @@ class FileController extends Controller
             "size" => $fileSize,
             "check_list_id" => $request->checklist_id,
             "extension" => $mimeType,
-            "path" => $fileFullPath,
+            "path" => $path,
         ];
 
 
@@ -177,6 +178,25 @@ class FileController extends Controller
      */
     protected function pendingDocument(array $data)
     {
+        $pending_document = PendingTaskDocument::where(
+            "pending_task_id",
+            $data["pending_id"]
+        )->where('check_list_id', $data["check_list_id"])->first();
+
+        if ($pending_document) {
+            // Update existing record
+            $pending_document->update([
+                "size" => $data["size"],
+                "path" => $data["path"],
+                "check_list_id" => $data["check_list_id"],
+                "actual_name" => $data["name"],
+                "extension" => $data["extension"]
+            ]);
+
+            return; // Prevents creating a duplicate record
+        }
+
+        // Create a new record if none exists
         PendingTaskDocument::create([
             "pending_task_id" => $data["pending_id"],
             "size" => $data["size"],
@@ -186,6 +206,7 @@ class FileController extends Controller
             "extension" => $data["extension"],
         ]);
     }
+
 
     /**
      * Generate a unique filename.
