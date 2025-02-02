@@ -43,9 +43,7 @@ class CheckListSeeder extends Seeder
         $checklists = [
             [
                 'type' => CheckListTypeEnum::internal,
-                'file_extensions' => [
-                    "pdf",
-                ],
+                'file_extensions' => "pdf,png",
                 'description' => '',
                 'is_optional' => false,
                 'file_size' => 2048,
@@ -57,12 +55,7 @@ class CheckListSeeder extends Seeder
             ],
             [
                 'type' => CheckListTypeEnum::internal,
-                'file_extensions' => [
-                    "image/png",
-                    "image/jpeg",
-                    "image/gif",
-                    "application/pdf",
-                ],
+                'file_extensions' => "pdf,png",
                 'description' => '',
                 'is_optional' => false,
                 'file_size' => 2048,
