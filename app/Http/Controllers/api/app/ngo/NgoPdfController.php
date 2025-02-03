@@ -30,7 +30,9 @@ class NgoPdfController extends Controller
         $data = $this->loadNgoData($lang, $id);
 
 
-        $this->pdfFilePart($mpdf, "ngo.registeration.{$lang}.registeration", $data);
+        return view('project.mou.pdf.');
+        $this->pdfFilePart($mpdf, "project.mou.pdf.{$lang}.mou", $data);
+        // $this->pdfFilePart($mpdf, "ngo.registeration.{$lang}.registeration", $data);
         // Write additional HTML content
 
         // $mpdf->AddPage();
