@@ -87,7 +87,8 @@ class CheckListSeeder extends Seeder
         foreach ($checklists as $checklistData) {
             $checklist = CheckList::create([
                 'check_list_type_id' => $checklistData['type'],
-                'acceptable_extensions' => json_encode($checklistData['acceptable_extensions']),
+                'acceptable_extensions' => $checklistData['acceptable_extensions'],
+                'acceptable_mimes' => json_encode($checklistData['acceptable_mimes']),
                 'description' => $checklistData['description'],
             ]);
 
