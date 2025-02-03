@@ -44,8 +44,6 @@ class CheckListSeeder extends Seeder
 
             [
                 'type' => CheckListTypeEnum::internal,
-                'acceptable_extensions' => "pdf,png",
-                'acceptable_mimes' => "['application/pdf','image/png','image/jpg','image/jpeg']",
                 'description' => 'ngo director nid',
                 'is_optional' => false,
                 'file_size' => 2048,
@@ -57,8 +55,6 @@ class CheckListSeeder extends Seeder
             ],
             [
                 'type' => CheckListTypeEnum::internal,
-                'acceptable_extensions' => "pdf,png",
-                'acceptable_mimes' => "['application/pdf','image/png','image/jpg','image/jpeg']",
                 'description' => '',
                 'is_optional' => false,
                 'file_size' => 2048,
@@ -70,8 +66,6 @@ class CheckListSeeder extends Seeder
             ],
             [
                 'type' => CheckListTypeEnum::internal,
-                'acceptable_extensions' => "pdf,png",
-                'acceptable_mimes' => "['application/pdf','image/png','image/jpg','image/jpeg']",
                 'description' => '',
                 'is_optional' => false,
                 'file_size' => 2048,
@@ -87,9 +81,10 @@ class CheckListSeeder extends Seeder
         foreach ($checklists as $checklistData) {
             $checklist = CheckList::create([
                 'check_list_type_id' => $checklistData['type'],
-                'acceptable_extensions' => $checklistData['acceptable_extensions'],
-                'acceptable_mimes' => json_encode($checklistData['acceptable_mimes']),
+                'acceptable_extensions' => "pdf,png",
+                'acceptable_mimes' => ['application/pdf', 'image/png', 'image/jpg', 'image/jpeg'],
                 'description' => $checklistData['description'],
+                'file_size' => $checklistData['file_size'],
             ]);
 
             foreach ($checklistData['translations'] as $translation) {

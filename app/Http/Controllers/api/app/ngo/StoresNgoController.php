@@ -2,27 +2,29 @@
 
 namespace App\Http\Controllers\api\app\ngo;
 
-use App\Enums\LanguageEnum;
-use App\Enums\RoleEnum;
-use App\Enums\Type\StatusTypeEnum;
-use App\Enums\Type\TaskTypeEnum;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\app\ngo\NgoRegisterRequest;
-use App\Models\Address;
-use App\Models\AddressTran;
-use App\Models\Contact;
-use App\Models\Email;
-use App\Models\Ngo;
-use App\Models\NgoStatus;
-use App\Models\NgoTran;
-use App\Models\PendingTask;
-use App\Models\PendingTaskContent;
-use App\Models\StatusTypeTran;
 use Carbon\Carbon;
+use App\Models\Ngo;
+use App\Models\Email;
+use App\Enums\RoleEnum;
+use App\Models\Address;
+use App\Models\Contact;
+use App\Models\NgoTran;
+use App\Models\NgoStatus;
+use App\Enums\LanguageEnum;
+use App\Models\AddressTran;
+use App\Models\PendingTask;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\App;
+use App\Models\StatusTypeTran;
+use App\Enums\Type\TaskTypeEnum;
+use App\Enums\Type\StatusTypeEnum;
+use App\Models\PendingTaskContent;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use App\Http\Requests\app\ngo\NgoRegisterRequest;
+use App\Http\Requests\app\ngo\NgoInitStoreRequest;
 
 class StoresNgoController extends Controller
 {
@@ -224,5 +226,11 @@ class StoresNgoController extends Controller
                 JSON_UNESCAPED_UNICODE
             );
         }
+    }
+    public function storePersonalDetialFinal(NgoInitStoreRequest $request)
+    {
+        $request->validated();
+        Log::error($request);
+        return $request;
     }
 }
