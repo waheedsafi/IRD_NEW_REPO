@@ -56,15 +56,19 @@ trait PdfGeneratorTrait
         $mpdf->showWatermarkImage = true; // Enable watermark
 
     }
-
     public function setFooter($mpdf, $footerHtml)
     {
-        // Set the footer with RTL support
+        // Disable footer for pages 1-3
+        for ($i = 1; $i <= 3; $i++) {
+            $mpdf->DefFooterByPage($i, ['O' => '', 'E' => '']);
+        }
 
-        $mpdf->SetFooter($footerHtml); // Apply footer to all pages
+        // Set footer from page 4 onwards
+        $mpdf->DefFooterByPage(4, ['O' => $footerHtml, 'E' => $footerHtml]);
+
         $mpdf->defaultfooterline = 0; // Remove default footer line
-
     }
+
 
     public function pdfFilePart($mpdf, $view, $data = [])
     {
