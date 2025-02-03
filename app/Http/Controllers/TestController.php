@@ -20,6 +20,7 @@ use App\Enums\LanguageEnum;
 use App\Models\NidTypeTrans;
 use Illuminate\Http\Request;
 use App\Enums\Type\StatusTypeEnum;
+use App\Models\PendingTaskContent;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Traits\Address\AddressTrait;
@@ -32,7 +33,10 @@ class TestController extends Controller
     use AddressTrait;
     public function index(Request $request)
     {
-        return storage_path() . "/app/temp/1f377fc1-aca3-4c3d-b1b8-f61bcc54357c.pdf";
+        return PendingTaskContent::where('pending_task_id', 2)
+            ->select('content', 'id')
+            ->orderBy('id', 'desc')
+            ->first();
         $locale = App::getLocale();
         $query = DB::table('staff as s')
             ->where('staff_type_id', StaffEnum::manager->value)

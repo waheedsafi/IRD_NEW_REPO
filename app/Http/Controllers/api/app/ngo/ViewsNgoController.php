@@ -387,18 +387,14 @@ class ViewsNgoController extends Controller
             ->first();
 
         if ($task) {
-            // Get the maximum step value
-            // $maxStep = PendingTaskContent::where('pending_task_id', $task->id)
-            //     ->max('step');
-
             // Fetch and concatenate content
-            $contents = PendingTaskContent::where('pending_task_id', $task->id)
-                ->pluck('content') // Get an array of content values
-                ->implode(' '); // Join them with a space (or another separator)
-
+            $pendingTask = PendingTaskContent::where('pending_task_id', 2)
+                ->select('content', 'id')
+                ->orderBy('id', 'desc')
+                ->first();
             return [
                 // 'max_step' => $maxStep,
-                'content' => $contents
+                'content' => $pendingTask->content
             ];
         }
 

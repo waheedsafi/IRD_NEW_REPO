@@ -24,7 +24,7 @@ class CheckListController extends Controller
         $locale = App::getLocale();
         $tr = CheckList::join('check_list_trans as ct', 'ct.check_list_id', '=', 'check_lists.id')
             ->where('ct.language_name', $locale)
-            ->select('ct.value as name', 'check_lists.id', 'check_lists.file_extensions', 'check_lists.description')
+            ->select('ct.value as name', 'check_lists.id', 'check_lists.acceptable_extensions', 'check_lists.description')
             ->orderBy('check_lists.id', 'desc')
             ->get();
         return response()->json([
