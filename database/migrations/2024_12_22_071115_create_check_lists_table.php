@@ -18,6 +18,7 @@ return new class extends Migration
                 ->onUpdate('cascade')
                 ->onDelete('no action');
             $table->string('acceptable_extensions');
+            $table->string('acceptable_mimes');
             $table->boolean('is_optional')->default(false);
             $table->integer('file_size')->default('512')->comment('file size in KB');
             $table->string('description', 128);
