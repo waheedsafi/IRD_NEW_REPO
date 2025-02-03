@@ -43,7 +43,7 @@ class CheckListSeeder extends Seeder
         $checklists = [
             [
                 'type' => CheckListTypeEnum::internal,
-                'file_extensions' => "pdf,png",
+                'acceptable_extensions' => "pdf,png",
                 'description' => '',
                 'is_optional' => false,
                 'file_size' => 2048,
@@ -55,7 +55,7 @@ class CheckListSeeder extends Seeder
             ],
             [
                 'type' => CheckListTypeEnum::internal,
-                'file_extensions' => "pdf,png",
+                'acceptable_extensions' => "pdf,png",
                 'description' => '',
                 'is_optional' => false,
                 'file_size' => 2048,
@@ -71,7 +71,7 @@ class CheckListSeeder extends Seeder
         foreach ($checklists as $checklistData) {
             $checklist = CheckList::create([
                 'check_list_type_id' => $checklistData['type'],
-                'file_extensions' => json_encode($checklistData['file_extensions']),
+                'acceptable_extensions' => json_encode($checklistData['acceptable_extensions']),
                 'description' => $checklistData['description'],
             ]);
 

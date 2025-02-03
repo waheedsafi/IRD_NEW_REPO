@@ -25,12 +25,14 @@ use Illuminate\Support\Facades\App;
 use App\Traits\Address\AddressTrait;
 use function Laravel\Prompts\select;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Storage;
 
 class TestController extends Controller
 {
     use AddressTrait;
     public function index(Request $request)
     {
+        return storage_path() . "/app/temp/1f377fc1-aca3-4c3d-b1b8-f61bcc54357c.pdf";
         $locale = App::getLocale();
         $query = DB::table('staff as s')
             ->where('staff_type_id', StaffEnum::manager->value)
