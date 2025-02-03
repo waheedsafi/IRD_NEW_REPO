@@ -20,7 +20,7 @@ class ProjectPdfController extends Controller
         $this->setWatermark($mpdf);
         $lang = $request->input('language_name');
 
-        $this->setFooter($mpdf, PdfFooterEnum::REGISTER_FOOTER->value);
+        // $this->setFooter($mpdf, PdfFooterEnum::REGISTER_FOOTER->value);
         $this->setFooter($mpdf, PdfFooterEnum::MOU_FOOTER_en->value);
         $lang = 'en';
         $id = 1;
