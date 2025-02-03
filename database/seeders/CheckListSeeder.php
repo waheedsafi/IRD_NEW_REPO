@@ -41,9 +41,24 @@ class CheckListSeeder extends Seeder
     protected function registerationCheckList()
     {
         $checklists = [
+
             [
                 'type' => CheckListTypeEnum::internal,
                 'acceptable_extensions' => "pdf,png",
+                'acceptable_mimes' => "['application/pdf','image/png','image/jpg','image/jpeg']",
+                'description' => 'ngo director nid',
+                'is_optional' => false,
+                'file_size' => 2048,
+                'translations' => [
+                    ['language_name' => 'en', 'value' => 'Ngo Director Nid'],
+                    ['language_name' => 'ps', 'value' => 'د نجو د ریسی تذکره'],
+                    ['language_name' => 'fa', 'value' => 'تذکره ریس انجو'],
+                ],
+            ],
+            [
+                'type' => CheckListTypeEnum::internal,
+                'acceptable_extensions' => "pdf,png",
+                'acceptable_mimes' => "['application/pdf','image/png','image/jpg','image/jpeg']",
                 'description' => '',
                 'is_optional' => false,
                 'file_size' => 2048,
@@ -56,6 +71,7 @@ class CheckListSeeder extends Seeder
             [
                 'type' => CheckListTypeEnum::internal,
                 'acceptable_extensions' => "pdf,png",
+                'acceptable_mimes' => "['application/pdf','image/png','image/jpg','image/jpeg']",
                 'description' => '',
                 'is_optional' => false,
                 'file_size' => 2048,
