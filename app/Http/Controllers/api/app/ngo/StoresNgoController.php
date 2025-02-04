@@ -150,82 +150,43 @@ class StoresNgoController extends Controller
             ->first(); // Retrieve the first matching record
 
         if ($task) {
-            $maxStep = PendingTaskContent::where('pending_task_id', $task->id)
-                ->max('step'); // Get the maximum step value
-
-            // 1. Check if current step is same as prevous
-            if ($maxStep == $request->step) {
-                return response()->json(
-                    [
-                        'message' => __('app_translation.success'),
-                    ],
-                    200,
-                    [],
-                    JSON_UNESCAPED_UNICODE
-                );
-            }
-            if (!$maxStep) {
-                PendingTaskContent::create([
-                    'step' => 1,
-                    'content' => $request->contents,
-                    'pending_task_id' => $task->id
-                ]);
-
-                return response()->json(
-                    [
-                        'message' => __('app_translation.success'),
-                    ],
-                    200,
-                    [],
-                    JSON_UNESCAPED_UNICODE
-                );
+            $pendingContent = PendingTaskContent::where('pending_task_id', $task->id)
+                ->first(); // Get the maximum step value
+            if ($pendingContent) {
+                // Update prevouis content
+                $pendingContent->step = $request->step;
+                $pendingContent->content = $request->contents;
+                $pendingContent->save();
             } else {
-
+                // If no content found
                 PendingTaskContent::create([
-                    'step' => $maxStep + 1,
+                    'step' => $request->step,
                     'content' => $request->contents,
                     'pending_task_id' => $task->id
-
                 ]);
-
-                return response()->json(
-                    [
-                        'message' => __('app_translation.success'),
-                    ],
-
-                    200,
-                    [],
-                    JSON_UNESCAPED_UNICODE
-                );
             }
         } else {
-
             $task =  PendingTask::create([
                 'user_id' => $user_id,
                 'user_type' => $role,
                 'task_type' => $task_type,
                 'task_id' => $id
-
-
             ]);
             PendingTaskContent::create([
                 'step' => 1,
                 'content' => $request->contents,
                 'pending_task_id' => $task->id
             ]);
-
-            return response()->json(
-                [
-                    'message' => __('app_translation.success'),
-
-
-                ],
-
-                200,
-                [],
-                JSON_UNESCAPED_UNICODE
-            );
         }
+        return response()->json(
+            [
+                'message' => __('app_translation.success'),
+            ],
+
+            200,
+            [],
+            JSON_UNESCAPED_UNICODE
+        );
     }
     public function storePersonalDetialFinal(NgoInitStoreRequest $request)
     {

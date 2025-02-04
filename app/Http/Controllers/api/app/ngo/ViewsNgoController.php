@@ -394,7 +394,7 @@ class ViewsNgoController extends Controller
                 ->first();
             return [
                 // 'max_step' => $maxStep,
-                'content' => $pendingTask->content
+                'content' => $pendingTask ? $pendingTask->content : null
             ];
         }
 
