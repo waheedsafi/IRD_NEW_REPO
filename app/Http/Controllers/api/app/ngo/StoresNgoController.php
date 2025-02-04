@@ -200,11 +200,7 @@ class StoresNgoController extends Controller
 
     public function storePersonalDetialFinal(NgoInitStoreRequest $request)
     {
-
         $id = $request->ngo_id;
-
-
-
         $validatedData =  $request->validated();
 
         // Log::error($request);
@@ -251,47 +247,35 @@ class StoresNgoController extends Controller
 
         DB::beginTransaction();
 
-        try {
+        $ngo_en_tran->save();
+        $ngo_ps_tran->save();
+        $ngo_fa_tran->save();
+        $ngo_addres->save();
+        $ngo_addres_en->save();
+        $ngo_addres_ps->save();
+        $ngo_addres_fa->save();
 
-            $ngo_en_tran->save();
-            $ngo_ps_tran->save();
-            $ngo_fa_tran->save();
-            $ngo_addres->save();
-            $ngo_addres_en->save();
-            $ngo_addres_ps->save();
-            $ngo_addres_fa->save();
+        // **Fix agreement creation**
+        $agreement = Agreement::create([
+            'ngo_id' => $id,
+            'start_date' => Carbon::now()->toDateString(),
+            'end_date' => Carbon::now()->addYear()->toDateString(),
+        ]);
 
-            // **Fix agreement creation**
-            $agreement = Agreement::create([
-                'ngo_id' => $id,
-                'start_date' => Carbon::now()->toDateString(),
-                'end_date' => Carbon::now()->addYear()->toDateString(),
-            ]);
+        $this->documentStore($request, $agreement->id, $id);
+        $this->directorStore($validatedData, $id);
 
-            $this->documentStore($request, $agreement->id, $id);
-            $this->directorStore($validatedData, $id);
+        DB::commit();
+        return response()->json(
+            [
+                'message' => __('app_translation.success'),
+            ],
 
-
-            DB::commit();
-
-
-            return response()->json(
-                [
-                    'message' => __('app_translation.success'),
-
-
-                ],
-
-                200,
-                [],
-                JSON_UNESCAPED_UNICODE
-            );
-        } catch (\Exception $e) {
-            // Rollback transaction in case of any error
-            DB::rollBack();
-        }
+            200,
+            [],
+            JSON_UNESCAPED_UNICODE
+        );
     }
-
     protected function documentStore($request, $agreement_id, $ngo_id)
     {
         $user = $request->user();
