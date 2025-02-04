@@ -11,6 +11,7 @@ use App\Models\Contact;
 use App\Models\NgoTran;
 use App\Models\NgoStatus;
 use App\Enums\LanguageEnum;
+use App\Enums\PermissionEnum;
 use App\Models\AddressTran;
 use App\Models\PendingTask;
 use Illuminate\Http\Request;
@@ -25,6 +26,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\app\ngo\NgoRegisterRequest;
 use App\Http\Requests\app\ngo\NgoInitStoreRequest;
+use App\Models\NgoPermission;
 
 class StoresNgoController extends Controller
 {
@@ -193,5 +195,25 @@ class StoresNgoController extends Controller
         $request->validated();
         Log::error($request);
         return $request;
+    }
+
+    public function ngoPermissions($ngo_id)
+    {
+        NgoPermission::create([
+            "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
+            "ngo_id" => $ngo_id,
+            "permission" => PermissionEnum::ngo->value,
+        ]);
+        NgoPermission::create([
+            "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
+            "ngo_id" => $ngo_id,
+            "permission" => PermissionEnum::projects->value,
+        ]);
     }
 }

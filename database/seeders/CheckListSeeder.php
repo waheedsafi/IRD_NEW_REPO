@@ -82,7 +82,7 @@ class CheckListSeeder extends Seeder
             $checklist = CheckList::create([
                 'check_list_type_id' => $checklistData['type'],
                 'acceptable_extensions' => "pdf,png",
-                'acceptable_mimes' => ['application/pdf', 'image/png', 'image/jpg', 'image/jpeg'],
+                'acceptable_mimes' => ".pdf,.jpeg,.jpg,.png",
                 'description' => $checklistData['description'],
                 'file_size' => $checklistData['file_size'],
             ]);
