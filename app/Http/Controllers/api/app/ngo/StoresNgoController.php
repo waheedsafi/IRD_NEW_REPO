@@ -2,37 +2,38 @@
 
 namespace App\Http\Controllers\api\app\ngo;
 
-use Carbon\Carbon;
-use App\Models\Ngo;
-use App\Models\Email;
-use App\Enums\RoleEnum;
-use App\Models\Address;
-use App\Models\Contact;
-use App\Models\NgoTran;
-use App\Models\Director;
-use App\Models\Document;
-use App\Models\Agreement;
-use App\Models\NgoStatus;
 use App\Enums\LanguageEnum;
-use App\Models\AddressTran;
-use App\Models\PendingTask;
-use App\Models\DirectorTran;
-use Illuminate\Http\Request;
-use App\Enums\PermissionEnum;
-use App\Models\NgoPermission;
-use App\Models\StatusTypeTran;
-use App\Enums\Type\TaskTypeEnum;
-use App\Models\AgreementDocument;
-use App\Enums\Type\StatusTypeEnum;
-use App\Models\PendingTaskContent;
-use Illuminate\Support\Facades\DB;
-use App\Models\PendingTaskDocument;
-use Illuminate\Support\Facades\App;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Hash;
 use App\Enums\pdfFooter\CheckListEnum;
-use App\Http\Requests\app\ngo\NgoRegisterRequest;
+use App\Enums\PermissionEnum;
+use App\Enums\RoleEnum;
+use App\Enums\Type\StatusTypeEnum;
+use App\Enums\Type\TaskTypeEnum;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\app\ngo\NgoInitStoreRequest;
+use App\Http\Requests\app\ngo\NgoRegisterRequest;
+use App\Models\Address;
+use App\Models\AddressTran;
+use App\Models\Agreement;
+use App\Models\AgreementDocument;
+use App\Models\Contact;
+use App\Models\Director;
+use App\Models\DirectorTran;
+use App\Models\Document;
+use App\Models\Email;
+use App\Models\Ngo;
+use App\Models\NgoPermission;
+use App\Models\NgoStatus;
+use App\Models\NgoTran;
+use App\Models\PendingTask;
+use App\Models\PendingTaskContent;
+use App\Models\PendingTaskDocument;
+use App\Models\StatusTypeTran;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class StoresNgoController extends Controller
 {
@@ -262,8 +263,16 @@ class StoresNgoController extends Controller
             'end_date' => Carbon::now()->addYear()->toDateString(),
         ]);
 
+        NgoStatus::create([
+            'ngo_id' => $id,
+            'status_type_id' => StatusTypeEnum::register_form_submited,
+            'comment' => 'Register Form Complete',
+        ]);
+
         $this->documentStore($request, $agreement->id, $id);
         $this->directorStore($validatedData, $id);
+        $this->deletePendingTask($request, $id);
+
 
         DB::commit();
         return response()->json(
@@ -276,6 +285,26 @@ class StoresNgoController extends Controller
             JSON_UNESCAPED_UNICODE
         );
     }
+    protected function deletePendingTask($request, $id)
+    {
+
+        $user = $request->user();
+        $user_id = $user->id;
+        $role = $user->role_id;
+        $task_type = TaskTypeEnum::ngo_registeration;
+
+        $task = PendingTask::where('user_id', $user_id)
+            ->where('user_type', $role)
+            ->where('task_type', $task_type)
+            ->where('task_id', $id)
+            ->first();
+        Log::info('Global Exception =>' . $task);
+
+        PendingTaskContent::where('pending_task_id', $task->id)->delete();
+        PendingTaskDocument::where('pending_task_id', $task->id)->delete();
+        $task->delete();
+    }
+
     protected function documentStore($request, $agreement_id, $ngo_id)
     {
         $user = $request->user();
