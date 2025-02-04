@@ -48,7 +48,59 @@ class NgoInitStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+
+            "name_english" => 'required|string|max:128|min:5',
+            "name_farsi" =>  'required|string|max:128|min:5',
+            "name_pashto" => 'required|string|max:128|min:5',
+            "abbr" => "required|string",
+            "type.id" => "required|exists:ngo_types,id",
+            "contact" => "required",
+            "email" => "required",
+            "moe_registration_no" => "required",
+            "country.id" => "required|exists:countries,id",
+            "establishment_date" => "required",
+            "province.id" => "required|exists:provinces,id",
+            "district.id" => "required|exists:districts,id",
+            "area_english" => "required|max:128|min:5",
+            "area_pashto" => "required|max:128|min:5",
+            "area_farsi" => "required|max:128|min:5",
+            // director
+            "director_name_english" => "required|max:128|min:5",
+            "director_name_farsi"  => "required|max:128|min:5",
+            "director_name_pashto" => "required|max:128|min:5",
+            "surname_english" => "required|max:128|min:5",
+            "surname_pashto" => "required|max:128|min:5",
+            "surname_farsi" => "required|max:128|min:5",
+            "director_contact" => "required|unique:contacts,value",
+            "director_email" => "required|unique:emails,value",
+            "gender.id" => "required|exists:genders,id",
+            "nationality.id" => "required|exists:countries,id",
+            "identity_type.id" => "required|exists:nid_types,id",
+            "nid" => "required",
+            "director_province.id" => "required|exists:provinces,id",
+            "director_dis.id" => "required|exists:districts,id",
+            "director_area_english" => "required|max:128|min:5",
+            "director_area_farsi" => "required|max:128|min:5",
+            "director_area_pashto" => "required|max:128|min:5",
+            // ngo details
+            "vision_english" =>  "required|min:5",
+            "vision_pashto" =>  "required|min:5",
+            "vision_farsi" =>  "required|min:5",
+            "mission_english" =>  "required|min:5",
+            "mission_pashto" =>  "required|min:5",
+            "mission_farsi" =>  "required|min:5",
+            "general_objes_english" =>  "required|min:5",
+            "general_objes_pashto" =>  "required|min:5",
+            "general_objes_farsi" =>  "required|min:5",
+            "objes_in_afg_english" =>  "required|min:5",
+            "objes_in_afg_pashto" =>  "required|min:5",
+            "objes_in_afg_farsi" =>  "required|min:5",
+            //checkList 
+            // 'checklistMap.*.check_list_id' => 'required|exists:check_lists,id',
+            // 'checklistMap.*.extension' => 'required|string|in:.pdf,.docx,.xlsx', // Allowed extensions
+
+
+
         ];
     }
 }

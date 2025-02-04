@@ -58,16 +58,10 @@ trait PdfGeneratorTrait
     }
     public function setFooter($mpdf, $footerHtml)
     {
-        // Disable footer for pages 1-3
-        for ($i = 1; $i <= 3; $i++) {
-            $mpdf->DefFooterByPage($i, ['O' => '', 'E' => '']);
-        }
-
-        // Set footer from page 4 onwards
-        $mpdf->DefFooterByPage(4, ['O' => $footerHtml, 'E' => $footerHtml]);
-
-        $mpdf->defaultfooterline = 0; // Remove default footer line
+        $mpdf->SetHTMLFooter($footerHtml, 'E'); // Even pages
+        $mpdf->SetHTMLFooter($footerHtml, 'O'); // Odd pages
     }
+
 
 
     public function pdfFilePart($mpdf, $view, $data = [])

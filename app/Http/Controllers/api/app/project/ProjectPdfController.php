@@ -16,27 +16,27 @@ class ProjectPdfController extends Controller
 
     public function generateForm(Request $request, $id)
     {
-        $mpdf =  $this->generatePdf();
+        $mpdf = $this->generatePdf();
         $this->setWatermark($mpdf);
-        $lang = $request->input('language_name');
 
-        // $this->setFooter($mpdf, PdfFooterEnum::REGISTER_FOOTER->value);
-        $this->setFooter($mpdf, PdfFooterEnum::MOU_FOOTER_en->value);
-        $lang = 'en';
-        $id = 1;
+        $lang = 'en'; // Assuming English
         $data = $this->loadProjectData($lang, $id);
 
-
+        // **SECTION 1** - Apply First Footer
+        $this->setFooter($mpdf, PdfFooterEnum::MOU_FIRST_FOOTER_en->value);
         $this->pdfFilePart($mpdf, "project.mou.pdf.{$lang}.mou", $data);
-        // Write additional HTML content
 
-        // $mpdf->AddPage();
+        // Add a new page to start Section 2
+        $mpdf->AddPage();
 
+        // **SECTION 2** - Apply Second Footer
+        $this->setFooter($mpdf, PdfFooterEnum::MOU_FOOTER_en->value);
+        $this->pdfFilePart($mpdf, "project.mou.pdf.{$lang}.mou_section2", $data);
 
-        // Output the generated PDF to the browser
+        // Output the generated PDF
         return $mpdf->Output('document.pdf', 'I'); // Stream PDF to browser
-
     }
+
 
 
     protected function loadProjectData($lang, $id)

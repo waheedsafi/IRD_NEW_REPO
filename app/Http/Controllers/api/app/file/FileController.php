@@ -80,6 +80,7 @@ class FileController extends Controller
         $fileName = $this->createFilename($file);
         $fileSize = $file->getSize();
         $finalPath = $this->getTempFullPath();
+        $mimetype = $file->getMimeType();
         $storePath = $this->getTempFilePath($fileName);
         $extension = ".{$file->getClientOriginalExtension()}";
 
@@ -100,7 +101,7 @@ class FileController extends Controller
             "name" => $fileActualName,
             "size" => $fileSize,
             "check_list_id" => $request->checklist_id,
-            "extension" => $extension,
+            "extension" => $mimetype,
             "path" => $storePath,
         ];
 
