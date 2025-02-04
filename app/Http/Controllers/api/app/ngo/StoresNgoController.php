@@ -21,7 +21,9 @@ use App\Models\Document;
 use App\Models\Email;
 use App\Models\Ngo;
 use App\Models\NgoStatus;
-use App\Models\NgoTran;
+use App\Enums\LanguageEnum;
+use App\Enums\PermissionEnum;
+use App\Models\AddressTran;
 use App\Models\PendingTask;
 use App\Models\PendingTaskContent;
 use App\Models\PendingTaskDocument;
@@ -31,9 +33,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
-use Predis\Command\Argument\Search\AggregateArguments;
-use Symfony\Component\Clock\now;
+use App\Http\Requests\app\ngo\NgoRegisterRequest;
+use App\Http\Requests\app\ngo\NgoInitStoreRequest;
+use App\Models\NgoPermission;
 
 class StoresNgoController extends Controller
 {
@@ -159,82 +161,43 @@ class StoresNgoController extends Controller
             ->first(); // Retrieve the first matching record
 
         if ($task) {
-            $maxStep = PendingTaskContent::where('pending_task_id', $task->id)
-                ->max('step'); // Get the maximum step value
-
-            // 1. Check if current step is same as prevous
-            if ($maxStep == $request->step) {
-                return response()->json(
-                    [
-                        'message' => __('app_translation.success'),
-                    ],
-                    200,
-                    [],
-                    JSON_UNESCAPED_UNICODE
-                );
-            }
-            if (!$maxStep) {
-                PendingTaskContent::create([
-                    'step' => 1,
-                    'content' => $request->contents,
-                    'pending_task_id' => $task->id
-                ]);
-
-                return response()->json(
-                    [
-                        'message' => __('app_translation.success'),
-                    ],
-                    200,
-                    [],
-                    JSON_UNESCAPED_UNICODE
-                );
+            $pendingContent = PendingTaskContent::where('pending_task_id', $task->id)
+                ->first(); // Get the maximum step value
+            if ($pendingContent) {
+                // Update prevouis content
+                $pendingContent->step = $request->step;
+                $pendingContent->content = $request->contents;
+                $pendingContent->save();
             } else {
-
+                // If no content found
                 PendingTaskContent::create([
-                    'step' => $maxStep + 1,
+                    'step' => $request->step,
                     'content' => $request->contents,
                     'pending_task_id' => $task->id
-
                 ]);
-
-                return response()->json(
-                    [
-                        'message' => __('app_translation.success'),
-                    ],
-
-                    200,
-                    [],
-                    JSON_UNESCAPED_UNICODE
-                );
             }
         } else {
-
             $task =  PendingTask::create([
                 'user_id' => $user_id,
                 'user_type' => $role,
                 'task_type' => $task_type,
                 'task_id' => $id
-
-
             ]);
             PendingTaskContent::create([
                 'step' => 1,
                 'content' => $request->contents,
                 'pending_task_id' => $task->id
             ]);
-
-            return response()->json(
-                [
-                    'message' => __('app_translation.success'),
-
-
-                ],
-
-                200,
-                [],
-                JSON_UNESCAPED_UNICODE
-            );
         }
+        return response()->json(
+            [
+                'message' => __('app_translation.success'),
+            ],
+
+            200,
+            [],
+            JSON_UNESCAPED_UNICODE
+        );
     }
 
 
@@ -406,6 +369,26 @@ class StoresNgoController extends Controller
             ['director_id' => $director->id, 'language_name' => 'en', 'name' => $validatedData['director_name_english'], 'last_name' => $validatedData['surname_english']],
             ['director_id' => $director->id, 'language_name' => 'ps', 'name' => $validatedData['director_name_pashto'], 'last_name' => $validatedData['surname_pashto']],
             ['director_id' => $director->id, 'language_name' => 'fa', 'name' => $validatedData['director_name_farsi'], 'last_name' => $validatedData['surname_farsi']],
+        ]);
+    }
+
+    public function ngoPermissions($ngo_id)
+    {
+        NgoPermission::create([
+            "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
+            "ngo_id" => $ngo_id,
+            "permission" => PermissionEnum::ngo->value,
+        ]);
+        NgoPermission::create([
+            "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
+            "ngo_id" => $ngo_id,
+            "permission" => PermissionEnum::projects->value,
         ]);
     }
 }

@@ -2,22 +2,30 @@
 
 namespace App\Http\Controllers\api\app\ngo;
 
-use App\Enums\Type\StatusTypeEnum;
-use App\Enums\Type\TaskTypeEnum;
-use App\Http\Controllers\Controller;
 use App\Models\Ngo;
 use App\Models\PendingTask;
-use App\Models\PendingTaskContent;
-use App\Traits\Address\AddressTrait;
 use App\Traits\Ngo\NgoTrait;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\App;
+use App\Enums\Type\TaskTypeEnum;
+use App\Enums\Type\StatusTypeEnum;
+use App\Models\PendingTaskContent;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\App;
+use App\Http\Controllers\Controller;
+use App\Traits\Address\AddressTrait;
+use App\Repositories\ngo\NgoRepositoryInterface;
 
 class ViewsNgoController extends Controller
 {
     //
     use AddressTrait, NgoTrait;
+
+    protected $ngoRepository;
+
+    public function __construct(NgoRepositoryInterface $ngoRepository)
+    {
+        $this->ngoRepository = $ngoRepository;
+    }
 
     public function ngos(Request $request, $page)
     {
@@ -90,34 +98,7 @@ class ViewsNgoController extends Controller
         }
 
         // Joining necessary tables to fetch the NGO data
-        $ngo = Ngo::join('contacts', 'contact_id', '=', 'contacts.id')
-            ->leftJoin('emails', 'email_id', '=', 'emails.id')
-            ->leftJoin('ngo_type_trans', function ($join) use ($locale) {
-                $join->on('ngos.ngo_type_id', '=', 'ngo_type_trans.ngo_type_id')
-                    ->where('ngo_type_trans.language_name', '=', $locale);
-            })
-            ->leftJoin('addresses', 'address_id', '=', 'addresses.id')
-            ->select(
-                'abbr',
-                'ngos.ngo_type_id',
-                'ngo_type_trans.value as type_name',
-                'province_id',
-                'district_id',
-                'addresses.id as address_id',
-                'ngos.email_id',
-                'emails.value as email',
-                'contacts.value as contact',
-                'ngos.contact_id'
-            )
-            ->where('ngos.id', $ngo_id)
-            ->first();
-
-        // Handle NGO not found
-        if (!$ngo) {
-            return response()->json([
-                'message' => __('app_translation.ngo_not_found'),
-            ], 404);
-        }
+        $ngo = $this->ngoRepository->getNgoInit($locale, $ngo_id);
 
         // Fetching translations using a separate query
         $translations = $this->ngoNameTrans($ngo_id);
@@ -388,13 +369,13 @@ class ViewsNgoController extends Controller
 
         if ($task) {
             // Fetch and concatenate content
-            $pendingTask = PendingTaskContent::where('pending_task_id', 2)
+            $pendingTask = PendingTaskContent::where('pending_task_id', $task->id)
                 ->select('content', 'id')
                 ->orderBy('id', 'desc')
                 ->first();
             return [
                 // 'max_step' => $maxStep,
-                'content' => $pendingTask->content
+                'content' => $pendingTask ? $pendingTask->content : null
             ];
         }
 

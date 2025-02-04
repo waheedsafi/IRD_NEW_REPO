@@ -33,6 +33,8 @@ class TestController extends Controller
     use AddressTrait;
     public function index(Request $request)
     {
+        $path = storage_path() . "/app/temp/14be1d03-c6b8-4525-aa1b-cb4e072b238d.png";
+        return dd(file_exists($path));
         return PendingTaskContent::where('pending_task_id', 2)
             ->select('content', 'id')
             ->orderBy('id', 'desc')
