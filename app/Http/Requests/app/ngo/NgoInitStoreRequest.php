@@ -76,7 +76,7 @@ class NgoInitStoreRequest extends FormRequest
             "gender.id" => "required|exists:genders,id",
             "nationality.id" => "required|exists:countries,id",
             "identity_type.id" => "required|exists:nid_types,id",
-            "nid" => "required",
+            "nid" => "required|unique:directors,nid_no",
             "director_province.id" => "required|exists:provinces,id",
             "director_dis.id" => "required|exists:districts,id",
             "director_area_english" => "required|max:128|min:5",
@@ -98,7 +98,7 @@ class NgoInitStoreRequest extends FormRequest
             //checkList 
             // 'checklistMap.*.check_list_id' => 'required|exists:check_lists,id',
             // 'checklistMap.*.extension' => 'required|string|in:.pdf,.docx,.xlsx', // Allowed extensions
-            
+
 
 
 

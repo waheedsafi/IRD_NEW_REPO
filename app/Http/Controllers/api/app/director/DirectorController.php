@@ -175,4 +175,10 @@ class DirectorController extends Controller
             'director' => $data,
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
+
+    public function update(Request $request, $id) {
+
+        
+
+    }
 }
