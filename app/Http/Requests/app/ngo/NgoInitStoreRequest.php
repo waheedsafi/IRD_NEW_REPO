@@ -98,6 +98,7 @@ class NgoInitStoreRequest extends FormRequest
             //checkList 
             // 'checklistMap.*.check_list_id' => 'required|exists:check_lists,id',
             // 'checklistMap.*.extension' => 'required|string|in:.pdf,.docx,.xlsx', // Allowed extensions
+            
 
 
 

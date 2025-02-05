@@ -20,6 +20,5 @@ Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(
 
 // ngo user 
 
-// Route::get('/ngo/details/{id}', [NgoController::class, 'ngoDetail']);
 
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'ngo:api'])->group(function () {});
