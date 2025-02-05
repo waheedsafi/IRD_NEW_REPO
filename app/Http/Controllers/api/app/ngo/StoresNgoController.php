@@ -17,6 +17,7 @@ use App\Models\AddressTran;
 use App\Models\Agreement;
 use App\Models\AgreementDocument;
 use App\Models\CheckList;
+use App\Models\CheckListTrans;
 use App\Models\CheckListType;
 use App\Models\Contact;
 use App\Models\Director;
@@ -354,9 +355,15 @@ class StoresNgoController extends Controller
         $missingCheckListIds = array_diff($checkListIds, $documentCheckListIds);
 
         if (count($missingCheckListIds) > 0) {
+            // Retrieve missing checklist names
+            $missingCheckListNames = CheckListTrans::whereIn('check_list_id', $missingCheckListIds)
+                ->where('language_name', app()->getLocale()) // If multilingual, get current language
+                ->pluck('value')
+                ->toArray();
+
             return response()->json([
                 'error' => __('app_translation.checklist_not_found'),
-                'missing_check_list_ids' => array_values($missingCheckListIds) // Reset keys for cleaner JSON output
+                'missing_check_list_names' => array_values($missingCheckListNames) // Reset keys for cleaner JSON output
             ], 400);
         }
     }
