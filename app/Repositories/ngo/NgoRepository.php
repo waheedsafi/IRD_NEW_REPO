@@ -22,6 +22,7 @@ class NgoRepository implements NgoRepositoryInterface
                 'ngos.ngo_type_id',
                 'ngo_type_trans.value as type_name',
                 'ngos.registration_no',
+                'ngos.moe_registration_no',
                 'ngos.place_of_establishment',
                 'ngos.date_of_establishment',
                 'province_id',

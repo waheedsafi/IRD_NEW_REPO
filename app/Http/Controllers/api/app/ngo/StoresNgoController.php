@@ -360,12 +360,17 @@ class StoresNgoController extends Controller
             // Retrieve missing checklist names
             $missingCheckListNames = CheckListTrans::whereIn('check_list_id', $missingCheckListIds)
                 ->where('language_name', app()->getLocale()) // If multilingual, get current language
-                ->pluck('value')
-                ->toArray();
+                ->pluck('value');
+
+
+            $errors = [];
+            foreach ($missingCheckListNames as $item) {
+                array_push($errors, [__('app_translation.checklist_not_found') . ' ' . $item]);
+            }
 
             return response()->json([
-                'error' => __('app_translation.checklist_not_found'),
-                'missing_check_list_names' => array_values($missingCheckListNames) // Reset keys for cleaner JSON output
+                'message' => __('app_translation.checklist_not_found'),
+                'errors' => $errors // Reset keys for cleaner JSON output
             ], 400);
         }
     }
