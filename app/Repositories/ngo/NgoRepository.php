@@ -31,13 +31,6 @@ class NgoRepository implements NgoRepositoryInterface
             )
             ->where('ngos.id', $ngo_id)
             ->first();
-
-        // Handle NGO not found
-        if (!$ngo) {
-            return response()->json([
-                'message' => __('app_translation.ngo_not_found'),
-            ], 404);
-        }
         return $ngo;
     }
 }

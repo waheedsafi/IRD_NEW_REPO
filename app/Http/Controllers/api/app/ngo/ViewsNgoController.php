@@ -71,11 +71,6 @@ class ViewsNgoController extends Controller
                 'n.created_at'
             );
 
-
-
-
-
-
         $this->applyDate($query, $request);
         $this->applyFilters($query, $request);
         $this->applySearch($query, $request);
@@ -115,6 +110,12 @@ class ViewsNgoController extends Controller
 
         // Joining necessary tables to fetch the NGO data
         $ngo = $this->ngoRepository->getNgoInit($locale, $ngo_id);
+        // Handle NGO not found
+        if (!$ngo) {
+            return response()->json([
+                'message' => __('app_translation.ngo_not_found'),
+            ], 404);
+        }
 
         // Fetching translations using a separate query
         $translations = $this->ngoNameTrans($ngo_id);
