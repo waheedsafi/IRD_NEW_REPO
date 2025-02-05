@@ -53,7 +53,7 @@ class DeletesNgoController extends Controller
         // 2. Loop through each PendingTaskContent record
         foreach ($pendingDocuments as $document) {
             // Check if the file exists in storage
-            if (file_exists(storage_path() . $document->path)) {
+            if ($this->tempFileExist($document->path)) {
                 $this->deleteTempFile($document->path);
             }
             // 3. Delete the Document
