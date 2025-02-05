@@ -120,6 +120,7 @@ class ViewsNgoController extends Controller
         $translations = $this->ngoNameTrans($ngo_id);
         $areaTrans = $this->getAddressAreaTran($ngo->address_id);
         $address = $this->getCompleteAddress($ngo->address_id, $locale);
+        $country = $this->getCountry($ngo->place_of_establishment, $locale);
 
 
         $data = [
@@ -129,7 +130,10 @@ class ViewsNgoController extends Controller
             'abbr' => $ngo->abbr,
             'type' => ['name' => $ngo->type_name, 'id' => $ngo->ngo_type_id],
             'contact' => $ngo->contact,
-            'email' => $ngo->email,
+            'email' =>   $ngo->email,
+            'date_of_establishment' => $ngo->date_of_establishment,
+            'registration_no' => $ngo->registration_no,
+            'place_of_establishment' => ['name' => $country, 'id' => $ngo->place_of_establishment],
             'province' => ['name' => $address['province'], 'id' => $ngo->province_id],
             'district' => ['name' => $address['district'], 'id' => $ngo->district_id],
             'area_english' => $areaTrans['en']->area ?? '',
