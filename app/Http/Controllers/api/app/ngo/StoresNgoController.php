@@ -353,8 +353,6 @@ class StoresNgoController extends Controller
             ->where('pending_task_id', $task->id)
             ->get();
 
-
-
         foreach ($documents as $checklist) {
             $document = Document::create([
                 'actual_name' => $checklist['actual_name'],
