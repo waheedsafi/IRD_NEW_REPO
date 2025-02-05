@@ -2,7 +2,6 @@
 <?php
 
 use App\Enums\PermissionEnum;
-use App\Http\Controllers\api\app\director\DirectorController;
 use App\Http\Controllers\api\app\ngo\DeletesNgoController;
 use App\Http\Controllers\api\app\ngo\StoresNgoController;
 use App\Http\Controllers\api\app\ngo\ViewsNgoController;

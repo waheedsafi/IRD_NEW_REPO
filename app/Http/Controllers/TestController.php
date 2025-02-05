@@ -19,6 +19,7 @@ use App\Models\Translate;
 use App\Enums\LanguageEnum;
 use App\Models\NidTypeTrans;
 use Illuminate\Http\Request;
+use App\Models\StatusTypeTran;
 use App\Enums\Type\StatusTypeEnum;
 use App\Models\PendingTaskContent;
 use Illuminate\Support\Facades\DB;
@@ -30,6 +31,9 @@ class TestController extends Controller
     use AddressTrait;
     public function index(Request $request)
     {
+        return $status = StatusTypeTran::where('status_type_id', StatusTypeEnum::not_logged_in->value)
+            ->where('language_name', "fa")
+            ->select('name')->first();
         $path = storage_path() . "/app/temp/c9424391-b967-4dbf-a3c3-747f6d8382a2.pdf";
         return dd(file_exists($path));
         return PendingTaskContent::where('pending_task_id', 2)

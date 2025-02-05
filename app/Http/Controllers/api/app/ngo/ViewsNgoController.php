@@ -149,9 +149,7 @@ class ViewsNgoController extends Controller
 
     public function ngoDetail(Request $request, $ngo_id)
     {
-
         $locale = App::getLocale();
-
         // Joining necessary tables to fetch the NGO data
         $ngo = $this->ngoRepository->getNgoInit($locale, $ngo_id);
 

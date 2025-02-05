@@ -2,6 +2,7 @@
 <?php
 
 use App\Http\Controllers\api\app\director\DirectorController;
+use Illuminate\Support\Facades\Route;
 
 
 
@@ -13,9 +14,7 @@ use App\Http\Controllers\api\app\director\DirectorController;
 Route::prefix('v1')->group(function () {});
 
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
-
-
-  Route::get('/director/details/{ngo_id}', [DirectorController::class, 'directorDetails']);
+  Route::get('/ngo/director/{ngo_id}', [DirectorController::class, 'ngoDirector']);
 });
 
 // ngo user 

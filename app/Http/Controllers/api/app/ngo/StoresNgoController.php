@@ -118,6 +118,7 @@ class StoresNgoController extends Controller
         DB::commit();
 
         $status = StatusTypeTran::where('status_type_id', StatusTypeEnum::not_logged_in->value)
+            ->where('language_name', $locale)
             ->select('name')->first();
         return response()->json(
             [
@@ -210,6 +211,7 @@ class StoresNgoController extends Controller
         // Log::error($request);
         $ngo = Ngo::findOrFail($id);
 
+
         Email::where('id', $ngo->email_id)->update(['value' => $validatedData['email']]);
         Contact::where('id', $ngo->contact_id)->update(['value' => $validatedData['contact']]);
 
@@ -258,6 +260,7 @@ class StoresNgoController extends Controller
         $ngo_addres_en->save();
         $ngo_addres_ps->save();
         $ngo_addres_fa->save();
+        $ngo->save();
 
         // **Fix agreement creation**
         $agreement = Agreement::create([
