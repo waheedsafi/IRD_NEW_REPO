@@ -4,15 +4,18 @@ namespace App\Http\Controllers\api\app\director;
 
 use App\Enums\LanguageEnum;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\app\ngo\director\UpdateDirectorRequest;
 use App\Models\Address;
+use App\Models\AddressTran;
 use App\Models\Contact;
 use App\Models\Director;
 use App\Models\DirectorTran;
 use App\Models\Email;
+use App\Traits\Address\AddressTrait;
+use App\Traits\Director\DirectorTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
-use App\Traits\Director\DirectorTrait;
-use App\Traits\Address\AddressTrait;
+use Illuminate\Support\Facades\DB;
 
 class DirectorController extends Controller
 {
@@ -176,9 +179,55 @@ class DirectorController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    public function update(Request $request, $id) {
+    public function update(UpdateDirectorRequest $request, $id)
+    {
 
-        
+        $validateData = $request->validate();
+        $director =     Director::find($id);
+        $address = Address::find($director->address_id);
+        $address_en_tran = AddressTran::where('address_id', $director->address_id)->where('langauge_name', 'en');
+        $address_fa_tran = AddressTran::where('address_id', $director->address_id)->where('langauge_name', 'fa');
+        $address_ps_tran = AddressTran::where('address_id', $director->address_id)->where('langauge_name', 'ps');
+        $director_en_tran = DirectorTran::where('director_id', $id)->where('language_name', 'en')->first();
+        $director_ps_tran = DirectorTran::where('director_id', $id)->where('language_name', 'ps')->first();
+        $director_fa_tran = DirectorTran::where('director_id', $id)->where('language_name', 'fa')->first();
+        $director->gender_id = $validateData['gender']['id'];
+        $director->country_id = $validateData['country']['id'];
+        $director->nid_type_id = $validateData['nid_type']['nid_id'];
+        $director->nid_no = $validateData['nid_no'];
+        $address->province_id = $validateData['province']['id'];
+        $address->district_id = $validateData['district']['id'];
+        $address_en_tran->area = $validateData['area_english'];
+        $address_ps_tran->area = $validateData['area_pashto'];
+        $address_fa_tran->area = $validateData['area_farsi'];
+        $director_en_tran->name = $validateData['name_english'];
+        $director_ps_tran->name = $validateData['name_pashto'];
+        $director_fa_tran->name = $validateData['name_farsi'];
+        $director_en_tran->last_name = $validateData['last_name_english'];
+        $director_ps_tran->last_name = $validateData['last_name_pashto'];
+        $director_fa_tran->last_name = $validateData['last_name_farsi'];
 
+
+        DB::beginTransaction();
+        Email::where('id', $director->email_id)->update(['value' => $validateData['email']]);
+        Contact::where('id', $director->contact_id)->update(['value' => $validateData['contact']]);
+
+        $director->save();
+        $director_en_tran->save();
+        $director_fa_tran->save();
+        $director_ps_tran->save();
+        $address->save();
+        $address_en_tran->save();
+        $address_fa_tran->save();
+        $address_ps_tran->save();
+
+
+        return response()->json([
+            'message' => __('app_translation.success'),
+            'director' => $request,
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+
+
+        DB::commit();
     }
 }
