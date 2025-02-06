@@ -102,7 +102,6 @@ class DirectorController extends Controller
         return response()->json(['message' => 'Director created successfully', 'director' => $director], 201);
     }
 
-
     public function directorDetails(Request $request, $ngo_id)
     {
 
@@ -230,4 +229,5 @@ class DirectorController extends Controller
 
         DB::commit();
     }
+    
 }
