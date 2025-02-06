@@ -28,4 +28,6 @@ return [
     'cover_pic_not_found' => 'تصویر جلد یافت نشد.',
     "employee_not_found" => "کارمند پیدا نشد",
     "checklist_not_found" => "چک لیست پیدا نشد.",
+    "agreement_exists" => "تعهد نام موجود است",
+
 ];

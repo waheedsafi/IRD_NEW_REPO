@@ -112,6 +112,7 @@ class DirectorController extends Controller
             ->leftjoin('nid_type_trans', 'nid_type_trans.nid_type_id', 'directors.nid_type_id')
             ->leftjoin('genders', 'genders.id', 'directors.gender_id')
             ->where('directors.ngo_id', $ngo_id)
+            ->where('directors.is_active', 1)
             ->where('nid_type_trans.language_name', $locale)
 
             ->select(

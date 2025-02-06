@@ -29,4 +29,5 @@ return [
     'cover_pic_not_found' => 'Cover Picture Not Found.',
     "employee_not_found" => "Employee Not found.",
     "checklist_not_found" => "CheckList Not found.",
+    "agreement_exists" => "Agreement Exists",
 ];

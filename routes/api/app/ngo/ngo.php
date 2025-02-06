@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Route;
 
 
 
+Route::get('/ngo/more/information/{id}', [ViewsNgoController::class, 'ngoMoreInformation']);
+Route::get('/ngo/checklist/documents/{id}', [ViewsNgoController::class, 'ngoCheckListDocument']);
+
 
 Route::prefix('v1')->group(function () {
   Route::get('public/ngos/{page}', [ViewsNgoController::class, 'ngosPublic']);
@@ -28,7 +31,13 @@ Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(
   Route::get('/ngo/{id}', [ViewsNgoController::class, 'ngo'])->middleware(["hasViewPermission:" . PermissionEnum::ngo->value]);
   Route::post('/ngo/store', [StoresNgoController::class, 'store'])->middleware(["hasAddPermission:" . PermissionEnum::ngo->value]);
 
+  // use for step 1 data retrive
   Route::get('/ngo/details/{id}', [ViewsNgoController::class, 'ngoDetail']);
+
+  // 
+
+
+
 });
 
 // ngo user 
