@@ -173,7 +173,7 @@ class ViewsNgoController extends Controller
             'abbr' => $ngo->abbr,
             'registration_no' => $ngo->registration_no,
             'moe_registration_no' => $ngo->moe_registration_no,
-            'date_of_establishment' => $ngo->date_of_establishment,
+            'establishment_date' => $ngo->date_of_establishment,
             'place_of_establishment' => ['name' => $this->getCountry($ngo->place_of_establishment, $locale), 'id' => $ngo->place_of_establishment],
             'contact' => $ngo->contact,
             'email' => $ngo->email,
