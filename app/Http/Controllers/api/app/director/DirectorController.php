@@ -102,12 +102,10 @@ class DirectorController extends Controller
         return response()->json(['message' => 'Director created successfully', 'director' => $director], 201);
     }
 
-    public function directorDetails(Request $request, $ngo_id)
+
+    public function ngoDirector(Request $request, $ngo_id)
     {
-
         $locale = App::getLocale();
-
-
         // Joining necessary tables to fetch the NGO data
         $director = Director::join('contacts', 'contact_id', '=', 'contacts.id')
             ->leftJoin('emails', 'email_id', '=', 'emails.id')
@@ -131,12 +129,8 @@ class DirectorController extends Controller
                 'address_id',
                 'province_id',
                 'district_id',
-
-
             )
             ->first();
-
-
 
         // Handle NGO not found
         if (!$director) {
@@ -156,15 +150,15 @@ class DirectorController extends Controller
             'name_english' => $translations['en']->name ?? '',
             'name_pashto' => $translations['ps']->name ?? '',
             'name_farsi' => $translations['fa']->name ?? '',
-            'last_name_english' => $translations['en']->last_name ?? '',
-            'last_name_pashto' => $translations['ps']->last_name ?? '',
-            'last_name_farsi' => $translations['fa']->last_name ?? '',
-            'country' => ['name' => $this->getCountry($director->country_id, $locale), 'id' => $director->country_id],
+            'surname_english' => $translations['en']->last_name ?? '',
+            'surname_pashto' => $translations['ps']->last_name ?? '',
+            'surname_farsi' => $translations['fa']->last_name ?? '',
+            'nationality' => ['name' => $this->getCountry($director->country_id, $locale), 'id' => $director->country_id],
             'contact' => $director->contact,
             'email' => $director->email,
             'gender' => ['name' => $director->gender, 'id' => $director->gender_id],
-            'nid_no' => $director->nid_no,
-            'nid_type' => ['nid_type' => $director->nid_type, 'nid_id' => $director->nid_type_id],
+            'nid' => $director->nid_no,
+            'identity_type' => ['name' => $director->nid_type, 'id' => $director->nid_type_id],
             'province' => ['name' => $address['province'], 'id' => $director->province_id],
             'district' => ['name' => $address['district'], 'id' => $director->district_id],
             'area_english' => $areaTrans['en']->area ?? '',

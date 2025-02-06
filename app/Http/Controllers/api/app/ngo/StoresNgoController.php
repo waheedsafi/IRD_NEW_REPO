@@ -119,6 +119,7 @@ class StoresNgoController extends Controller
         DB::commit();
 
         $status = StatusTypeTran::where('status_type_id', StatusTypeEnum::not_logged_in->value)
+            ->where('language_name', $locale)
             ->select('name')->first();
         return response()->json(
             [
@@ -215,6 +216,7 @@ class StoresNgoController extends Controller
         if ($checklist) {
             return $checklist;
         }
+
 
         Email::where('id', $ngo->email_id)->update(['value' => $validatedData['email']]);
         Contact::where('id', $ngo->contact_id)->update(['value' => $validatedData['contact']]);
@@ -358,12 +360,17 @@ class StoresNgoController extends Controller
             // Retrieve missing checklist names
             $missingCheckListNames = CheckListTrans::whereIn('check_list_id', $missingCheckListIds)
                 ->where('language_name', app()->getLocale()) // If multilingual, get current language
-                ->pluck('value')
-                ->toArray();
+                ->pluck('value');
+
+
+            $errors = [];
+            foreach ($missingCheckListNames as $item) {
+                array_push($errors, [__('app_translation.checklist_not_found') . ' ' . $item]);
+            }
 
             return response()->json([
-                'error' => __('app_translation.checklist_not_found'),
-                'missing_check_list_names' => array_values($missingCheckListNames) // Reset keys for cleaner JSON output
+                'message' => __('app_translation.checklist_not_found'),
+                'errors' => $errors // Reset keys for cleaner JSON output
             ], 400);
         }
     }
@@ -392,8 +399,6 @@ class StoresNgoController extends Controller
             ->select('size', 'path', 'acceptable_mimes', 'check_list_id', 'actual_name', 'extension')
             ->where('pending_task_id', $task->id)
             ->get();
-
-
 
         foreach ($documents as $checklist) {
             $document = Document::create([

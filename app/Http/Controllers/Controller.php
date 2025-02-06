@@ -170,6 +170,10 @@ abstract class Controller
     {
         return "temp/{$fileName}";
     }
+    public function tempFileExist($filePath)
+    {
+        return file_exists(storage_path() . "/app/{$filePath}");
+    }
     public function deleteTempFile($filePath)
     {
         return unlink(storage_path() . "/app/{$filePath}");
