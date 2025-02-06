@@ -31,9 +31,102 @@ class TestController extends Controller
     use AddressTrait;
     public function index(Request $request)
     {
-        return $status = StatusTypeTran::where('status_type_id', StatusTypeEnum::not_logged_in->value)
-            ->where('language_name', "fa")
-            ->select('name')->first();
+        $locale = App::getLocale();
+        // Joining necessary tables to fetch the NGO data
+        $ngo_id = 2;
+        $director = DB::table('directors as d')
+            ->where('d.ngo_id', $ngo_id)
+            ->join('director_trans as dt', function ($join) use ($locale) {
+                $join->on('dt.director_id', '=', 'd.id')
+                    ->where('dt.language_name', '=', $locale);
+            })
+            ->join('contacts as c', 'd.contact_id', '=', 'c.id')
+            ->join('emails as e', 'd.email_id', '=', 'e.id')
+            ->select(
+                'd.id',
+                'd.is_active',
+                'dt.name',
+                'dt.last_name as surname',
+                'c.value as contact',
+                'e.value as email',
+            )
+            ->get();
+        return $director;
+        $locale = App::getLocale();
+        // Joining necessary tables to fetch the NGO data
+        $directors = DB::table('directors as d')
+            ->where('d.ngo_id', $ngo_id)
+            ->join('director_trans as dt', 'd.id', '=', 'dt.director_id')
+            ->join('nid_type_trans as ntt', 'd.nid_type_id', '=', 'ntt.nid_type_id')
+            ->join('contacts as c', 'd.contact_id', '=', 'c.id')
+            ->join('emails as e', 'd.email_id', '=', 'e.id')
+            ->join('genders as g', 'd.gender_id', '=', 'g.id')
+            ->join('addresses as ad', 'd.address_id', '=', 'ad.id')
+            ->join('address_trans as adt', 'ad.id', '=', 'adt.address_id')
+            ->select(
+                'd.id',
+                'd.nid_no as nid',
+                'c.value as contact',
+                'e.value as email',
+                // Language-specific name and last name
+                DB::raw("MAX(CASE WHEN dt.language_name = 'en' THEN dt.name END) as name_english"),
+                DB::raw("MAX(CASE WHEN dt.language_name = 'fa' THEN dt.name END) as name_farsi"),
+                DB::raw("MAX(CASE WHEN dt.language_name = 'ps' THEN dt.name END) as name_pashto"),
+                DB::raw("MAX(CASE WHEN adt.language_name = 'en' THEN adt.area END) as area_english"),
+                DB::raw("MAX(CASE WHEN adt.language_name = 'fa' THEN adt.area END) as area_farsi"),
+                DB::raw("MAX(CASE WHEN adt.language_name = 'ps' THEN adt.area END) as area_pashto"),
+                DB::raw("MAX(CASE WHEN dt.language_name = 'en' THEN dt.last_name END) as surname_english"),
+                DB::raw("MAX(CASE WHEN dt.language_name = 'fa' THEN dt.last_name END) as surname_farsi"),
+                DB::raw("MAX(CASE WHEN dt.language_name = 'ps' THEN dt.last_name END) as surname_pashto"),
+                // Gender and identity fields
+                'g.id as gender_id',
+                'g.name_en as gender_name_en',
+                'g.name_fa as gender_name_fa',
+                'g.name_ps as gender_name_ps',
+                'ntt.id as identity_type_id',
+                'ntt.value as identity_type_value'
+            )
+            ->groupBy(
+                'd.id',
+                'g.name_en',
+                'g.name_ps',
+                'g.name_fa',
+                'd.nid_no',
+                'c.value',
+                'e.value',
+                'g.id',
+                'ntt.id',
+                'ntt.value'
+            )
+            ->get();
+
+        // After the query, format the response in the controller
+        $directors = $directors->map(function ($director) use ($locale) {
+            // Select the appropriate gender name based on the locale
+            $genderField = 'gender_name_' . $locale;
+            $director->gender = [
+                'name' => $director->{$genderField} ?? $director->gender_name_en, // fallback to English if locale is missing
+                'id' => $director->gender_id
+            ];
+
+            // Format identity type
+            $director->identity_type = [
+                'name' => $director->identity_type_value,
+                'id' => $director->identity_type_id
+            ];
+
+            // Clean up unnecessary fields
+            unset($director->gender_name_en, $director->gender_name_fa, $director->gender_name_ps, $director->gender_id);
+            unset($director->identity_type_value, $director->identity_type_id);
+
+            return $director;
+        });
+
+        return response()->json($directors);
+
+
+
+
         $path = storage_path() . "/app/temp/c9424391-b967-4dbf-a3c3-747f6d8382a2.pdf";
         return dd(file_exists($path));
         return PendingTaskContent::where('pending_task_id', 2)
