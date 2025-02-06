@@ -102,7 +102,6 @@ class DirectorController extends Controller
         return response()->json(['message' => 'Director created successfully', 'director' => $director], 201);
     }
 
-
     public function ngoDirector(Request $request, $ngo_id)
     {
         $locale = App::getLocale();
@@ -147,6 +146,7 @@ class DirectorController extends Controller
 
 
         $data = [
+            'id' => $director->id,
             'name_english' => $translations['en']->name ?? '',
             'name_pashto' => $translations['ps']->name ?? '',
             'name_farsi' => $translations['fa']->name ?? '',
@@ -172,6 +172,32 @@ class DirectorController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
+    public function ngoDirectors($ngo_id)
+    {
+        $locale = App::getLocale();
+        $directors = DB::table('directors as d')
+            ->where('d.ngo_id', $ngo_id)
+            ->join('director_trans as dt', function ($join) use ($locale) {
+                $join->on('dt.director_id', '=', 'd.id')
+                    ->where('dt.language_name', '=', $locale);
+            })
+            ->join('contacts as c', 'd.contact_id', '=', 'c.id')
+            ->join('emails as e', 'd.email_id', '=', 'e.id')
+            ->select(
+                'd.id',
+                'd.is_active',
+                'dt.name',
+                'dt.last_name as surname',
+                'c.value as contact',
+                'e.value as email',
+            )
+            ->get();
+
+        return response()->json([
+            'message' => __('app_translation.success'),
+            'directors' => $directors,
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
     public function update(UpdateDirectorRequest $request, $id)
     {
 

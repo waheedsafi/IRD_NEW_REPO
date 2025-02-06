@@ -19,15 +19,10 @@ trait AddressTrait
 
     public function getCompleteAddress($address_id, $lang)
     {
-
-
-        $address =     Address::with([
+        $address = Address::with([
             'addressTrans' => function ($query) use ($lang) {
                 $query->select('address_id', 'area')->where('language_name', $lang);
             },
-
-
-
         ])->select('id', 'province_id', 'district_id')->where('id', $address_id)->first();
         $province_id = $address->province_id;
         $district_id = $address->district_id;
@@ -83,14 +78,11 @@ trait AddressTrait
 
     public function getCountry($country_id, $lang)
     {
-
-
         $country = '';
         if ($lang == LanguageEnum::default->value) {
             $country = Country::select('name')->where('id', $country_id)->first();
         } else {
-
-            $country =     Country::join('translates', 'translable_id', 'countries.id')
+            $country = Country::join('translates', 'translable_id', 'countries.id')
                 ->where('translable_type', Country::class)
                 ->where('countries.id', $country_id)
                 ->where('language_name', $lang)
