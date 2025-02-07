@@ -32,4 +32,5 @@ return [
     "director_not_found" => "Director Not found.",
     "address_not_found" => "Address Not found.",
     "ngo_not_found" => "Ngo Not found.",
+    "agreement_exists" => "Agreement Exists",
 ];

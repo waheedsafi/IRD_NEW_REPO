@@ -32,4 +32,5 @@ return [
     "director_not_found" => "رئیس پیدا نشد",
     "address_not_found" => "آدرس پیدا نشد.",
     "ngo_not_found" => "موسسه یافت نشد.",
+    "agreement_exists" => "تعهد نام موجود است",
 ];

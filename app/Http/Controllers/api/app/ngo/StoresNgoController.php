@@ -39,6 +39,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
+use function Pest\Laravel\json;
+
 class StoresNgoController extends Controller
 {
     public function store(NgoRegisterRequest $request)
@@ -206,9 +208,26 @@ class StoresNgoController extends Controller
 
     public function storePersonalDetialFinal(NgoInitStoreRequest $request)
     {
+        // return $request;
         $id = $request->ngo_id;
         $validatedData =  $request->validated();
 
+        Log::info($request->all());
+
+
+
+
+        $agreement = Agreement::where('ngo_id', $id)
+            ->latest('end_date') // Order by end_date descending
+            ->first();           // Get the first record (most recent)
+
+        // Check if agreement exists and is expired
+        if (!$agreement || $agreement->end_date >= now()) {
+            return response()->json([
+                'message' => __('app_translation.agreement_exists'),
+                'errors' => $agreement->end_date // Reset keys for cleaner JSON output
+            ], 404);
+        }
 
         // Log::error($request);
         $ngo = Ngo::findOrFail($id);
