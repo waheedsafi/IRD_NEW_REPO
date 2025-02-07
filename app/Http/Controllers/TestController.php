@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Ngo;
 use App\Models\News;
 use App\Models\User;
-use App\Models\Staff;
+use App\Models\Email;
 
+use App\Models\Staff;
 use App\Models\Gender;
 use App\Models\Address;
-use App\Models\Country;
 
+use App\Models\Country;
 use App\Enums\StaffEnum;
 use App\Models\Director;
 use App\Models\Province;
@@ -31,6 +32,10 @@ class TestController extends Controller
     use AddressTrait;
     public function index(Request $request)
     {
+        foreach (LanguageEnum::LANGUAGES as $code => $name) {
+            return "Language code: " . $code . " - Language name: " . $name . "<br>";
+        }
+
         $locale = App::getLocale();
         // Joining necessary tables to fetch the NGO data
         $ngo_id = 2;

@@ -12,10 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 class EditesNgoController extends Controller
 {
-    //
-
-
-      public function profileUpdate(NgoProfileUpdateRequest $request, $id)
+    public function profileUpdate(NgoProfileUpdateRequest $request, $id)
     {
 
 
