@@ -451,4 +451,14 @@ class AboutController extends Controller
             JSON_UNESCAPED_UNICODE
         );
     }
+
+    public function sliders()
+    {
+
+        $sliders =    Slider::select('id', 'path')->where('is_active', 1)->get();
+
+        return response()->json([
+            "slider" => $sliders,
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
 }

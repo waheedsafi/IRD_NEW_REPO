@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 
 
 
+
 Route::prefix('v1')->group(function () {
   Route::get('/office', [AboutController::class, "office"]);
   Route::get('/staff/public/office', [AboutController::class, "publicOffice"]);
@@ -27,4 +28,5 @@ Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(
   Route::post('/staff/update', [AboutController::class, 'update']);
   Route::delete('/staff/{id}', [AboutController::class, 'destroy']);
   Route::post('/slider/store', [AboutController::class, 'sliderStore']);
+  Route::get('/sliders', [AboutController::class, 'sliders']);
 });
