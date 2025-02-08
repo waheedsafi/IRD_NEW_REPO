@@ -103,21 +103,37 @@ class ViewsNgoController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    public function ngoInit(Request $request, $ngo_id)
+    public function startForm(Request $request, $ngo_id)
     {
         $locale = App::getLocale();
 
-        $personalDetail = $this->personalDetial($request, $ngo_id);
-        if ($personalDetail['content']) {
+        $pendingTaskContent = $this->pendingTask($request, $ngo_id);
+        if ($pendingTaskContent['content']) {
             return response()->json([
                 'message' => __('app_translation.success'),
-                'content' => $personalDetail['content']
+                'content' => $pendingTaskContent['content']
             ], 200);
         }
 
-        // Joining necessary tables to fetch the NGO data
-        $ngo = $this->ngoRepository->getNgoInit($locale, $ngo_id);
-        // Handle NGO not found
+        $query = $this->ngoRepository->ngo();  // Start with the base query
+        $this->ngoRepository->typeTransJoin($query, $locale)
+            ->emailJoin($query)
+            ->contactJoin($query)
+            ->addressJoin($query);
+        $ngo = $query->select(
+            'n.abbr',
+            'n.ngo_type_id',
+            'ntt.value as type_name',
+            'n.registration_no',
+            'n.moe_registration_no',
+            'n.place_of_establishment',
+            'n.date_of_establishment',
+            'a.province_id',
+            'a.district_id',
+            'a.id as address_id',
+            'e.value as email',
+            'c.value as contact'
+        )->where('n.id', $ngo_id)->first();
         if (!$ngo) {
             return response()->json([
                 'message' => __('app_translation.ngo_not_found'),
@@ -127,8 +143,11 @@ class ViewsNgoController extends Controller
         // Fetching translations using a separate query
         $translations = $this->ngoNameTrans($ngo_id);
         $areaTrans = $this->getAddressAreaTran($ngo->address_id);
-        $address = $this->getCompleteAddress($ngo->address_id, $locale);
-
+        $address = $this->getAddressTrans(
+            $ngo->province_id,
+            $ngo->district_id,
+            $locale
+        );
 
         $data = [
             'name_english' => $translations['en']->name ?? null,
@@ -139,8 +158,8 @@ class ViewsNgoController extends Controller
             'contact' => $ngo->contact,
             'email' =>   $ngo->email,
             'registration_no' => $ngo->registration_no,
-            'province' => ['name' => $address['province'], 'id' => $ngo->province_id],
-            'district' => ['name' => $address['district'], 'id' => $ngo->district_id],
+            'province' => $address['province'],
+            'district' => $address['district'],
             'area_english' => $areaTrans['en']->area ?? '',
             'area_pashto' => $areaTrans['ps']->area ?? '',
             'area_farsi' => $areaTrans['fa']->area ?? '',
@@ -151,6 +170,7 @@ class ViewsNgoController extends Controller
             'ngo' => $data,
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
+
     public function ngoDetail($ngo_id)
     {
         $locale = App::getLocale();
@@ -184,7 +204,11 @@ class ViewsNgoController extends Controller
         // Fetching translations using a separate query
         $translations = $this->ngoNameTrans($ngo_id);
         $areaTrans = $this->getAddressAreaTran($ngo->address_id);
-        $address = $this->getCompleteAddress($ngo->address_id, $locale);
+        $address = $this->getAddressTrans(
+            $ngo->province_id,
+            $ngo->district_id,
+            $locale
+        );
 
         $data = [
             'name_english' => $translations['en']->name ?? null,
@@ -199,8 +223,8 @@ class ViewsNgoController extends Controller
             'place_of_establishment' => ['name' => $this->getCountry($ngo->place_of_establishment, $locale), 'id' => $ngo->place_of_establishment],
             'contact' => $ngo->contact,
             'email' => $ngo->email,
-            'province' => ['name' => $address['province'], 'id' => $ngo->province_id],
-            'district' => ['name' => $address['district'], 'id' => $ngo->district_id],
+            'province' => $address['province'],
+            'district' => $address['district'],
             'area_english' => $areaTrans['en']->area ?? '',
             'area_pashto' => $areaTrans['ps']->area ?? '',
             'area_farsi' => $areaTrans['fa']->area ?? '',
@@ -250,7 +274,7 @@ class ViewsNgoController extends Controller
         $query->orderBy("created_at", 'desc');
     }
 
-    public function personalDetial(Request $request, $id): array
+    public function pendingTask(Request $request, $id): array
     {
         $user = $request->user();
         $user_id = $user->id;

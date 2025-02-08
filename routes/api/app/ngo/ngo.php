@@ -18,11 +18,11 @@ Route::get('/ngo/checklist/documents/{id}', [ViewsNgoController::class, 'ngoChec
 Route::prefix('v1')->group(function () {
   Route::get('public/ngos/{page}', [ViewsNgoController::class, 'publicNgos']);
   Route::get('ngos/storePersonalDetial/{id}', [ViewsNgoController::class, 'storePersonalDetial']);
-  Route::get('ngos/personalDetail/{id}', [ViewsNgoController::class, 'personalDetial']);
+  Route::get('ngos/personalDetail/{id}', [ViewsNgoController::class, 'pendingTask']);
 });
 
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
-  Route::get('/ngoInit/{id}', [ViewsNgoController::class, 'ngoInit']);
+  Route::get('/ngoInit/{id}', [ViewsNgoController::class, 'startForm']);
   Route::post('ngos/personalDetail/destory/{id}', [DeletesNgoController::class, 'destroyPersonalDetail']);
   Route::post('ngos/storePersonalDetial/{id}', [StoresNgoController::class, 'storePersonalDetial']);
   Route::post('ngo/store/personal/detail-final', [StoresNgoController::class, 'storePersonalDetialFinal']);

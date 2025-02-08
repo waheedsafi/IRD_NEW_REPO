@@ -4,7 +4,6 @@ namespace App\Repositories\ngo;
 
 interface NgoRepositoryInterface
 {
-    public function getNgoInit($locale, $ngo_id);
     public function getNgoDetail($locale, $ngo_id);
     /**
      * Retrieve NGO data.

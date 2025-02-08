@@ -42,12 +42,14 @@ class TestController extends Controller
     {
         $locale = App::getLocale();
         $query = $this->ngoRepository->ngo();  // Start with the base query
-        $this->ngoRepository->emailJoin($query)
+        $this->ngoRepository->typeTransJoin($query, $locale)
+            ->emailJoin($query)
             ->contactJoin($query)
             ->addressJoin($query);
         $ngo = $query->select(
             'n.abbr',
             'n.ngo_type_id',
+            'ntt.value as type_name',
             'n.registration_no',
             'n.moe_registration_no',
             'n.place_of_establishment',
@@ -56,7 +58,7 @@ class TestController extends Controller
             'a.district_id',
             'a.id as address_id',
             'e.value as email',
-            'c.value as contact',
+            'c.value as contact'
         )->where('n.id', 3)->first();
 
         return $ngo;
