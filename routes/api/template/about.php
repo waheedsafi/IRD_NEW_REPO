@@ -14,6 +14,7 @@ Route::prefix('v1')->group(function () {
   Route::get('/staff/public/director', [AboutController::class, "publicDirector"]);
   Route::get('/staff/public/manager', [AboutController::class, "publicManager"]);
   Route::get('/staff/public/technicalSupports', [AboutController::class, "publicTechnicalSupports"]);
+  Route::get('/public/sliders', [AboutController::class, 'publicSliders']);
 });
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
 
@@ -29,4 +30,5 @@ Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(
   Route::delete('/staff/{id}', [AboutController::class, 'destroy']);
   Route::post('/slider/store', [AboutController::class, 'sliderStore']);
   Route::get('/sliders', [AboutController::class, 'sliders']);
+  Route::POST('/slider/change/status', [AboutController::class, 'changeStatusSlider']);
 });

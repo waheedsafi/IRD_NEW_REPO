@@ -455,10 +455,36 @@ class AboutController extends Controller
     public function sliders()
     {
 
+        $sliders =    Slider::select('id', 'path', 'is_active')->get();
+
+        return response()->json([
+            "slider" => $sliders,
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    public function publicSliders()
+    {
+
         $sliders =    Slider::select('id', 'path')->where('is_active', 1)->get();
 
         return response()->json([
             "slider" => $sliders,
         ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+    public function changeStatusSlider(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:sliders,id', // Ensure the slider exists
+            'is_active' => 'required|in:1,0'
+        ]);
+
+        $slider = Slider::find($request->slider_id);
+        $slider->is_active = $request->is_active;
+        $slider->save();
+
+        return response()->json([
+            'message' => __('app_translation.update'),
+            'slider' => $slider
+        ]);
     }
 }
