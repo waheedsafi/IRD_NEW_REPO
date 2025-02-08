@@ -2,18 +2,22 @@
 
 namespace App\Http\Controllers\api\template;
 
+use App\Enums\LanguageEnum;
+use App\Enums\StaffEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\template\office\OfficeStoreRequest;
 use App\Http\Requests\template\office\OfficeUpdateRequest;
 use App\Http\Requests\template\office\StaffStoreRequest;
 use App\Http\Requests\template\office\StaffUpdateRequest;
 use App\Models\OfficeInformation;
+use App\Models\Slider;
 use App\Models\Staff;
-use App\Enums\StaffEnum;
 use App\Models\StaffTran;
-use App\Enums\LanguageEnum;
+
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
+
 
 class AboutController extends Controller
 {
@@ -417,5 +421,34 @@ class AboutController extends Controller
                 "picture" => $profile,
             ]
         ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    public function sliderStore(Request $request)
+    {
+
+
+        $request->validate([
+
+            'picture' => 'required|mimes:png,jpg',
+        ]);
+
+        $document = $this->storeDocument($request, "public", "slider", 'picture');
+
+        Slider::create([
+            "is_active" => 1,
+            "path" => $document['path'],
+            "name" => 'slider',
+        ]);
+        return response()->json(
+            [
+                'message' => __('app_translation.success'),
+                'slider' => [
+                    "picture" => $document['path'],
+                ]
+            ],
+            200,
+            [],
+            JSON_UNESCAPED_UNICODE
+        );
     }
 }
