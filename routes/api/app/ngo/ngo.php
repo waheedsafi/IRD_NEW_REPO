@@ -16,7 +16,7 @@ Route::get('/ngo/checklist/documents/{id}', [ViewsNgoController::class, 'ngoChec
 
 
 Route::prefix('v1')->group(function () {
-  Route::get('public/ngos/{page}', [ViewsNgoController::class, 'ngosPublic']);
+  Route::get('public/ngos/{page}', [ViewsNgoController::class, 'publicNgos']);
   Route::get('ngos/storePersonalDetial/{id}', [ViewsNgoController::class, 'storePersonalDetial']);
   Route::get('ngos/personalDetail/{id}', [ViewsNgoController::class, 'personalDetial']);
 });
@@ -33,16 +33,9 @@ Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(
 
   // use for step 1 data retrive
   Route::get('/ngo/details/{id}', [ViewsNgoController::class, 'ngoDetail']);
-
-  // 
-
-
-
 });
 
 // ngo user 
 
 
-Route::prefix('v1')->middleware(['api.key', "authorized:" . 'ngo:api'])->group(function () {
-  Route::get('/ngo/{id}', [ViewsNgoController::class, 'ngo']);
-});
+Route::prefix('v1')->middleware(['api.key', "authorized:" . 'ngo:api'])->group(function () {});

@@ -54,7 +54,7 @@ trait AddressTrait
         if ($lang != LanguageEnum::default->value) {
 
 
-            $country =     Country::join('translates', 'translable_id', 'countries.id')
+            $country = Country::join('translates', 'translable_id', 'countries.id')
                 ->where('translable_type', Country::class)
                 ->where('countries.id', $province->country_id)
                 ->where('language_name', $lang)
@@ -63,10 +63,6 @@ trait AddressTrait
 
             $country = Country::select('name')->where('id', $province->country_id)->first();
         }
-
-
-
-
         return [
             'complete_address' => $address->addressTrans[0]->area . ',' . $district->name . ',' . $province->name . ',' . $country->name,
             'area' => $address->addressTrans[0]->area ?? '',
@@ -95,10 +91,6 @@ trait AddressTrait
 
     public function getProvince($province_id, $lang)
     {
-
-
-
-
         if ($lang != LanguageEnum::default->value) {
             $province =   Province::join('translates', 'translable_id', 'provinces.id')
                 ->where('translable_type', Province::class)
@@ -150,12 +142,11 @@ trait AddressTrait
 
     private function getAddressAreaTran($address_id)
     {
-
         $translations = AddressTran::where('address_id', $address_id)
             ->select('language_name', 'area')
             ->get()
             ->keyBy('language_name');
-
         return $translations;
     }
+    // Added by ME
 }

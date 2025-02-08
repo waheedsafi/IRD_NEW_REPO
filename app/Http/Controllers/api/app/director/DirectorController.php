@@ -49,7 +49,9 @@ class DirectorController extends Controller
 
         // 4. If is_active is true make other directors false
         if ($request->is_active == true)
-            Director::where('is_active', true)->update(['is_active' => false]);
+            Director::where('is_active', true)
+                ->where('ngo_id', $ngo->id)
+                ->update(['is_active' => false]);
         // 5. Create the Director
         $director = Director::create([
             'ngo_id' => $id,
@@ -229,7 +231,9 @@ class DirectorController extends Controller
         DB::beginTransaction();
         // 4. If is_active is true make other directors false
         if ($request->is_active == true)
-            Director::where('is_active', true)->update(['is_active' => false]);
+            Director::where('is_active', true)
+                ->where('ngo_id', $director->ngo_id)
+                ->update(['is_active' => false]);
         // 5. Update Director information
         $director->is_active = $request->is_active;
         $director->nid_no = $request->nid;

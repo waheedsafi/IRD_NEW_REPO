@@ -34,44 +34,28 @@ class ViewsNgoController extends Controller
         $page = $request->input('page', 1); // Current page
         $locale = App::getLocale();
 
-        $query = DB::table('ngos as n')
-            ->join('ngo_trans as nt', 'nt.ngo_id', '=', 'n.id')
-            ->where('nt.language_name', $locale)
-            ->join('ngo_type_trans as ntt', 'ntt.ngo_type_id', '=', 'n.ngo_type_id')
-            ->where('ntt.language_name', $locale)
-            ->leftJoin(
-                DB::raw('(SELECT ns1.* FROM ngo_statuses ns1 
-                         JOIN (SELECT ngo_id, MAX(created_at) as max_date 
-                               FROM ngo_statuses GROUP BY ngo_id) ns2 
-                         ON ns1.ngo_id = ns2.ngo_id AND ns1.created_at = ns2.max_date) as ns'),
-                'ns.ngo_id',
-                '=',
-                'n.id'
-            ) // LEFT JOIN to include NGOs without a status
-            ->leftJoin('status_type_trans as nstr', 'nstr.status_type_id', '=', 'ns.status_type_id')
-            ->where(function ($query) use ($locale) {
-                $query->where('nstr.language_name', $locale)
-                    ->orWhereNull('nstr.language_name'); // Ensure NGOs with no status are included
-            })
-            ->leftJoin('emails as e', 'e.id', '=', 'n.email_id')
-            ->leftJoin('contacts as c', 'c.id', '=', 'n.contact_id')
-            ->orderBy('n.created_at', 'desc')
-            ->select(
-                'n.id',
-                'n.profile',
-                'n.abbr',
-                'n.registration_no',
-                'n.date_of_establishment as establishment_date',
-                'nstr.status_type_id as status_id',
-                'nstr.name as status',
-                'nt.name',
-                'ntt.ngo_type_id as type_id',
-                'ntt.value as type',
-                'e.value as email',
-                'c.value as contact',
-                'n.created_at'
-            );
-
+        $query = $this->ngoRepository->ngo();  // Start with the base query
+        $this->ngoRepository->transJoin($query, $locale)
+            ->statusJoin($query)
+            ->statusTypeTransJoin($query, $locale)
+            ->typeTransJoin($query, $locale)
+            ->directorJoin($query)
+            ->directorTransJoin($query, $locale)
+            ->emailJoin($query)
+            ->contactJoin($query);
+        $query->select(
+            'n.id',
+            'n.registration_no',
+            'n.date_of_establishment as establishment_date',
+            'stt.status_type_id as status_id',
+            'stt.name as status',
+            'nt.name',
+            'ntt.ngo_type_id as type_id',
+            'ntt.value as type',
+            'e.value as email',
+            'c.value as contact',
+            'n.created_at'
+        );
         $this->applyDate($query, $request);
         $this->applyFilters($query, $request);
         $this->applySearch($query, $request);
@@ -82,19 +66,41 @@ class ViewsNgoController extends Controller
             'ngos' => $result
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
-    public function ngo($id)
-    {
-        $locale = App::getLocale();
 
-        return response()->json(
-            [
-                'message' => __('app_translation.success'),
-                "ngo" => []
-            ],
-            200,
-            [],
-            JSON_UNESCAPED_UNICODE
-        );
+    public function publicNgos(Request $request, $page)
+    {
+        $perPage = $request->input('per_page', 10); // Number of records per page
+        $page = $request->input('page', 1); // Current page
+        $locale = App::getLocale();
+        $includedIds  = [StatusTypeEnum::active->value, StatusTypeEnum::active->value];
+
+        $query = $this->ngoRepository->ngo();  // Start with the base query
+        $this->ngoRepository->transJoin($query, $locale)
+            ->statusJoin($query)
+            ->statusTypeTransJoin($query, $locale)
+            ->typeTransJoin($query, $locale)
+            ->directorJoin($query)
+            ->directorTransJoin($query, $locale)
+            ->emailJoin($query)
+            ->contactJoin($query);
+        $query->whereIn('ns.status_type_id', $includedIds)
+            ->select(
+                'n.id',
+                'n.abbr',
+                'stt.name as status',
+                'nt.name',
+                'ntt.value as type',
+                'dt.name as director',
+            );
+
+        $this->applyFilters($query, $request);
+        $this->applySearch($query, $request);
+        // Now paginate the result (after mapping provinces)
+        $result = $query->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json([
+            'ngos' => $result
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function ngoInit(Request $request, $ngo_id)
@@ -145,20 +151,33 @@ class ViewsNgoController extends Controller
             'ngo' => $data,
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
-
-
-
-    public function ngoDetail(Request $request, $ngo_id)
+    public function ngoDetail($ngo_id)
     {
         $locale = App::getLocale();
-        // Joining necessary tables to fetch the NGO data
-        $ngo = $this->ngoRepository->getNgoInit($locale, $ngo_id);
-
+        $query = $this->ngoRepository->ngo();  // Start with the base query
+        $this->ngoRepository->typeTransJoin($query, $locale)
+            ->emailJoin($query)
+            ->contactJoin($query)
+            ->addressJoin($query);
+        $ngo = $query->select(
+            'n.abbr',
+            'n.ngo_type_id',
+            'ntt.value as type_name',
+            'n.registration_no',
+            'n.moe_registration_no',
+            'n.place_of_establishment',
+            'n.date_of_establishment',
+            'a.province_id',
+            'a.district_id',
+            'a.id as address_id',
+            'e.value as email',
+            'c.value as contact'
+        )->where('n.id', $ngo_id)->first();
 
         // Handle NGO not found
         if (!$ngo) {
             return response()->json([
-                'message' => __('app_translation.not_found'),
+                'message' => __('app_translation.ngo_not_found'),
             ], 404);
         }
 
@@ -190,87 +209,6 @@ class ViewsNgoController extends Controller
         return response()->json([
             'message' => __('app_translation.success'),
             'ngo' => $data,
-        ], 200, [], JSON_UNESCAPED_UNICODE);
-    }
-
-
-    public function ngoCount()
-    {
-        $statistics = DB::select("
-        SELECT
-         COUNT(*) AS count,
-            (SELECT COUNT(*) FROM ngos WHERE DATE(created_at) = CURDATE()) AS todayCount,
-            (SELECT COUNT(*) FROM ngos n JOIN ngo_statuses ns ON n.id = ns.ngo_id WHERE ns.status_type_id = ?) AS activeCount,
-         (SELECT COUNT(*) FROM ngos n JOIN ngo_statuses ns ON n.id = ns.ngo_id WHERE ns.status_type_id = ?) AS unRegisteredCount
-        FROM ngos
-            ", [StatusTypeEnum::active->value, StatusTypeEnum::unregistered->value]);
-        return response()->json([
-            'counts' => [
-                "count" => $statistics[0]->count,
-                "todayCount" => $statistics[0]->todayCount,
-                "activeCount" => $statistics[0]->activeCount,
-                "unRegisteredCount" =>  $statistics[0]->unRegisteredCount
-            ],
-        ], 200, [], JSON_UNESCAPED_UNICODE);
-    }
-
-    public function ngosPublic(Request $request, $page)
-    {
-        $perPage = $request->input('per_page', 10); // Number of records per page
-        $page = $request->input('page', 1); // Current page
-        $locale = App::getLocale();
-        $includedIds  = [StatusTypeEnum::active->value, StatusTypeEnum::active->value];
-
-        $query = DB::table('ngos as n')
-            ->join('ngo_trans as nt', function ($join) use ($locale) {
-                $join->on('nt.ngo_id', '=', 'n.id')
-                    ->where('nt.language_name', $locale);
-            })
-            ->leftjoin('ngo_statuses as ns', 'ns.ngo_id', '=', 'n.id')
-            ->whereIn('ns.status_type_id', $includedIds)
-            ->leftjoin('status_type_trans as nstr', function ($join) use ($locale) {
-                $join->on('nstr.status_type_id', '=', 'ns.status_type_id')
-                    ->where('nstr.language_name', $locale);
-            })
-            ->join('ngo_type_trans as ntt', function ($join) use ($locale) {
-                $join->on('ntt.ngo_type_id', '=', 'n.ngo_type_id')
-                    ->where('ntt.language_name', $locale);
-            })
-            ->leftjoin('directors as dir', 'dir.ngo_id', '=', 'n.id')
-            ->leftjoin('director_trans as dirt', function ($join) use ($locale) {
-                $join->on('dir.id', '=', 'dirt.director_id')
-                    ->where('dirt.language_name', $locale);
-            })
-            ->leftjoin('addresses as add', 'add.id', '=', 'n.address_id')
-            ->select(
-                'n.id',
-                'n.abbr',
-                'n.date_of_establishment as establishment_date',
-                'n.created_at',
-                'nstr.name as status',
-                'nt.name',
-                'ntt.value as type',
-                'dirt.name as director',
-                'add.province_id as province',
-            );
-
-        $this->applyFiltersPublic($query, $request);
-        $this->applySearchPublic($query, $request);
-
-        // Fetch data first (without pagination)
-        $ngos = $query->get();
-
-        // Modify the result by getting provinces for each item after fetching
-        $ngos = $ngos->map(function ($item) use ($locale) {
-            $item->province = $this->getProvince($item->province, $locale);
-            return $item;
-        });
-
-        // Now paginate the result (after mapping provinces)
-        $result = $this->paginatePublic($ngos, $perPage, $page);
-
-        return response()->json([
-            'ngos' => $result
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
@@ -312,49 +250,6 @@ class ViewsNgoController extends Controller
         $query->orderBy("created_at", 'desc');
     }
 
-
-    protected function applyDate($query, $request)
-    {
-        // Apply date filtering conditionally if provided
-        $startDate = $request->input('filters.date.startDate');
-        $endDate = $request->input('filters.date.endDate');
-
-        if ($startDate) {
-            $query->where('n.created_at', '>=', $startDate);
-        }
-        if ($endDate) {
-            $query->where('n.created_at', '<=', $endDate);
-        }
-    }
-    // search function 
-    protected function applySearch($query, $request)
-    {
-
-        $searchColumn = $request->input('filters.search.column');
-        $searchValue = $request->input('filters.search.value');
-
-        if ($searchColumn && $searchValue) {
-            $allowedColumns = ['title', 'contents'];
-
-            // Ensure that the search column is allowed
-            if (in_array($searchColumn, $allowedColumns)) {
-                $query->where($searchColumn, 'like', '%' . $searchValue . '%');
-            }
-        }
-    }
-    // filter function
-    protected function applyFilters($query, $request)
-    {
-        $sort = $request->input('filters.sort'); // Sorting column
-        $order = $request->input('filters.order', 'asc'); // Sorting order (default 
-
-        if ($sort && in_array($sort, ['id', 'name', 'type', 'contact', 'status'])) {
-            $query->orderBy($sort, $order);
-        } else {
-            // Default sorting if no sort is provided
-            $query->orderBy("created_at", 'desc');
-        }
-    }
     public function personalDetial(Request $request, $id): array
     {
         $user = $request->user();
@@ -389,9 +284,6 @@ class ViewsNgoController extends Controller
 
     public function ngoMoreInformation($id)
     {
-
-
-
         $ngo = Ngo::join('ngo_trans as en', function ($join) {
             $join->on('ngos.id', '=', 'en.ngo_id')->where('en.language_name', 'en');
         })
@@ -683,5 +575,77 @@ class ViewsNgoController extends Controller
             [],
             JSON_UNESCAPED_UNICODE
         );
+    }
+
+
+    public function ngoCount()
+    {
+        $statistics = DB::select("
+        SELECT
+         COUNT(*) AS count,
+            (SELECT COUNT(*) FROM ngos WHERE DATE(created_at) = CURDATE()) AS todayCount,
+            (SELECT COUNT(*) FROM ngos n JOIN ngo_statuses ns ON n.id = ns.ngo_id WHERE ns.status_type_id = ?) AS activeCount,
+         (SELECT COUNT(*) FROM ngos n JOIN ngo_statuses ns ON n.id = ns.ngo_id WHERE ns.status_type_id = ?) AS unRegisteredCount
+        FROM ngos
+            ", [StatusTypeEnum::active->value, StatusTypeEnum::unregistered->value]);
+        return response()->json([
+            'counts' => [
+                "count" => $statistics[0]->count,
+                "todayCount" => $statistics[0]->todayCount,
+                "activeCount" => $statistics[0]->activeCount,
+                "unRegisteredCount" =>  $statistics[0]->unRegisteredCount
+            ],
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    protected function applyDate($query, $request)
+    {
+        // Apply date filtering conditionally if provided
+        $startDate = $request->input('filters.date.startDate');
+        $endDate = $request->input('filters.date.endDate');
+
+        if ($startDate) {
+            $query->where('n.created_at', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->where('n.created_at', '<=', $endDate);
+        }
+    }
+    // search function 
+    protected function applySearch($query, $request)
+    {
+        $searchColumn = $request->input('filters.search.column');
+        $searchValue = $request->input('filters.search.value');
+
+        if ($searchColumn && $searchValue) {
+            $allowedColumns = [
+                'id' => 'n.id',
+                'registration_no' => 'n.registration_no',
+                'name' => 'nt.name',
+                'type' => 'ntt.value',
+                'contact' => 'c.value',
+                'email' => 'e.value'
+            ];
+            // Ensure that the search column is allowed
+            if (in_array($searchColumn, array_keys($allowedColumns))) {
+                $query->where($allowedColumns[$searchColumn], 'like', '%' . $searchValue . '%');
+            }
+        }
+    }
+    // filter function
+    protected function applyFilters($query, $request)
+    {
+        $sort = $request->input('filters.sort'); // Sorting column
+        $order = $request->input('filters.order', 'asc'); // Sorting order (default 
+        $allowedColumns = [
+            'id' => 'n.id',
+            'name' => 'nt.name',
+            'type' => 'ntt.value',
+            'contact' => 'c.value',
+            'status' => 'nstr.name'
+        ];
+        if (in_array($sort, array_keys($allowedColumns))) {
+            $query->orderBy($allowedColumns[$sort], $order);
+        }
     }
 }

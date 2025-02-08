@@ -12,6 +12,7 @@ use App\Models\Gender;
 use App\Models\Address;
 
 use App\Models\Country;
+use App\Models\NgoTran;
 use App\Enums\StaffEnum;
 use App\Models\Director;
 use App\Models\Province;
@@ -26,17 +27,125 @@ use App\Models\PendingTaskContent;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Traits\Address\AddressTrait;
+use App\Repositories\ngo\NgoRepositoryInterface;
 
 class TestController extends Controller
 {
+    protected $ngoRepository;
+
+    public function __construct(NgoRepositoryInterface $ngoRepository)
+    {
+        $this->ngoRepository = $ngoRepository;
+    }
     use AddressTrait;
     public function index(Request $request)
     {
-        foreach (LanguageEnum::LANGUAGES as $code => $name) {
-            return "Language code: " . $code . " - Language name: " . $name . "<br>";
-        }
-
         $locale = App::getLocale();
+        $query = $this->ngoRepository->ngo();  // Start with the base query
+        $this->ngoRepository->emailJoin($query)
+            ->contactJoin($query)
+            ->addressJoin($query);
+        $ngo = $query->select(
+            'n.abbr',
+            'n.ngo_type_id',
+            'n.registration_no',
+            'n.moe_registration_no',
+            'n.place_of_establishment',
+            'n.date_of_establishment',
+            'a.province_id',
+            'a.district_id',
+            'a.id as address_id',
+            'e.value as email',
+            'c.value as contact',
+        )->where('n.id', 3)->first();
+
+        return $ngo;
+
+
+
+
+
+        $query = DB::table('ngos as n')
+            ->join('ngo_trans as nt', 'nt.ngo_id', '=', 'n.id')
+            ->join('ngo_trans as nt', function ($join) use ($locale) {
+                $join->on('nt.ngo_id', '=', 'n.id')
+                    ->where('nt.language_name', $locale);
+            })
+            ->join('ngo_type_trans as ntt', function ($join) use ($locale) {
+                $join->on('ntt.ngo_type_id', '=', 'n.ngo_type_id')
+                    ->where('ntt.language_name', $locale);
+            })
+            ->leftjoin('ngo_statuses as ns', function ($join) {
+                $join->on('ns.ngo_id', '=', 'n.id')
+                    ->whereRaw('ns.created_at = (select max(ns2.created_at) from ngo_statuses as ns2 where ns2.ngo_id = n.id)');
+            })
+            ->leftJoin('status_type_trans as nstr', 'nstr.status_type_id', '=', 'ns.status_type_id')
+            ->where(function ($query) use ($locale) {
+                $query->where('nstr.language_name', $locale)
+                    ->orWhereNull('nstr.language_name'); // Ensure NGOs with no status are included
+            })
+            ->leftJoin('emails as e', 'e.id', '=', 'n.email_id')
+            ->leftJoin('contacts as c', 'c.id', '=', 'n.contact_id')
+            ->orderBy('n.created_at', 'desc')
+            ->select(
+                'n.id',
+                'n.profile',
+                'n.abbr',
+                'n.registration_no',
+                'n.date_of_establishment as establishment_date',
+                'nstr.status_type_id as status_id',
+                'nstr.name as status',
+                'nt.name',
+                'ntt.ngo_type_id as type_id',
+                'ntt.value as type',
+                'e.value as email',
+                'c.value as contact',
+                'n.created_at'
+            );
+        $query->orderBy('n.created_at', 'asc');
+        return $query->get();
+
+
+
+
+        $query = DB::table('ngos as n')
+            ->join('ngo_trans as nt', function ($join) use ($locale) {
+                $join->on('nt.ngo_id', '=', 'n.id')
+                    ->where('nt.language_name', $locale);
+            })
+            // ->leftjoin('ngo_statuses as ns', 'ns.ngo_id', '=', 'n.id')
+            ->leftjoin('ngo_statuses as ns', function ($join) use ($locale) {
+                $join->on('ns.ngo_id', '=', 'n.id')
+                    ->whereRaw('ns.created_at = (select max(ns2.created_at) from ngo_statuses as ns2 where ns2.ngo_id = n.id)');
+            })
+            // ->whereIn('ns.status_type_id', $includedIds)
+            ->leftjoin('status_type_trans as nstr', function ($join) use ($locale) {
+                $join->on('nstr.status_type_id', '=', 'ns.status_type_id')
+                    ->where('nstr.language_name', $locale);
+            })
+            ->join('ngo_type_trans as ntt', function ($join) use ($locale) {
+                $join->on('ntt.ngo_type_id', '=', 'n.ngo_type_id')
+                    ->where('ntt.language_name', $locale);
+            })
+            ->join('directors as dir', function ($join) {
+                $join->on('dir.ngo_id', '=', 'n.id')
+                    ->where('dir.is_active', true);
+            })
+            ->join('director_trans as dirt', function ($join) use ($locale) {
+                $join->on('dir.id', '=', 'dirt.director_id')
+                    ->where('dirt.language_name', $locale);
+            })
+            ->select(
+                'n.id',
+                'n.abbr',
+                'nstr.name as status',
+                'nt.name',
+                'ntt.value as type',
+                'dirt.name as director',
+            );
+
+        return $query->get();
+
         // Joining necessary tables to fetch the NGO data
         $ngo_id = 2;
         $director = DB::table('directors as d')
@@ -50,10 +159,9 @@ class TestController extends Controller
             ->select(
                 'd.id',
                 'd.is_active',
-                'dt.name',
-                'dt.last_name as surname',
-                'c.value as contact',
-                'e.value as email',
+                'nt.name',
+                'dt.name as director',
+                'ntt.value as type'
             )
             ->get();
         return $director;
