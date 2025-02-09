@@ -2,47 +2,54 @@
 
 namespace App\Http\Controllers\api\app\ngo;
 
-use App\Enums\CheckListTypeEnum;
-use App\Enums\LanguageEnum;
-use App\Enums\pdfFooter\CheckListEnum;
-use App\Enums\PermissionEnum;
-use App\Enums\RoleEnum;
-use App\Enums\Type\StatusTypeEnum;
-use App\Enums\Type\TaskTypeEnum;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\app\ngo\NgoInitStoreRequest;
-use App\Http\Requests\app\ngo\NgoRegisterRequest;
-use App\Models\Address;
-use App\Models\AddressTran;
-use App\Models\Agreement;
-use App\Models\AgreementDocument;
-use App\Models\CheckList;
-use App\Models\CheckListTrans;
-use App\Models\CheckListType;
-use App\Models\Contact;
-use App\Models\Director;
-use App\Models\DirectorTran;
-use App\Models\Document;
-use App\Models\Email;
-use App\Models\Ngo;
-use App\Models\NgoPermission;
-use App\Models\NgoStatus;
-use App\Models\NgoTran;
-use App\Models\PendingTask;
-use App\Models\PendingTaskContent;
-use App\Models\PendingTaskDocument;
-use App\Models\StatusTypeTran;
 use Carbon\Carbon;
+use App\Models\Ngo;
+use App\Models\Email;
+use App\Enums\RoleEnum;
+use App\Models\Address;
+use App\Models\Contact;
+use App\Models\NgoTran;
+use App\Models\Director;
+use App\Models\Document;
+use App\Models\Agreement;
+use App\Models\CheckList;
+use App\Models\NgoStatus;
+use App\Enums\LanguageEnum;
+use App\Models\AddressTran;
+use App\Models\PendingTask;
+use App\Models\DirectorTran;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
-
+use App\Enums\PermissionEnum;
+use App\Models\CheckListType;
+use App\Models\NgoPermission;
+use App\Models\CheckListTrans;
+use App\Models\StatusTypeTran;
 use function Pest\Laravel\json;
+use App\Enums\CheckListTypeEnum;
+use App\Enums\Type\TaskTypeEnum;
+use App\Models\AgreementDocument;
+use App\Enums\Type\StatusTypeEnum;
+use App\Models\PendingTaskContent;
+use Illuminate\Support\Facades\DB;
+use App\Models\PendingTaskDocument;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
+use App\Enums\pdfFooter\CheckListEnum;
+use App\Http\Requests\app\ngo\NgoRegisterRequest;
+
+use App\Http\Requests\app\ngo\NgoInitStoreRequest;
+use App\Repositories\ngo\PendingTaskRepositoryInterface;
 
 class StoresNgoController extends Controller
 {
+    protected $pendingTaskRepository;
+
+    public function __construct(PendingTaskRepositoryInterface $pendingTaskRepository)
+    {
+        $this->pendingTaskRepository = $pendingTaskRepository;
+    }
     public function store(NgoRegisterRequest $request)
     {
         $validatedData = $request->validated();
@@ -142,51 +149,17 @@ class StoresNgoController extends Controller
             'step' => 'required|string',
         ]);
 
-        $user = $request->user();
-        $user_id = $user->id;
-        $role = $user->role_id;
-        $task_type = TaskTypeEnum::ngo_registeration;
-
-        $task = PendingTask::where('user_id', $user_id)
-            ->where('user_type', $role)
-            ->where('task_type', $task_type)
-            ->where('task_id', $id)
-            ->first(); // Retrieve the first matching record
-
-        if ($task) {
-            $pendingContent = PendingTaskContent::where('pending_task_id', $task->id)
-                ->first(); // Get the maximum step value
-            if ($pendingContent) {
-                // Update prevouis content
-                $pendingContent->step = $request->step;
-                $pendingContent->content = $request->contents;
-                $pendingContent->save();
-            } else {
-                // If no content found
-                PendingTaskContent::create([
-                    'step' => $request->step,
-                    'content' => $request->contents,
-                    'pending_task_id' => $task->id
-                ]);
-            }
-        } else {
-            $task =  PendingTask::create([
-                'user_id' => $user_id,
-                'user_type' => $role,
-                'task_type' => $task_type,
-                'task_id' => $id
-            ]);
-            PendingTaskContent::create([
-                'step' => 1,
-                'content' => $request->contents,
-                'pending_task_id' => $task->id
-            ]);
-        }
+        $this->pendingTaskRepository->storeTask(
+            $request->user(),
+            TaskTypeEnum::ngo_registeration,
+            $id,
+            $request->step,
+            $request->contents
+        );
         return response()->json(
             [
                 'message' => __('app_translation.success'),
             ],
-
             200,
             [],
             JSON_UNESCAPED_UNICODE
@@ -218,10 +191,25 @@ class StoresNgoController extends Controller
                 'message' => __('app_translation.ngo_not_found'),
             ], 200, [], JSON_UNESCAPED_UNICODE);
         }
-        // 3. Check task exists
-        $checklist =  $this->checkList($request, $id);
-        if ($checklist) {
-            return $checklist;
+
+        // 3. Ensure task exists before proceeding
+        $task = $this->pendingTaskRepository->pendingTaskExist(
+            $request->user(),
+            TaskTypeEnum::ngo_registeration,
+            $id
+        );
+        if (!$task) {
+            return response()->json([
+                'error' => __('app_translation.task_not_found')
+            ], 404);
+        }
+        // 4. Check task exists
+        $errors = $this->validateCheckList($task);
+        if ($errors) {
+            return response()->json([
+                'message' => __('app_translation.checklist_not_found'),
+                'errors' => $errors // Reset keys for cleaner JSON output
+            ], 400);
         }
 
 
@@ -290,7 +278,12 @@ class StoresNgoController extends Controller
 
         $this->documentStore($request, $agreement->id, $id);
         $this->directorStore($validatedData, $id);
-        $this->deletePendingTask($request, $id);
+
+        $this->pendingTaskRepository->deletePendingTask(
+            $request->user(),
+            TaskTypeEnum::ngo_registeration,
+            $id
+        );
 
 
         DB::commit();
@@ -298,68 +291,24 @@ class StoresNgoController extends Controller
             [
                 'message' => __('app_translation.success'),
             ],
-
             200,
             [],
             JSON_UNESCAPED_UNICODE
         );
     }
-    protected function deletePendingTask($request, $id)
+
+    protected function validateCheckList($task)
     {
-
-        $user = $request->user();
-        $user_id = $user->id;
-        $role = $user->role_id;
-        $task_type = TaskTypeEnum::ngo_registeration;
-
-        $task = PendingTask::where('user_id', $user_id)
-            ->where('user_type', $role)
-            ->where('task_type', $task_type)
-            ->where('task_id', $id)
-            ->first();
-        Log::info('Global Exception =>' . $task);
-
-        PendingTaskContent::where('pending_task_id', $task->id)->delete();
-        PendingTaskDocument::where('pending_task_id', $task->id)->delete();
-        $task->delete();
-    }
-
-    protected function pendingTaskExist($request, $ngo_id) {}
-    protected function checkList($request, $ngo_id)
-    {
-        $user = $request->user();
-        $user_id = $user->id;
-        $role = $user->role_id;
-        $task_type = TaskTypeEnum::ngo_registeration;
-
-        $task = PendingTask::where('user_id', $user_id)
-            ->where('user_type', $role)
-            ->where('task_type', $task_type)
-            ->where('task_id', $ngo_id)
-            ->first();
-
-        // Ensure task exists before proceeding
-        if (!$task) {
-            return response()->json([
-                'error' => __('app_translation.task_not_found')
-            ], 404);
-        }
-
         // Get checklist IDs
         $checkListIds = CheckList::where('check_list_type_id', CheckListTypeEnum::externel)
             ->pluck('id')
             ->toArray();
 
         // Get checklist IDs from documents
-        $documentCheckListIds = PendingTaskDocument::where('pending_task_id', $task->id)
-            ->pluck('check_list_id')
+        $documentCheckListIds = $this->pendingTaskRepository->pendingTaskDocumentQuery(
+            $task->id
+        )->pluck('check_list_id')
             ->toArray();
-
-        // Log values properly
-        // Log::info('Checklist Debug:', [
-        //     'document_checklist_ids' => $documentCheckListIds,
-        //     'required_checklist_ids' => $checkListIds
-        // ]);
 
         // Find missing checklist IDs
         $missingCheckListIds = array_diff($checkListIds, $documentCheckListIds);
@@ -376,11 +325,10 @@ class StoresNgoController extends Controller
                 array_push($errors, [__('app_translation.checklist_not_found') . ' ' . $item]);
             }
 
-            return response()->json([
-                'message' => __('app_translation.checklist_not_found'),
-                'errors' => $errors // Reset keys for cleaner JSON output
-            ], 400);
+            return $errors;
         }
+
+        return null;
     }
     protected function documentStore($request, $agreement_id, $ngo_id)
     {
@@ -400,8 +348,6 @@ class StoresNgoController extends Controller
             return response()->json(['error' => 'No pending task found'], 404);
         }
         // Get checklist IDs
-
-
 
         $documents = PendingTaskDocument::join('check_lists', 'check_lists.id', 'pending_task_documents.check_list_id')
             ->select('size', 'path', 'acceptable_mimes', 'check_list_id', 'actual_name', 'extension')
