@@ -84,7 +84,9 @@ class FileController extends Controller
         $storePath = $this->getTempFilePath($fileName);
         $extension = ".{$file->getClientOriginalExtension()}";
 
+       
         $file->move($finalPath, $fileName);
+
 
         // Validate the file against checklist rules
         $validationResult = $this->checkListCheck($request, "{$finalPath}{$fileName}");

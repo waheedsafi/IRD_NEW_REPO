@@ -156,8 +156,8 @@ trait AddressTrait
         $province = [];
         $district = [];
         if ($lang == LanguageEnum::default->value) {
-            $province = Province::find('id', $province_id)->select('name')->first();
-            $district = District::find('id', $district_id)->select('name')->first();
+            $province = Province::find($province_id)->select('name')->first();
+            $district = District::find($district_id)->select('name')->first();
         } else {
             $province = Translate::where('translable_type', Province::class)->where('translable_id', $province_id)
                 ->where('language_name', $lang)
