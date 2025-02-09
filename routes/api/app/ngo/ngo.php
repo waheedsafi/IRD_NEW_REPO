@@ -3,6 +3,7 @@
 
 use App\Enums\PermissionEnum;
 use App\Http\Controllers\api\app\ngo\DeletesNgoController;
+use App\Http\Controllers\api\app\ngo\EditesNgoController;
 use App\Http\Controllers\api\app\ngo\StoresNgoController;
 use App\Http\Controllers\api\app\ngo\ViewsNgoController;
 use Illuminate\Support\Facades\Route;
@@ -16,18 +17,21 @@ Route::get('/ngo/checklist/documents/{id}', [ViewsNgoController::class, 'ngoChec
 
 
 Route::prefix('v1')->group(function () {
-  Route::get('public/ngos/{page}', [ViewsNgoController::class, 'publicNgos']);
+  Route::get('public/ngos', [ViewsNgoController::class, 'publicNgos']);
   Route::get('ngos/storePersonalDetial/{id}', [ViewsNgoController::class, 'storePersonalDetial']);
   Route::get('ngos/personalDetail/{id}', [ViewsNgoController::class, 'pendingTask']);
 });
-
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
-  Route::get('/ngoInit/{id}', [ViewsNgoController::class, 'startForm']);
+  Route::get('/ngo/header-info/{id}', [ViewsNgoController::class, 'ngoHeaderInfo']);
+  Route::post('/ngo/update-profile', [EditesNgoController::class, 'updateProfile']);
+  Route::post('/ngo/update-info', [EditesNgoController::class, 'updateInfo']);
+  Route::delete('/ngo/delete-profile/{id}', [DeletesNgoController::class, 'deleteProfile']);
+  Route::get('/ngoInit/{id}', [ViewsNgoController::class, 'startRegisterForm']);
   Route::post('ngos/personalDetail/destory/{id}', [DeletesNgoController::class, 'destroyPersonalDetail']);
   Route::post('ngos/storePersonalDetial/{id}', [StoresNgoController::class, 'storePersonalDetial']);
   Route::post('ngo/store/personal/detail-final', [StoresNgoController::class, 'storePersonalDetialFinal']);
   Route::get('/ngos/record/count', [ViewsNgoController::class, "ngoCount"])->middleware(["hasViewPermission:" . PermissionEnum::ngo->value]);
-  Route::get('/ngos/{page}', [ViewsNgoController::class, 'ngos'])->middleware(["hasViewPermission:" . PermissionEnum::ngo->value]);
+  Route::get('/ngos', [ViewsNgoController::class, 'ngos'])->middleware(["hasViewPermission:" . PermissionEnum::ngo->value]);
   Route::get('/ngo/{id}', [ViewsNgoController::class, 'ngo'])->middleware(["hasViewPermission:" . PermissionEnum::ngo->value]);
   Route::post('/ngo/store', [StoresNgoController::class, 'store'])->middleware(["hasAddPermission:" . PermissionEnum::ngo->value]);
 

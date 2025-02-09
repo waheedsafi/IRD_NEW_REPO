@@ -28,7 +28,7 @@ class ViewsNgoController extends Controller
         $this->ngoRepository = $ngoRepository;
     }
 
-    public function ngos(Request $request, $page)
+    public function ngos(Request $request)
     {
         $perPage = $request->input('per_page', 10); // Number of records per page
         $page = $request->input('page', 1); // Current page
@@ -67,7 +67,7 @@ class ViewsNgoController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    public function publicNgos(Request $request, $page)
+    public function publicNgos(Request $request)
     {
         $perPage = $request->input('per_page', 10); // Number of records per page
         $page = $request->input('page', 1); // Current page
@@ -103,7 +103,7 @@ class ViewsNgoController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    public function startForm(Request $request, $ngo_id)
+    public function startRegisterForm(Request $request, $ngo_id)
     {
         $locale = App::getLocale();
 
@@ -115,55 +115,13 @@ class ViewsNgoController extends Controller
             ], 200);
         }
 
-        $query = $this->ngoRepository->ngo();  // Start with the base query
-        $this->ngoRepository->typeTransJoin($query, $locale)
-            ->emailJoin($query)
-            ->contactJoin($query)
-            ->addressJoin($query);
-        $ngo = $query->select(
-            'n.abbr',
-            'n.ngo_type_id',
-            'ntt.value as type_name',
-            'n.registration_no',
-            'n.moe_registration_no',
-            'n.place_of_establishment',
-            'n.date_of_establishment',
-            'a.province_id',
-            'a.district_id',
-            'a.id as address_id',
-            'e.value as email',
-            'c.value as contact'
-        )->where('n.id', $ngo_id)->first();
-        if (!$ngo) {
+        $query = $this->ngoRepository->ngo($ngo_id);
+        $data = $this->ngoRepository->startRegisterFormInfo($query, $ngo_id, $locale);
+        if (!$data) {
             return response()->json([
                 'message' => __('app_translation.ngo_not_found'),
             ], 404);
         }
-
-        // Fetching translations using a separate query
-        $translations = $this->ngoNameTrans($ngo_id);
-        $areaTrans = $this->getAddressAreaTran($ngo->address_id);
-        $address = $this->getAddressTrans(
-            $ngo->province_id,
-            $ngo->district_id,
-            $locale
-        );
-
-        $data = [
-            'name_english' => $translations['en']->name ?? null,
-            'name_pashto' => $translations['ps']->name ?? null,
-            'name_farsi' => $translations['fa']->name ?? null,
-            'abbr' => $ngo->abbr,
-            'type' => ['name' => $ngo->type_name, 'id' => $ngo->ngo_type_id],
-            'contact' => $ngo->contact,
-            'email' =>   $ngo->email,
-            'registration_no' => $ngo->registration_no,
-            'province' => $address['province'],
-            'district' => $address['district'],
-            'area_english' => $areaTrans['en']->area ?? '',
-            'area_pashto' => $areaTrans['ps']->area ?? '',
-            'area_farsi' => $areaTrans['fa']->area ?? '',
-        ];
 
         return response()->json([
             'message' => __('app_translation.success'),
@@ -174,61 +132,13 @@ class ViewsNgoController extends Controller
     public function ngoDetail($ngo_id)
     {
         $locale = App::getLocale();
-        $query = $this->ngoRepository->ngo();  // Start with the base query
-        $this->ngoRepository->typeTransJoin($query, $locale)
-            ->emailJoin($query)
-            ->contactJoin($query)
-            ->addressJoin($query);
-        $ngo = $query->select(
-            'n.abbr',
-            'n.ngo_type_id',
-            'ntt.value as type_name',
-            'n.registration_no',
-            'n.moe_registration_no',
-            'n.place_of_establishment',
-            'n.date_of_establishment',
-            'a.province_id',
-            'a.district_id',
-            'a.id as address_id',
-            'e.value as email',
-            'c.value as contact'
-        )->where('n.id', $ngo_id)->first();
-
-        // Handle NGO not found
-        if (!$ngo) {
+        $query = $this->ngoRepository->ngo($ngo_id);  // Start with the base query
+        $data = $this->ngoRepository->afterRegisterFormInfo($query, $ngo_id, $locale);
+        if (!$data) {
             return response()->json([
                 'message' => __('app_translation.ngo_not_found'),
             ], 404);
         }
-
-        // Fetching translations using a separate query
-        $translations = $this->ngoNameTrans($ngo_id);
-        $areaTrans = $this->getAddressAreaTran($ngo->address_id);
-        $address = $this->getAddressTrans(
-            $ngo->province_id,
-            $ngo->district_id,
-            $locale
-        );
-
-        $data = [
-            'name_english' => $translations['en']->name ?? null,
-            'name_pashto' => $translations['ps']->name ?? null,
-            'name_farsi' => $translations['fa']->name ?? null,
-            'abbr' => $ngo->abbr,
-            'registration_no' => $ngo->registration_no,
-            'moe_registration_no' => $ngo->moe_registration_no,
-            'date_of_establishment' => $ngo->date_of_establishment,
-            'type' => ['name' => $ngo->type_name, 'id' => $ngo->ngo_type_id],
-            'establishment_date' => $ngo->date_of_establishment,
-            'place_of_establishment' => ['name' => $this->getCountry($ngo->place_of_establishment, $locale), 'id' => $ngo->place_of_establishment],
-            'contact' => $ngo->contact,
-            'email' => $ngo->email,
-            'province' => $address['province'],
-            'district' => $address['district'],
-            'area_english' => $areaTrans['en']->area ?? '',
-            'area_pashto' => $areaTrans['ps']->area ?? '',
-            'area_farsi' => $areaTrans['fa']->area ?? '',
-        ];
 
         return response()->json([
             'message' => __('app_translation.success'),
@@ -248,30 +158,6 @@ class ViewsNgoController extends Controller
             $page,
             ['path' => url()->current()]  // Set path for the paginator links
         );
-    }
-    // search function 
-    protected function applySearchPublic($query, $request)
-    {
-
-        $searchColumn = $request->input('filters.search.column');
-        $searchValue = $request->input('filters.search.value');
-
-        if ($searchColumn && $searchValue) {
-            $allowedColumns = ['name', 'abbr'];
-
-            // Ensure that the search column is allowed
-            if (in_array($searchColumn, $allowedColumns)) {
-                $query->where($searchColumn, 'like', '%' . $searchValue . '%');
-            }
-        }
-    }
-    // filter function
-    protected function applyFiltersPublic($query, $request)
-    {
-        $sort = $request->input('filters.sort'); // Sorting column
-        $order = $request->input('filters.order', 'asc'); // Sorting order (default 
-        // Default sorting if no sort is provided
-        $query->orderBy("created_at", 'desc');
     }
 
     public function pendingTask(Request $request, $id): array
@@ -304,7 +190,6 @@ class ViewsNgoController extends Controller
             'content' => null
         ];
     }
-
 
     public function ngoMoreInformation($id)
     {
@@ -601,7 +486,26 @@ class ViewsNgoController extends Controller
         );
     }
 
+    public function ngoHeaderInfo($ngo_id)
+    {
+        $locale = App::getLocale();
+        $query = $this->ngoRepository->ngo($ngo_id);  // Start with the base query
+        $this->ngoRepository->transJoin($query, $locale)
+            ->statusJoin($query)
+            ->emailJoin($query)
+            ->contactJoin($query);
+        $ngo = $query->select('n.profile', 'ns.status_type_id as status_id', 'n.username', 'c.value as contact', 'e.value as email')
+            ->first();
+        if (!$ngo) {
+            return response()->json([
+                'message' => __('app_translation.ngo_not_found'),
+            ], 404, [], JSON_UNESCAPED_UNICODE);
+        }
 
+        return response()->json([
+            'ngo' => $ngo,
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
     public function ngoCount()
     {
         $statistics = DB::select("

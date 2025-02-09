@@ -57,21 +57,15 @@ class StoresNgoController extends Controller
             'district_id' => $validatedData['district_id'],
             'province_id' => $validatedData['province_id'],
         ]);
-        AddressTran::create([
-            'address_id' => $address->id,
-            'area' => $validatedData['area_english'],
-            'language_name' =>  LanguageEnum::default->value,
-        ]);
-        AddressTran::create([
-            'address_id' => $address->id,
-            'area' => $validatedData['area_pashto'],
-            'language_name' =>  LanguageEnum::pashto->value,
-        ]);
-        AddressTran::create([
-            'address_id' => $address->id,
-            'area' => $validatedData['area_farsi'],
-            'language_name' =>  LanguageEnum::farsi->value,
-        ]);
+
+        // * Translations
+        foreach (LanguageEnum::LANGUAGES as $code => $name) {
+            AddressTran::create([
+                'address_id' => $address->id,
+                'area' => $validatedData["area_{$name}"],
+                'language_name' =>  $code,
+            ]);
+        }
         // Create NGO
         $newNgo = Ngo::create([
             'abbr' => $validatedData['abbr'],
@@ -94,22 +88,16 @@ class StoresNgoController extends Controller
             "status_type_id" => StatusTypeEnum::not_logged_in->value,
             "comment" => "Newly Created"
         ]);
-        NgoTran::create([
-            'ngo_id' => $newNgo->id,
-            'language_name' =>  LanguageEnum::default->value,
-            'name' => $validatedData['name_english'],
-        ]);
 
-        NgoTran::create([
-            'ngo_id' => $newNgo->id,
-            'language_name' =>  LanguageEnum::farsi->value,
-            'name' => $validatedData['name_farsi'],
-        ]);
-        NgoTran::create([
-            'ngo_id' => $newNgo->id,
-            'language_name' =>  LanguageEnum::pashto->value,
-            'name' => $validatedData['name_pashto'],
-        ]);
+
+        // * Translations
+        foreach (LanguageEnum::LANGUAGES as $code => $name) {
+            NgoTran::create([
+                'ngo_id' => $newNgo->id,
+                'language_name' => $code,
+                'name' => $validatedData["name_{$name}"],
+            ]);
+        }
 
         $name =  $validatedData['name_english'];
         if ($locale == LanguageEnum::farsi->value) {
@@ -212,25 +200,25 @@ class StoresNgoController extends Controller
         $id = $request->ngo_id;
         $validatedData =  $request->validated();
 
-        Log::info($request->all());
-
-
-
-
         $agreement = Agreement::where('ngo_id', $id)
             ->latest('end_date') // Order by end_date descending
             ->first();           // Get the first record (most recent)
 
-        // Check if agreement exists and is expired
-        if (!$agreement || $agreement->end_date >= now()) {
+        // 1. If agreement exists do not allow process furtherly.
+        if ($agreement) {
             return response()->json([
-                'message' => __('app_translation.agreement_exists'),
-                'errors' => $agreement->end_date // Reset keys for cleaner JSON output
-            ], 404);
+                'message' => __('app_translation.agreement_exists')
+            ], 409);
         }
 
-        // Log::error($request);
-        $ngo = Ngo::findOrFail($id);
+        // 2. Check NGO exist
+        $ngo = Ngo::find($id);
+        if (!$ngo) {
+            return response()->json([
+                'message' => __('app_translation.ngo_not_found'),
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+        }
+        // 3. Check task exists
         $checklist =  $this->checkList($request, $id);
         if ($checklist) {
             return $checklist;
@@ -336,6 +324,7 @@ class StoresNgoController extends Controller
         $task->delete();
     }
 
+    protected function pendingTaskExist($request, $ngo_id) {}
     protected function checkList($request, $ngo_id)
     {
         $user = $request->user();

@@ -4,15 +4,13 @@ namespace App\Repositories\ngo;
 
 interface NgoRepositoryInterface
 {
-    public function getNgoDetail($locale, $ngo_id);
     /**
      * Retrieve NGO data.
      * cast is n
-     *
-     * @param \Illuminate\Database\Query\Builder $query
+     * @param string $id
      * @return \App\Repositories\ngo\NgoRepositoryInterface|\Illuminate\Database\Query\Builder
      */
-    public function ngo();
+    public function ngo($id = null);
     /**
      * Retrieve NGO Translation data.
      * cast is nt
@@ -93,4 +91,24 @@ interface NgoRepositoryInterface
      * @return \App\Repositories\ngo\NgoRepositoryInterface|\Illuminate\Database\Query\Builder
      */
     public function addressJoin($query);
+    /**
+     * Retrieve NGO data when registered by IRD.
+     * 
+     *
+     * @param \Illuminate\Database\Query\Builder $query
+     * @param string $ngo_id
+     * @param string $locale
+     * @return \App\Repositories\ngo\NgoRepositoryInterface|\Illuminate\Database\Query\Builder
+     */
+    public function startRegisterFormInfo($query, $ngo_id, $locale);
+    /**
+     * Retrieve NGO data when registeration is completed.
+     * 
+     *
+     * @param \Illuminate\Database\Query\Builder $query
+     * @param string $ngo_id
+     * @param string $locale
+     * @return \App\Repositories\ngo\NgoRepositoryInterface|\Illuminate\Database\Query\Builder
+     */
+    public function afterRegisterFormInfo($query, $ngo_id, $locale);
 }

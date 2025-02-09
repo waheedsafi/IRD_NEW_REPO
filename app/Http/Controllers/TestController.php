@@ -19,6 +19,7 @@ use App\Models\Province;
 use App\Models\CheckList;
 use App\Models\Translate;
 use App\Enums\LanguageEnum;
+use App\Models\AddressTran;
 use App\Models\NidTypeTrans;
 use Illuminate\Http\Request;
 use App\Models\StatusTypeTran;
@@ -40,28 +41,35 @@ class TestController extends Controller
     use AddressTrait;
     public function index(Request $request)
     {
+
+        $addresses = AddressTran::where('address_id', 6)->get();
+        return  $addresses->where('language_name', "en")->first();
+
         $locale = App::getLocale();
         $query = $this->ngoRepository->ngo();  // Start with the base query
-        $this->ngoRepository->typeTransJoin($query, $locale)
+        $this->ngoRepository->transJoin($query, $locale)
+            ->statusJoin($query)
+            ->statusTypeTransJoin($query, $locale)
+            ->typeTransJoin($query, $locale)
+            ->directorJoin($query)
+            ->directorTransJoin($query, $locale)
             ->emailJoin($query)
-            ->contactJoin($query)
-            ->addressJoin($query);
-        $ngo = $query->select(
-            'n.abbr',
-            'n.ngo_type_id',
-            'ntt.value as type_name',
+            ->contactJoin($query);
+        $query->select(
+            'n.id',
             'n.registration_no',
-            'n.moe_registration_no',
-            'n.place_of_establishment',
-            'n.date_of_establishment',
-            'a.province_id',
-            'a.district_id',
-            'a.id as address_id',
+            'n.date_of_establishment as establishment_date',
+            'stt.status_type_id as status_id',
+            'stt.name as status',
+            'nt.name',
+            'ntt.ngo_type_id as type_id',
+            'ntt.value as type',
             'e.value as email',
-            'c.value as contact'
-        )->where('n.id', 3)->first();
+            'c.value as contact',
+            'n.created_at'
+        );
 
-        return $ngo;
+        return $query->get();
 
 
 
