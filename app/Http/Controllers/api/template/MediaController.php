@@ -9,6 +9,16 @@ class MediaController extends Controller
     public function show($storage, $folder, $filename)
     {
         $path = storage_path('app/' . "{$storage}/{$folder}/{$filename}");
+
+        if (!file_exists($path)) {
+            return response()->json("File Not found");
+        }
+        return response()->file($path);
+    }
+    public function showPublic($storage, $access, $folder, $filename)
+    {
+        $path = storage_path('app/' . "{$storage}/{$access}/{$folder}/{$filename}");
+
         if (!file_exists($path)) {
             return response()->json("File Not found");
         }
