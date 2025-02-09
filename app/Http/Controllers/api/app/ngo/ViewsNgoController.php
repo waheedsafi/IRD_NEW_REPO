@@ -224,37 +224,17 @@ class ViewsNgoController extends Controller
         // return $ngo;
     }
 
-    public function ngoCheckListDocument($id)
+    public function agreementDocuments(Request $request)
     {
+        $ngo_id = $request->input('ngo_id');
+        $agreement_id = $request->input('agreement_id');
 
-        $agreement = Ngo::leftJoin('agreements', function ($join) {
-            $join->on('ngos.id', '=', 'agreements.ngo_id')->orderByDesc('agreements.end_date')->limit(1);
-        })->where('ngos.id', $id)->select('agreements.id')->first();
-
-
-        $document =   Document::join('agreement_documents', 'agreement_documents.document_id', 'documents.id')
-            ->where('agreement_documents.agreement_id', $agreement->id)
-            ->select('documents.path', 'documents.size', 'check_list_id', 'documents.type', 'actual_name')
-            ->get();
-
-        $checklistMap = [];
-
-        foreach ($document as $doc) {
-            $checklistMap[] = [
-                (int) $doc->check_list_id,  // First item in array (checklist ID)
-                [
-                    'name' => $doc->actual_name,
-                    'size' => $doc->size,
-                    'check_list_id' => (string) $doc->check_list_id,
-                    'extension' => $doc->type,
-                    'path' => $doc->path,
-                ],
-            ];
-        }
+        $locale = App::getLocale();
+        $query = $this->ngoRepository->ngo($ngo_id);
+        $documents = $this->ngoRepository->agreementDocuments($query, $agreement_id, $locale);
 
         return response()->json([
-            'message' => __('app_translation.success'),
-            'checklistMap' => $checklistMap,
+            'agreement_documents' => $documents,
 
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }

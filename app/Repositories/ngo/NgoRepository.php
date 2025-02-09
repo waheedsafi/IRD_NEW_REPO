@@ -3,6 +3,7 @@
 namespace App\Repositories\ngo;
 
 use App\Models\Ngo;
+use App\Models\Document;
 use App\Traits\Ngo\NgoTrait;
 use Illuminate\Support\Facades\DB;
 use App\Traits\Address\AddressTrait;
@@ -114,6 +115,32 @@ class NgoRepository implements NgoRepositoryInterface
             'area_farsi' => $areaTrans['fa']->area ?? '',
         ];
     }
+
+    public function agreementDocuments($query, $agreement_id, $locale)
+    {
+        $document =  Document::join('agreement_documents as agd', 'agd.document_id', 'documents.id')
+            ->where('agd.agreement_id',  $agreement_id)
+            ->join('check_lists as cl', function ($join) {
+                $join->on('documents.check_list_id', '=', 'cl.id');
+            })
+            ->join('check_list_trans as clt', function ($join) use ($locale) {
+                $join->on('clt.check_list_id', '=', 'cl.id')
+                    ->where('language_name', $locale);
+            })
+            ->select(
+                'documents.path',
+                'documents.size',
+                'documents.check_list_id as checklist_id',
+                'documents.type',
+                'documents.actual_name as name',
+                'clt.value as checklist_name',
+                'cl.acceptable_extensions',
+                'cl.acceptable_mimes'
+            )
+            ->get();
+
+        return $document;
+    }
     // Joins
     public function ngo($id = null)
     {
@@ -184,6 +211,14 @@ class NgoRepository implements NgoRepositoryInterface
     public function addressJoin($query)
     {
         $query->leftJoin('addresses as a', 'a.id', '=', 'n.address_id');
+        return $this;
+    }
+    public function agreementJoin($query)
+    {
+        $query->leftJoin('agreements as ag', function ($join) {
+            $join->on('n.id', '=', 'ag.ngo_id')
+                ->whereRaw('ag.end_date = (select max(ns2.end_date) from agreements as ns2 where ns2.ngo_id = n.id)');
+        });
         return $this;
     }
 }

@@ -92,6 +92,22 @@ interface NgoRepositoryInterface
      */
     public function addressJoin($query);
     /**
+     * Joins the last agreement.
+     * cast is ag
+     *
+     * @param \Illuminate\Database\Query\Builder $query
+     * @return \App\Repositories\ngo\NgoRepositoryInterface|\Illuminate\Database\Query\Builder
+     */
+    public function agreementJoin($query);
+    /**
+     * Returns agreement documents.
+     * cast is ag
+     *
+     * @param \Illuminate\Database\Query\Builder $query
+     * @return \App\Repositories\ngo\NgoRepositoryInterface|\Illuminate\Database\Query\Builder
+     */
+    public function agreementDocuments($query, $agreement_id, $locale);
+    /**
      * Retrieve NGO data when registered by IRD.
      * 
      *

@@ -15,6 +15,8 @@ use App\Models\Country;
 use App\Models\NgoTran;
 use App\Enums\StaffEnum;
 use App\Models\Director;
+use App\Models\District;
+use App\Models\Document;
 use App\Models\Province;
 use App\Models\CheckList;
 use App\Models\Translate;
@@ -41,6 +43,57 @@ class TestController extends Controller
     use AddressTrait;
     public function index(Request $request)
     {
+
+        $locale = App::getLocale();
+
+        $ngo_id = 8;
+        $query = $this->ngoRepository->ngo($ngo_id);
+        $this->ngoRepository->agreementJoin($query);
+        $agreement =  $query->select('ag.id')
+            ->first();
+
+
+        return $document =  Document::join('agreement_documents as agd', 'agd.document_id', 'documents.id')
+            ->where('agd.agreement_id', $agreement->id)
+            ->join('check_lists as cl', function ($join) {
+                $join->on('documents.check_list_id', '=', 'cl.id');
+            })
+            ->join('check_list_trans as clt', function ($join) use ($locale) {
+                $join->on('clt.check_list_id', '=', 'cl.id')
+                    ->where('language_name', $locale);
+            })
+            ->select(
+                'documents.path',
+                'documents.size',
+                'documents.check_list_id as checklist_id',
+                'documents.type',
+                'documents.actual_name',
+                'clt.value as checklist_name',
+                'cl.acceptable_extensions',
+                'cl.acceptable_mimes'
+            )
+            ->get();
+
+        $checklistMap = [];
+
+        foreach ($document as $doc) {
+            $checklistMap[] = [
+                (int) $doc->check_list_id,  // First item in array (checklist ID)
+                [
+                    'name' => $doc->actual_name,
+                    'size' => $doc->size,
+                    'check_list_id' => (string) $doc->check_list_id,
+                    'extension' => $doc->type,
+                    'path' => $doc->path,
+                ],
+            ];
+        }
+
+        return response()->json([
+            'message' => __('app_translation.success'),
+            'checklistMap' => $checklistMap,
+
+        ], 200, [], JSON_UNESCAPED_UNICODE);
 
         $addresses = AddressTran::where('address_id', 6)->get();
         return  $addresses->where('language_name', "en")->first();
