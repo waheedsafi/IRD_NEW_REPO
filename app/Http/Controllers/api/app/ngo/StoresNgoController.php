@@ -142,7 +142,6 @@ class StoresNgoController extends Controller
         );
     }
 
-
     public function registerFormCompleted(NgoInitStoreRequest $request)
     {
         // return $request;

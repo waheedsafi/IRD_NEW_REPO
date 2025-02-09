@@ -44,8 +44,6 @@ class ViewsNgoController extends Controller
             ->statusJoin($query)
             ->statusTypeTransJoin($query, $locale)
             ->typeTransJoin($query, $locale)
-            ->directorJoin($query)
-            ->directorTransJoin($query, $locale)
             ->emailJoin($query)
             ->contactJoin($query);
         $query->select(
