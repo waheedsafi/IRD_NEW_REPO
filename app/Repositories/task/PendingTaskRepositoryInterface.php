@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repositories\ngo;
+namespace App\Repositories\task;
 
 interface PendingTaskRepositoryInterface
 {

@@ -40,7 +40,7 @@ use App\Enums\pdfFooter\CheckListEnum;
 use App\Http\Requests\app\ngo\NgoRegisterRequest;
 
 use App\Http\Requests\app\ngo\NgoInitStoreRequest;
-use App\Repositories\ngo\PendingTaskRepositoryInterface;
+use App\Repositories\task\PendingTaskRepositoryInterface;
 
 class StoresNgoController extends Controller
 {
@@ -142,32 +142,8 @@ class StoresNgoController extends Controller
         );
     }
 
-    public function storePersonalDetial(Request $request, $id)
-    {
-        $request->validate([
-            'contents' => 'required|string',
-            'step' => 'required|string',
-        ]);
 
-        $this->pendingTaskRepository->storeTask(
-            $request->user(),
-            TaskTypeEnum::ngo_registeration,
-            $id,
-            $request->step,
-            $request->contents
-        );
-        return response()->json(
-            [
-                'message' => __('app_translation.success'),
-            ],
-            200,
-            [],
-            JSON_UNESCAPED_UNICODE
-        );
-    }
-
-
-    public function storePersonalDetialFinal(NgoInitStoreRequest $request)
+    public function registerFormCompleted(NgoInitStoreRequest $request)
     {
         // return $request;
         $id = $request->ngo_id;

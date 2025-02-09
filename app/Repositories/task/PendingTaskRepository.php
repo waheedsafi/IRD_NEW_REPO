@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repositories\ngo;
+namespace App\Repositories\task;
 
 use App\Models\PendingTask;
 use App\Models\PendingTaskContent;

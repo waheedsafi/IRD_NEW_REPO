@@ -18,18 +18,16 @@ Route::get('/ngo/checklist/documents/{id}', [ViewsNgoController::class, 'ngoChec
 
 Route::prefix('v1')->group(function () {
   Route::get('public/ngos', [ViewsNgoController::class, 'publicNgos']);
-  Route::get('ngos/storePersonalDetial/{id}', [ViewsNgoController::class, 'storePersonalDetial']);
-  Route::get('ngos/personalDetail/{id}', [ViewsNgoController::class, 'pendingTask']);
 });
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
-  Route::get('/ngo/header-info/{id}', [ViewsNgoController::class, 'ngoHeaderInfo']);
+  Route::get('ngos/pending-task/{id}', [ViewsNgoController::class, 'pendingTask']);
+  Route::get('/ngo/header-info/{id}', [ViewsNgoController::class, 'headerInfo']);
   Route::post('/ngo/update-profile', [EditesNgoController::class, 'updateProfile']);
   Route::post('/ngo/update-info', [EditesNgoController::class, 'updateInfo']);
   Route::delete('/ngo/delete-profile/{id}', [DeletesNgoController::class, 'deleteProfile']);
   Route::get('/ngoInit/{id}', [ViewsNgoController::class, 'startRegisterForm']);
   Route::post('ngos/personalDetail/destory/{id}', [DeletesNgoController::class, 'destroyPersonalDetail']);
-  Route::post('ngos/storePersonalDetial/{id}', [StoresNgoController::class, 'storePersonalDetial']);
-  Route::post('ngo/store/personal/detail-final', [StoresNgoController::class, 'storePersonalDetialFinal']);
+  Route::post('ngo/register/form/complete', [StoresNgoController::class, 'registerFormCompleted']);
   Route::get('/ngos/record/count', [ViewsNgoController::class, "ngoCount"])->middleware(["hasViewPermission:" . PermissionEnum::ngo->value]);
   Route::get('/ngos', [ViewsNgoController::class, 'ngos'])->middleware(["hasViewPermission:" . PermissionEnum::ngo->value]);
   Route::get('/ngo/{id}', [ViewsNgoController::class, 'ngo'])->middleware(["hasViewPermission:" . PermissionEnum::ngo->value]);

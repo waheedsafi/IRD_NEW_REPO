@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\api\app\ngo;
 
 use App\Models\Ngo;
+use App\Models\Document;
 use App\Models\PendingTask;
 use App\Traits\Ngo\NgoTrait;
 use Illuminate\Http\Request;
@@ -12,9 +13,9 @@ use App\Models\PendingTaskContent;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
-use App\Models\Document;
 use App\Traits\Address\AddressTrait;
 use App\Repositories\ngo\NgoRepositoryInterface;
+use App\Repositories\task\PendingTaskRepositoryInterface;
 
 class ViewsNgoController extends Controller
 {
@@ -22,10 +23,14 @@ class ViewsNgoController extends Controller
     use AddressTrait, NgoTrait;
 
     protected $ngoRepository;
+    protected $pendingTaskRepository;
 
-    public function __construct(NgoRepositoryInterface $ngoRepository)
-    {
+    public function __construct(
+        NgoRepositoryInterface $ngoRepository,
+        PendingTaskRepositoryInterface $pendingTaskRepository
+    ) {
         $this->ngoRepository = $ngoRepository;
+        $this->pendingTaskRepository = $pendingTaskRepository;
     }
 
     public function ngos(Request $request)
@@ -162,17 +167,12 @@ class ViewsNgoController extends Controller
 
     public function pendingTask(Request $request, $id): array
     {
-        $user = $request->user();
-        $user_id = $user->id;
-        $role = $user->role_id;
-        $task_type = TaskTypeEnum::ngo_registeration;
-
         // Retrieve the first matching pending task
-        $task = PendingTask::where('user_id', $user_id)
-            ->where('user_type', $role)
-            ->where('task_type', $task_type)
-            ->where('task_id', $id)
-            ->first();
+        $task = $this->pendingTaskRepository->pendingTaskExist(
+            $request->user(),
+            TaskTypeEnum::ngo_registeration,
+            $id,
+        );
 
         if ($task) {
             // Fetch and concatenate content
@@ -181,7 +181,6 @@ class ViewsNgoController extends Controller
                 ->orderBy('id', 'desc')
                 ->first();
             return [
-                // 'max_step' => $maxStep,
                 'content' => $pendingTask ? $pendingTask->content : null
             ];
         }
@@ -486,7 +485,7 @@ class ViewsNgoController extends Controller
         );
     }
 
-    public function ngoHeaderInfo($ngo_id)
+    public function headerInfo($ngo_id)
     {
         $locale = App::getLocale();
         $query = $this->ngoRepository->ngo($ngo_id);  // Start with the base query
