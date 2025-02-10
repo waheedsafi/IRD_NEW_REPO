@@ -5,6 +5,7 @@ namespace App\Repositories\Task;
 use App\Models\PendingTask;
 use App\Models\PendingTaskContent;
 use App\Models\PendingTaskDocument;
+use App\Repositories\Task\PendingTaskRepositoryInterface;
 
 class PendingTaskRepository implements PendingTaskRepositoryInterface
 {

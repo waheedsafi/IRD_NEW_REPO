@@ -18,6 +18,7 @@ Route::prefix('v1')->group(function () {
 });
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
   Route::get('/ngo/more-information/{id}', [ViewsNgoController::class, 'moreInformation']);
+  Route::post('/ngo/more-information/updated', [EditesNgoController::class, 'UpdateMoreInformation']);
   Route::get('/ngo/agreement-documents', [ViewsNgoController::class, 'agreementDocuments']);
   Route::get('/ngos/pending-task/{id}', [ViewsNgoController::class, 'pendingTask']);
   Route::get('/ngo/header-info/{id}', [ViewsNgoController::class, 'headerInfo']);

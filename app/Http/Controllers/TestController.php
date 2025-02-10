@@ -43,6 +43,8 @@ class TestController extends Controller
     use AddressTrait;
     public function index(Request $request)
     {
+        $ngoTrans = NgoTran::where('ngo_id', 1)->get();
+        return $ngoTrans->where('language_name', "en")->first();
 
         $query = $this->ngoRepository->ngo(4);  // Start with the base query
         $this->ngoRepository->transJoinLocales($query);
