@@ -2,25 +2,27 @@
 
 namespace App\Http\Controllers\api\app\file;
 
+use App\Enums\Type\TaskTypeEnum;
+use App\Http\Controllers\Controller;
 use App\Models\CheckList;
 use App\Models\PendingTask;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
-use App\Enums\Type\TaskTypeEnum;
-use Illuminate\Http\UploadedFile;
 use App\Models\PendingTaskDocument;
-use App\Http\Controllers\Controller;
 use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Validator;
-use Pion\Laravel\ChunkUpload\Receiver\FileReceiver;
-use Pion\Laravel\ChunkUpload\Handler\HandlerFactory;
+use Illuminate\Support\Str;
 use Pion\Laravel\ChunkUpload\Exceptions\UploadMissingFileException;
+use Pion\Laravel\ChunkUpload\Handler\HandlerFactory;
+use Pion\Laravel\ChunkUpload\Receiver\FileReceiver;
 
 class FileController extends Controller
 {
     /**
      * Handles the file upload.
      */
+
+
     public function uploadNgoFile(Request $request)
     {
         $receiver = new FileReceiver("file", $request, HandlerFactory::classFromRequest($request));
@@ -84,7 +86,7 @@ class FileController extends Controller
         $storePath = $this->getTempFilePath($fileName);
         $extension = ".{$file->getClientOriginalExtension()}";
 
-       
+
         $file->move($finalPath, $fileName);
 
 
@@ -159,6 +161,19 @@ class FileController extends Controller
             ->where('task_type', $task_type)
             ->where('task_id', $id)
             ->first();
+        if (!$task) {
+
+            $newtask =  PendingTask::create([
+                'user_id' => $user_id,
+                'user_type' => $role,
+                'task_type' => $task_type,
+                'task_id' => $id
+
+            ]);
+
+            return $newtask->id;
+        }
+
 
         return $task->id;
     }
