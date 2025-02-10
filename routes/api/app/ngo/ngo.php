@@ -12,12 +12,12 @@ use Illuminate\Support\Facades\Route;
 
 
 
-Route::get('/ngo/more/information/{id}', [ViewsNgoController::class, 'ngoMoreInformation']);
 
 Route::prefix('v1')->group(function () {
   Route::get('public/ngos', [ViewsNgoController::class, 'publicNgos']);
 });
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
+  Route::get('/ngo/more-information/{id}', [ViewsNgoController::class, 'moreInformation']);
   Route::get('/ngo/agreement-documents', [ViewsNgoController::class, 'agreementDocuments']);
   Route::get('/ngos/pending-task/{id}', [ViewsNgoController::class, 'pendingTask']);
   Route::get('/ngo/header-info/{id}', [ViewsNgoController::class, 'headerInfo']);

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repositories\task;
+namespace App\Repositories\Task;
 
 interface PendingTaskRepositoryInterface
 {

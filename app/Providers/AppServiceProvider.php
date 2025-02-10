@@ -5,8 +5,8 @@ namespace App\Providers;
 use App\Repositories\ngo\NgoRepository;
 use Illuminate\Support\ServiceProvider;
 use App\Repositories\ngo\NgoRepositoryInterface;
-use App\Repositories\task\PendingTaskRepository;
-use App\Repositories\task\PendingTaskRepositoryInterface;
+use App\Repositories\Task\PendingTaskRepository;
+use App\Repositories\Task\PendingTaskRepositoryInterface;
 
 class AppServiceProvider extends ServiceProvider
 {

@@ -44,6 +44,39 @@ class TestController extends Controller
     public function index(Request $request)
     {
 
+        $query = $this->ngoRepository->ngo(4);  // Start with the base query
+        $this->ngoRepository->transJoinLocales($query);
+        $ngos = $query->select(
+            'nt.vision',
+            'nt.mission',
+            'nt.general_objective',
+            'nt.objective',
+            'nt.language_name'
+        )->get();
+
+        $result = [];
+        foreach ($ngos as $item) {
+            $language = $item->language_name;
+
+            if ($language === LanguageEnum::default->value) {
+                $result['vision_english'] = $item->vision;
+                $result['mission_english'] = $item->mission;
+                $result['general_objes_english'] = $item->general_objective;
+                $result['objes_in_afg_english'] = $item->objective;
+            } elseif ($language === LanguageEnum::farsi->value) {
+                $result['vision_farsi'] = $item->vision;
+                $result['mission_farsi'] = $item->mission;
+                $result['general_objes_farsi'] = $item->general_objective;
+                $result['objes_in_afg_farsi'] = $item->objective;
+            } else {
+                $result['vision_pashto'] = $item->vision;
+                $result['mission_pashto'] = $item->mission;
+                $result['general_objes_farsi'] = $item->general_objective;
+                $result['objes_in_afg_farsi'] = $item->objective;
+            }
+        }
+
+        return $result;
         $locale = App::getLocale();
 
         $ngo_id = 8;

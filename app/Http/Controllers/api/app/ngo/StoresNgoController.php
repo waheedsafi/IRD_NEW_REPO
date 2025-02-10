@@ -29,18 +29,14 @@ use App\Enums\CheckListTypeEnum;
 use App\Enums\Type\TaskTypeEnum;
 use App\Models\AgreementDocument;
 use App\Enums\Type\StatusTypeEnum;
-use App\Models\PendingTaskContent;
 use Illuminate\Support\Facades\DB;
 use App\Models\PendingTaskDocument;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
-use App\Enums\pdfFooter\CheckListEnum;
 use App\Http\Requests\app\ngo\NgoRegisterRequest;
-
 use App\Http\Requests\app\ngo\NgoInitStoreRequest;
-use App\Repositories\task\PendingTaskRepositoryInterface;
+use App\Repositories\Task\PendingTaskRepositoryInterface;
 
 class StoresNgoController extends Controller
 {

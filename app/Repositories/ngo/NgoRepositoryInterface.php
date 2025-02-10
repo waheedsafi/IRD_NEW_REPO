@@ -21,6 +21,14 @@ interface NgoRepositoryInterface
      */
     public function transJoin($query, $locale);
     /**
+     * Retrieve NGO all Translation data.
+     * cast is nt
+     *
+     * @param \Illuminate\Database\Query\Builder $query
+     * @return \App\Repositories\ngo\NgoRepositoryInterface|\Illuminate\Database\Query\Builder
+     */
+    public function transJoinLocales($query);
+    /**
      * Retrieve NGO Status data.
      * cast is ns
      *

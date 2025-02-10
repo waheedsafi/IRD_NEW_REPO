@@ -4,6 +4,7 @@ namespace App\Http\Controllers\api\app\ngo;
 
 use App\Models\Ngo;
 use App\Models\Document;
+use App\Enums\LanguageEnum;
 use App\Models\PendingTask;
 use App\Traits\Ngo\NgoTrait;
 use Illuminate\Http\Request;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
 use App\Traits\Address\AddressTrait;
 use App\Repositories\ngo\NgoRepositoryInterface;
-use App\Repositories\task\PendingTaskRepositoryInterface;
+use App\Repositories\Task\PendingTaskRepositoryInterface;
 
 class ViewsNgoController extends Controller
 {
@@ -26,8 +27,8 @@ class ViewsNgoController extends Controller
     protected $pendingTaskRepository;
 
     public function __construct(
-        NgoRepositoryInterface $ngoRepository,
-        PendingTaskRepositoryInterface $pendingTaskRepository
+        PendingTaskRepositoryInterface $pendingTaskRepository,
+        NgoRepositoryInterface $ngoRepository
     ) {
         $this->ngoRepository = $ngoRepository;
         $this->pendingTaskRepository = $pendingTaskRepository;
@@ -149,20 +150,6 @@ class ViewsNgoController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    protected function paginatePublic($data, $perPage, $page)
-    {
-        // Paginates manually after mapping the provinces
-        $offset = ($page - 1) * $perPage;
-        $paginatedData = $data->slice($offset, $perPage); // Slice the data for pagination
-        return new \Illuminate\Pagination\LengthAwarePaginator(
-            $paginatedData,
-            $data->count(),
-            $perPage,
-            $page,
-            ['path' => url()->current()]  // Set path for the paginator links
-        );
-    }
-
     public function pendingTask(Request $request, $id): array
     {
         // Retrieve the first matching pending task
@@ -188,40 +175,48 @@ class ViewsNgoController extends Controller
         ];
     }
 
-    public function ngoMoreInformation($id)
+    public function moreInformation($id)
     {
-        $ngo = Ngo::join('ngo_trans as en', function ($join) {
-            $join->on('ngos.id', '=', 'en.ngo_id')->where('en.language_name', 'en');
-        })
-            ->join('ngo_trans as ps', function ($join) {
-                $join->on('ngos.id', '=', 'ps.ngo_id')->where('ps.language_name', 'ps');
-            })
-            ->join('ngo_trans as fa', function ($join) {
-                $join->on('ngos.id', '=', 'fa.ngo_id')->where('fa.language_name', 'fa');
-            })->select(
+        $query = $this->ngoRepository->ngo($id);  // Start with the base query
+        $this->ngoRepository->transJoinLocales($query);
+        $ngos = $query->select(
+            'nt.introduction',
+            'nt.vision',
+            'nt.mission',
+            'nt.general_objective',
+            'nt.objective',
+            'nt.language_name'
+        )->get();
 
-                'en.vision as vision_english',
-                'ps.vision as vision_pashto',
-                'fa.vision as vision_farsi',
-                'en.mission as mission_english',
-                'ps.mission as mission_pashto',
-                'fa.mission as mission_farsi',
-                'en.general_objective as general_objes_english',
-                'ps.general_objective as general_objes_pashto',
-                'fa.general_objective as general_objes_farsi',
-                'en.objective as objes_in_afg_english',
-                'ps.objective as objes_in_afg_pashto',
-                'fa.objective as objes_in_afg_farsi',
-            )->where('ngos.id', $id)->get();
+        $result = [];
+        foreach ($ngos as $item) {
+            $language = $item->language_name;
 
+            if ($language === LanguageEnum::default->value) {
+                $result['intro_english'] = $item->introduction;
+                $result['vision_english'] = $item->vision;
+                $result['mission_english'] = $item->mission;
+                $result['general_objes_english'] = $item->general_objective;
+                $result['objes_in_afg_english'] = $item->objective;
+            } elseif ($language === LanguageEnum::farsi->value) {
+                $result['intro_farsi'] = $item->introduction;
+                $result['vision_farsi'] = $item->vision;
+                $result['mission_farsi'] = $item->mission;
+                $result['general_objes_farsi'] = $item->general_objective;
+                $result['objes_in_afg_farsi'] = $item->objective;
+            } else {
+                $result['intro_pashto'] = $item->introduction;
+                $result['vision_pashto'] = $item->vision;
+                $result['mission_pashto'] = $item->mission;
+                $result['general_objes_pashto'] = $item->general_objective;
+                $result['objes_in_afg_pashto'] = $item->objective;
+            }
+        }
 
         return response()->json([
-            'message' => __('app_translation.success'),
-            'ngo' => $ngo,
+            'ngo' => $result,
 
         ], 200, [], JSON_UNESCAPED_UNICODE);
-
-        // return $ngo;
     }
 
     public function agreementDocuments(Request $request)

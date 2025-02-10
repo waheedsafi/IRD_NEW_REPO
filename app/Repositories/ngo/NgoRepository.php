@@ -2,7 +2,6 @@
 
 namespace App\Repositories\ngo;
 
-use App\Models\Ngo;
 use App\Models\Document;
 use App\Traits\Ngo\NgoTrait;
 use Illuminate\Support\Facades\DB;
@@ -155,6 +154,13 @@ class NgoRepository implements NgoRepositoryInterface
         $query->join('ngo_trans as nt', function ($join) use ($locale) {
             $join->on('nt.ngo_id', '=', 'n.id')
                 ->where('nt.language_name', $locale);
+        });
+        return $this;
+    }
+    public function transJoinLocales($query)
+    {
+        $query->join('ngo_trans as nt', function ($join) {
+            $join->on('nt.ngo_id', '=', 'n.id');
         });
         return $this;
     }
