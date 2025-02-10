@@ -39,7 +39,7 @@ class FileController extends Controller
 
         if ($save->isFinished()) {
 
-            $this->genSaveFile($save->getFile(), $request);
+            return $this->genSaveFile($save->getFile(), $request);
         }
 
         // If not finished, send current progress.
@@ -257,17 +257,12 @@ class FileController extends Controller
 
     protected function genSaveFile(UploadedFile $file, Request $request)
     {
-
-
-
         $fileActualName = $file->getClientOriginalName();
         $fileName = $this->createFilename($file);
         $fileSize = $file->getSize();
         $finalPath = $this->getTempFullPath();
         $mimetype = $file->getMimeType();
         $storePath = $this->getTempFilePath($fileName);
-
-
 
         $file->move($finalPath, $fileName);
         // Validate the file against checklist rules
