@@ -38,7 +38,17 @@ interface NgoRepositoryInterface
     public function statusJoin($query);
 
     /**
-     * Retrieve NGO Status Translation data.
+     * Retrieve NGO Status All Translations.
+     * cast is ns
+     *
+     * @param \Illuminate\Database\Query\Builder $query
+     * @return \App\Repositories\ngo\NgoRepositoryInterface|\Illuminate\Database\Query\Builder
+     */
+
+    public function statusJoinAll($query);
+
+    /**
+     * Retrieve NGO Status Type Translation data.
      * cast is stt
      *
      * @param \Illuminate\Database\Query\Builder $query
@@ -46,7 +56,6 @@ interface NgoRepositoryInterface
      * @return \App\Repositories\ngo\NgoRepositoryInterface|\Illuminate\Database\Query\Builder
      */
     public function statusTypeTransJoin($query, $locale);
-
     /**
      * Retrieve NGO TypeTrans Translation data.
      * cast is ntt
@@ -135,4 +144,13 @@ interface NgoRepositoryInterface
      * @return \App\Repositories\ngo\NgoRepositoryInterface|\Illuminate\Database\Query\Builder
      */
     public function afterRegisterFormInfo($query, $ngo_id, $locale);
+    /**
+     * Retrieve NGO all statuses along with tanslations.
+     * 
+     *
+     * @param string $ngo_id
+     * @param string $locale
+     * @return \App\Repositories\ngo\NgoRepositoryInterface|\Illuminate\Database\Query\Builder
+     */
+    public function statuses($ngo_id, $locale);
 }

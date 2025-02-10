@@ -140,6 +140,21 @@ class NgoRepository implements NgoRepositoryInterface
 
         return $document;
     }
+    public function statuses($ngo_id, $locale)
+    {
+        $query = $this->ngo($ngo_id);
+        $this->statusJoinAll($query)
+            ->statusTypeTransJoin($query, $locale);
+        return $query->select(
+            'n.id as ngo_id',
+            'ns.id',
+            'ns.comment',
+            'ns.status_type_id',
+            'stt.name',
+            'ns.is_active',
+            'ns.created_at',
+        )->get();
+    }
     // Joins
     public function ngo($id = null)
     {
@@ -169,6 +184,13 @@ class NgoRepository implements NgoRepositoryInterface
         $query->leftjoin('ngo_statuses as ns', function ($join) {
             $join->on('ns.ngo_id', '=', 'n.id')
                 ->whereRaw('ns.created_at = (select max(ns2.created_at) from ngo_statuses as ns2 where ns2.ngo_id = n.id)');
+        });
+        return $this;
+    }
+    public function statusJoinAll($query)
+    {
+        $query->leftJoin('ngo_statuses as ns', function ($join) {
+            $join->on('ns.ngo_id', '=', 'n.id');
         });
         return $this;
     }

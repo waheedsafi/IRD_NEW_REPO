@@ -218,6 +218,16 @@ class ViewsNgoController extends Controller
 
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
+    public function statuses($id)
+    {
+        $locale = App::getLocale();
+
+        $result = $this->ngoRepository->statuses($id, $locale);
+
+        return response()->json([
+            'statuses' => $result,
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
 
     public function agreementDocuments(Request $request)
     {

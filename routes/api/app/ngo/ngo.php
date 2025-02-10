@@ -21,6 +21,7 @@ Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(
   Route::post('/ngo/more-information/updated', [EditesNgoController::class, 'UpdateMoreInformation']);
   Route::get('/ngo/agreement-documents', [ViewsNgoController::class, 'agreementDocuments']);
   Route::get('/ngos/pending-task/{id}', [ViewsNgoController::class, 'pendingTask']);
+  Route::get('/ngo/statuses/{id}', [ViewsNgoController::class, 'statuses']);
   Route::get('/ngo/header-info/{id}', [ViewsNgoController::class, 'headerInfo']);
   Route::post('/ngo/update-profile', [EditesNgoController::class, 'updateProfile']);
   Route::post('/ngo/update-info', [EditesNgoController::class, 'updateInfo']);

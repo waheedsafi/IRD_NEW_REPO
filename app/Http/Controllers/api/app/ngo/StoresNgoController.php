@@ -85,6 +85,7 @@ class StoresNgoController extends Controller
         // Set ngo status
         NgoStatus::create([
             "ngo_id" => $newNgo->id,
+            "is_active" => true,
             "status_type_id" => StatusTypeEnum::not_logged_in->value,
             "comment" => "Newly Created"
         ]);
@@ -238,8 +239,11 @@ class StoresNgoController extends Controller
             'end_date' => Carbon::now()->addYear()->toDateString(),
         ]);
 
+        // Make prevous state to false
+        NgoStatus::where('ngo_id', $id)->update(['is_active' => false]);
         NgoStatus::create([
             'ngo_id' => $id,
+            "is_active" => true,
             'status_type_id' => StatusTypeEnum::register_form_submited,
             'comment' => 'Register Form Complete',
         ]);
