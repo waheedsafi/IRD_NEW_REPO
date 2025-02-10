@@ -2,6 +2,7 @@
 <?php
 
 use App\Enums\PermissionEnum;
+use App\Http\Controllers\api\app\file\FileController;
 use App\Http\Controllers\api\app\ngo\DeletesNgoController;
 use App\Http\Controllers\api\app\ngo\EditesNgoController;
 use App\Http\Controllers\api\app\ngo\StoresNgoController;
@@ -36,6 +37,9 @@ Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(
 
   // use for step 1 data retrive
   Route::get('/ngo/details/{id}', [ViewsNgoController::class, 'ngoDetail']);
+
+  // upload checklist file 
+  Route::post('/ngo/checklist/file/upload', [FileController::class, 'uploadFile']);
 });
 
 // ngo user 
