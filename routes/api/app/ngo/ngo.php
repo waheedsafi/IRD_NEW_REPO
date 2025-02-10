@@ -24,7 +24,10 @@ Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(
   Route::get('/ngos/pending-task/{id}', [ViewsNgoController::class, 'pendingTask']);
   Route::get('/ngo/statuses/{id}', [ViewsNgoController::class, 'statuses']);
   Route::get('/ngo/header-info/{id}', [ViewsNgoController::class, 'headerInfo']);
+
   Route::post('/ngo/update-profile', [EditesNgoController::class, 'updateProfile']);
+  // change ngo status route
+  Route::post('/ngo/change/status', [EditesNgoController::class, 'changeNgoStatus']);
   Route::post('/ngo/update-info', [EditesNgoController::class, 'updateInfo']);
   Route::delete('/ngo/delete-profile/{id}', [DeletesNgoController::class, 'deleteProfile']);
   Route::get('/ngoInit/{id}', [ViewsNgoController::class, 'startRegisterForm']);

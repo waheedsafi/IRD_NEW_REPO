@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\app\ngo\NgoInfoUpdateRequest;
 use App\Http\Requests\app\ngo\NgoUpdatedMoreInformationRequest;
+use App\Models\NgoStatus;
 
 class EditesNgoController extends Controller
 {
@@ -165,6 +166,40 @@ class EditesNgoController extends Controller
         DB::commit();
         return response()->json([
             'message' => __('app_translation.success'),
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    public function changeNgoStatus(Request $request)
+    {
+        // Validate request
+        $validatedData = $request->validate([
+            'ngo_id' => 'required|integer',
+            'status_type_id' => 'required|integer',
+            'comment' => 'required|string'
+        ]);
+
+        // Deactivate previous status
+        NgoStatus::where('ngo_id', $validatedData['ngo_id'])->update(['is_active' => 0]);
+
+        // Create new status
+        $newStatus = NgoStatus::create([
+            'status_type_id' => $validatedData['status_type_id'],
+            'ngo_id' => $validatedData['ngo_id'],
+            'comment' => $validatedData['comment'],
+            'is_active' => 1
+        ]);
+
+        // Prepare response data
+        $data = [
+            'ngo_status_id' => $newStatus->id,
+            'is_active' => 1,
+            'created_at' => $newStatus->created_at,
+            // 'comment' => $newStatus->comment
+        ];
+
+        return response()->json([
+            'message' => __('app_translation.success'),
+            'status' => $data
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }

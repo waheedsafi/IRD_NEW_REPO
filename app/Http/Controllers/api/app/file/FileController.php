@@ -6,6 +6,7 @@ use App\Enums\CheckListTypeEnum;
 use App\Enums\pdfFooter\CheckListEnum;
 use App\Enums\Type\TaskTypeEnum;
 use App\Http\Controllers\Controller;
+use App\Models\AgreementDocument;
 use App\Models\CheckList;
 use App\Models\Document;
 use App\Models\Ngo;
@@ -15,6 +16,7 @@ use App\Models\PendingTaskDocument;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Pion\Laravel\ChunkUpload\Exceptions\UploadMissingFileException;
@@ -272,28 +274,38 @@ class FileController extends Controller
         if ($validationResult !== true) {
             return $validationResult; // Return validation errors
         }
-
-        $ngo = NgoTran::where('ngo_id', $request->ngo_id)->where('language_name', 'en')->value('name');
-
-        $newDirectory = storage_path("app/ngos/{$ngo}/{$request->agreement_id}/"); // Destination folder
-        $newPath = $newDirectory . basename($storePath); // Keep original filename
         $checklist = CheckList::find($request->checklist_id);
 
 
-        if ($checklist->check_list_type_id === CheckListTypeEnum::internal) {
 
-            $document =  Document::select('id', 'path')->join('agreement_documents', 'documents.id', '=', 'agreement_documents.document_id')
-                ->where('agreement_id', $request->agreement_id)->where('check_list_id', $request->checklist_id)->first();
+
+
+        if ($checklist->check_list_type_id == CheckListTypeEnum::externel->value) {
+
+
+
+            $ngo = NgoTran::where('ngo_id', $request->ngo_id)->where('language_name', 'en')->value('name');
+            $agreement_id = AgreementDocument::where('document_id', $request->document_id)->value('agreement_id');
+            $newDirectory = storage_path() . "/app/private/ngos/{$ngo}/{$agreement_id}/";
+            if (!file_exists($newDirectory)) {
+                mkdir($newDirectory, 0775, true);
+            }
+
+            $newPath = $newDirectory . basename($storePath); // Keep original filename
+
+            $dbStorePath = "private/ngos/{$ngo}/{$agreement_id}/"
+                . basename($storePath);
+            $document = Document::find($request->document_id);
 
             $movefile = $this->moveFile($storePath, $newPath, $document->path);
             if ($movefile) {
                 return $movefile;
             }
-            $document = Document::find($document->id);
+
             $document->actual_name = $fileActualName;
             $document->size = $fileSize;
             $document->type = $mimetype;
-            $document->path = $newPath;
+            $document->path = $dbStorePath;
             $document->save();
 
             $data = [
@@ -302,7 +314,10 @@ class FileController extends Controller
                 "size" => $fileSize,
                 "check_list_id" => $request->checklist_id,
                 "extension" => $mimetype,
-                "path" => $newPath,
+                "path" => $dbStorePath,
+                "checklist_name" => $request->checklist_name ?? '',
+                "acceptable_extensions" => $checklist->acceptable_extensions,
+                "acceptable_mimes" => $checklist->acceptable_mimes,
             ];
 
 
@@ -312,25 +327,23 @@ class FileController extends Controller
         }
     }
 
-    protected function moveFile($tempPaht, $permPath, $oldFilePaht)
+    protected function moveFile($tempPath, $permPath, $oldFilePath)
     {
+        $tempPath = storage_path("app/" . ltrim(str_replace('\\', '/', $tempPath), '/'));
+        $newPath = ltrim(str_replace('\\', '/', $permPath), '/');
+        $oldFilePath = storage_path("app/" . ltrim(str_replace('\\', '/', $oldFilePath), '/'));
+        // Delete old file if it exists
 
-        $oldPath = storage_path("app/" . $tempPaht); // Absolute path of temp file
-
-        $newPath = storage_path('app/' . $permPath);
-        $oldFilePaht = storage_path("app/" . $oldFilePaht); // Absolute path of temp file
-
-        unlink($oldFilePaht);
-        // Ensure the new directory exists
-        if (!file_exists($permPath)) {
-            mkdir($permPath, 0775, true); // Create directory if it doesn't exist
+        if (file_exists($oldFilePath)) {
+            unlink($oldFilePath);
         }
 
+
         // Move the file
-        if (file_exists($oldPath)) {
-            rename($oldPath, $newPath);
+        if (file_exists($tempPath)) {
+            rename($tempPath, $newPath);
         } else {
-            return response()->json(['error' => __('app_translation.not_found') . $oldPath], 404);
+            return response()->json(['error' => __('app_translation.not_found') . " " . $tempPath], 404);
         }
     }
 }
