@@ -8,6 +8,7 @@ use App\Models\Address;
 use App\Models\Contact;
 use App\Models\NgoTran;
 use App\Enums\LanguageEnum;
+use App\Enums\Type\StatusTypeEnum;
 use App\Models\AddressTran;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -178,7 +179,21 @@ class EditesNgoController extends Controller
             'comment' => 'required|string'
         ]);
 
+        $status =  NgoStatus::where('ngo_id', $validatedData['ngo_id'])->where('is_active', 1)->value('stuats_type_id');
         // Deactivate previous status
+
+        if (
+            ($status != StatusTypeEnum::active && $request->status_type_id == StatusTypeEnum::blocked) ||
+            ($status != StatusTypeEnum::blocked && $request->status_type_id == StatusTypeEnum::active)
+        ) {
+            return response()->json([
+                'message' => $request->status_type_id == StatusTypeEnum::blocked
+                    ? __('app_translation.not_active_status')
+                    : __('app_translation.not_block_status')
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+        }
+
+
         NgoStatus::where('ngo_id', $validatedData['ngo_id'])->update(['is_active' => 0]);
         // Create new status
         $newStatus = NgoStatus::create([
