@@ -2,21 +2,34 @@
 
 namespace App\Http\Controllers\api\app\ngo;
 
-use Carbon\Carbon;
-use App\Models\Ngo;
-use App\Models\Email;
-use App\Enums\RoleEnum;
-use App\Models\Address;
-use App\Models\Contact;
-use App\Models\NgoTran;
-use App\Models\Director;
-use App\Models\Document;
-use App\Models\Agreement;
-use App\Models\CheckList;
-use App\Models\NgoStatus;
+use App\Enums\CheckListTypeEnum;
 use App\Enums\LanguageEnum;
+use App\Enums\pdfFooter\CheckListEnum;
+use App\Enums\PermissionEnum;
+use App\Enums\RoleEnum;
+use App\Enums\Type\StatusTypeEnum;
+use App\Enums\Type\TaskTypeEnum;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\app\ngo\NgoInitStoreRequest;
+use App\Http\Requests\app\ngo\NgoRegisterRequest;
+use App\Models\Address;
 use App\Models\AddressTran;
+use App\Models\Agreement;
+use App\Models\AgreementDocument;
+use App\Models\CheckList;
+use App\Models\CheckListTrans;
+use App\Models\CheckListType;
+use App\Models\Contact;
+use App\Models\Director;
+use App\Models\DirectorTran;
+use App\Models\Document;
+use App\Models\Email;
+use App\Models\Ngo;
+use App\Models\NgoPermission;
+use App\Models\NgoStatus;
+use App\Models\NgoTran;
 use App\Models\PendingTask;
+use App\Models\PendingTaskContent;
 use App\Models\DirectorTran;
 use Illuminate\Http\Request;
 use App\Enums\PermissionEnum;
@@ -31,7 +44,17 @@ use App\Models\AgreementDocument;
 use App\Enums\Type\StatusTypeEnum;
 use Illuminate\Support\Facades\DB;
 use App\Models\PendingTaskDocument;
+use App\Models\StatusTypeTran;
+use App\Repositories\task\PendingTaskRepositoryInterface;
+use Carbon\Carbon;
+use function Pest\Laravel\json;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
+
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\app\ngo\NgoRegisterRequest;
@@ -247,7 +270,10 @@ class StoresNgoController extends Controller
             'comment' => 'Register Form Complete',
         ]);
 
-        $this->documentStore($request, $agreement->id, $id);
+        $document =  $this->documentStore($request, $agreement->id, $id, $validatedData["name_english"]);
+        if ($document) {
+            return $document;
+        }
         $this->directorStore($validatedData, $id);
 
         $this->pendingTaskRepository->deletePendingTask(
@@ -301,7 +327,7 @@ class StoresNgoController extends Controller
 
         return null;
     }
-    protected function documentStore($request, $agreement_id, $ngo_id)
+    protected function documentStore($request, $agreement_id, $ngo_id, $ngo_name)
     {
         $user = $request->user();
         $user_id = $user->id;
@@ -326,10 +352,28 @@ class StoresNgoController extends Controller
             ->get();
 
         foreach ($documents as $checklist) {
+
+            $oldPath = storage_path("app/" . $checklist['path']); // Absolute path of temp file
+            $newDirectory = storage_path("app/ngos/{$ngo_name}/{$agreement_id}/"); // Destination folder
+            $newPath = $newDirectory . basename($checklist['path']); // Keep original filename
+
+            // Ensure the new directory exists
+            if (!file_exists($newDirectory)) {
+                mkdir($newDirectory, 0775, true); // Create directory if it doesn't exist
+            }
+
+            // Move the file
+            if (file_exists($oldPath)) {
+                rename($oldPath, $newPath);
+            } else {
+                return response()->json(['error' => __('app_translation.not_found') . $oldPath], 404);
+            }
+
+
             $document = Document::create([
                 'actual_name' => $checklist['actual_name'],
                 'size' => $checklist['size'],
-                'path' => $checklist['path'],
+                'path' => $newPath,
                 'type' => $checklist['extension'],
                 'check_list_id' => $checklist['check_list_id'],
             ]);
