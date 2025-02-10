@@ -488,7 +488,7 @@ class ViewsNgoController extends Controller
                 'message' => __('app_translation.ngo_not_found'),
             ], 404, [], JSON_UNESCAPED_UNICODE);
         }
-        // 1. Check NGO agreement expired
+        // 2. Check NGO agreement expiration
 
 
         return response()->json([
