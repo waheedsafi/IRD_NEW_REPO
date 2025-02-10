@@ -45,16 +45,14 @@ class TestController extends Controller
     {
         $locale = App::getLocale();
 
-        $query = $this->ngoRepository->ngo(4);
-        $this->ngoRepository->statusJoinAll($query)
-            ->statusTypeTransJoin($query, $locale);
-        return $query->select(
-            'ns.id',
-            'ns.comment',
-            'ns.status_type_id',
-            'stt.name',
-            'ns.created_at',
-        )->get();
+        $includes = [StatusTypeEnum::active->value, StatusTypeEnum::blocked->value];
+        return $statusesType = DB::table('status_types as st')
+            ->whereIn('st.id', $includes)
+            ->leftjoin('status_type_trans as stt', function ($join) use ($locale, $includes) {
+                $join->on('stt.status_type_id', '=', 'st.id')
+                    ->where('stt.language_name', $locale);
+            })
+            ->select('st.id', 'stt.name')->get();
 
 
         $ngoTrans = NgoTran::where('ngo_id', 1)->get();

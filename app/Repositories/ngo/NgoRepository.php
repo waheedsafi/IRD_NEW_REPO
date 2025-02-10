@@ -128,6 +128,7 @@ class NgoRepository implements NgoRepositoryInterface
             })
             ->select(
                 'documents.path',
+                'documents.id as document_id',
                 'documents.size',
                 'documents.check_list_id as checklist_id',
                 'documents.type',
