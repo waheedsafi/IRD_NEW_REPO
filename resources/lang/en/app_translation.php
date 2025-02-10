@@ -34,4 +34,5 @@ return [
     "ngo_not_found" => "Ngo Not found.",
     "agreement_exists" => "Agreement Exists",
     "ngo_trans_not_found" => "NFO Translation Not found.",
+    "not_active_status" => "The current Status is not active"
 ];
