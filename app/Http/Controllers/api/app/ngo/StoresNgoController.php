@@ -30,6 +30,19 @@ use App\Models\NgoStatus;
 use App\Models\NgoTran;
 use App\Models\PendingTask;
 use App\Models\PendingTaskContent;
+use App\Models\DirectorTran;
+use Illuminate\Http\Request;
+use App\Enums\PermissionEnum;
+use App\Models\CheckListType;
+use App\Models\NgoPermission;
+use App\Models\CheckListTrans;
+use App\Models\StatusTypeTran;
+use function Pest\Laravel\json;
+use App\Enums\CheckListTypeEnum;
+use App\Enums\Type\TaskTypeEnum;
+use App\Models\AgreementDocument;
+use App\Enums\Type\StatusTypeEnum;
+use Illuminate\Support\Facades\DB;
 use App\Models\PendingTaskDocument;
 use App\Models\StatusTypeTran;
 use App\Repositories\task\PendingTaskRepositoryInterface;
@@ -42,6 +55,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
+use App\Http\Requests\app\ngo\NgoRegisterRequest;
+use App\Http\Requests\app\ngo\NgoInitStoreRequest;
+use App\Repositories\Task\PendingTaskRepositoryInterface;
 
 class StoresNgoController extends Controller
 {

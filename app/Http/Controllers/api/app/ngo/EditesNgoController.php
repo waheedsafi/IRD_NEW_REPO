@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\app\ngo\NgoInfoUpdateRequest;
+use App\Http\Requests\app\ngo\NgoUpdatedMoreInformationRequest;
 
 class EditesNgoController extends Controller
 {
@@ -127,5 +128,43 @@ class EditesNgoController extends Controller
             return response()->json([
                 'message' => __('app_translation.not_found'),
             ], 404, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    public function UpdateMoreInformation(NgoUpdatedMoreInformationRequest $request)
+    {
+        $request->validated();
+        $id = $request->id;
+        // 1. Get NGo
+        $ngo = Ngo::find($id);
+        if (!$ngo) {
+            return response()->json([
+                'message' => __('app_translation.ngo_not_found'),
+            ], 404, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        // 2. Find translations
+        $ngoTrans = NgoTran::where('ngo_id', $id)->get();
+        if (!$ngoTrans) {
+            return response()->json([
+                'message' => __('app_translation.ngo_not_found'),
+            ], 404, [], JSON_UNESCAPED_UNICODE);
+        }
+        // 3. Transaction
+        DB::beginTransaction();
+
+        foreach (LanguageEnum::LANGUAGES as $code => $name) {
+            $tran =  $ngoTrans->where('language_name', $code)->first();
+            $tran->vision = $request["vision_{$name}"];
+            $tran->mission = $request["mission_{$name}"];
+            $tran->general_objective = $request["general_objes_{$name}"];
+            $tran->objective = $request["objes_in_afg_{$name}"];
+            $tran->save();
+        }
+
+
+        DB::commit();
+        return response()->json([
+            'message' => __('app_translation.success'),
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }
