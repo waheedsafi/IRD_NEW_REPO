@@ -169,7 +169,7 @@ class EditesNgoController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    public function changeNgoStatus(Request $request)
+    public function changeStatus(Request $request)
     {
         // Validate request
         $validatedData = $request->validate([
@@ -180,7 +180,6 @@ class EditesNgoController extends Controller
 
         // Deactivate previous status
         NgoStatus::where('ngo_id', $validatedData['ngo_id'])->update(['is_active' => 0]);
-
         // Create new status
         $newStatus = NgoStatus::create([
             'status_type_id' => $validatedData['status_type_id'],
@@ -194,7 +193,6 @@ class EditesNgoController extends Controller
             'ngo_status_id' => $newStatus->id,
             'is_active' => 1,
             'created_at' => $newStatus->created_at,
-            // 'comment' => $newStatus->comment
         ];
 
         return response()->json([

@@ -470,19 +470,26 @@ class ViewsNgoController extends Controller
 
     public function headerInfo($ngo_id)
     {
-        $locale = App::getLocale();
+        // 1. Get ngo information
         $query = $this->ngoRepository->ngo($ngo_id);  // Start with the base query
-        $this->ngoRepository->transJoin($query, $locale)
-            ->statusJoin($query)
+        $this->ngoRepository->statusJoin($query)
             ->emailJoin($query)
             ->contactJoin($query);
-        $ngo = $query->select('n.profile', 'ns.status_type_id as status_id', 'n.username', 'c.value as contact', 'e.value as email')
+        $ngo = $query->select(
+            'n.profile',
+            'ns.status_type_id as status_id',
+            'n.username',
+            'c.value as contact',
+            'e.value as email'
+        )
             ->first();
         if (!$ngo) {
             return response()->json([
                 'message' => __('app_translation.ngo_not_found'),
             ], 404, [], JSON_UNESCAPED_UNICODE);
         }
+        // 1. Check NGO agreement expired
+
 
         return response()->json([
             'ngo' => $ngo,
