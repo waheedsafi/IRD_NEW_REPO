@@ -332,13 +332,18 @@ class StoresNgoController extends Controller
         foreach ($documents as $checklist) {
 
             $oldPath = storage_path("app/" . $checklist['path']); // Absolute path of temp file
-            $newDirectory = storage_path("app/ngos/{$ngo_name}/{$agreement_id}/"); // Destination folder
+
+            $newDirectory = storage_path() . "/app/private/ngos/{$ngo_name}/{$agreement_id}/";
+
+            if (!file_exists($newDirectory)) {
+                mkdir($newDirectory, 0775, true);
+            }
+
             $newPath = $newDirectory . basename($checklist['path']); // Keep original filename
 
+            $dbStorePath = "private/ngos/{$ngo_name}/{$agreement_id}/"
+                . basename($checklist['path']);
             // Ensure the new directory exists
-            if (!file_exists($newDirectory)) {
-                mkdir($newDirectory, 0775, true); // Create directory if it doesn't exist
-            }
 
             // Move the file
             if (file_exists($oldPath)) {
@@ -351,7 +356,7 @@ class StoresNgoController extends Controller
             $document = Document::create([
                 'actual_name' => $checklist['actual_name'],
                 'size' => $checklist['size'],
-                'path' => $newPath,
+                'path' => $dbStorePath,
                 'type' => $checklist['extension'],
                 'check_list_id' => $checklist['check_list_id'],
             ]);
