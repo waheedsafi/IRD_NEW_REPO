@@ -23,6 +23,7 @@ class NgoPdfController extends Controller
         $mpdf =  $this->generatePdf();
         $this->setWatermark($mpdf);
         $lang = $request->input('language_name');
+        $lang = 'en';
 
         // $this->setFooter($mpdf, PdfFooterEnum::REGISTER_FOOTER->value);
         // $this->setFooter($mpdf, PdfFooterEnum::MOU_FOOTER_en->value);
@@ -38,10 +39,16 @@ class NgoPdfController extends Controller
         // $mpdf->AddPage();
 
 
+        $mpdf->SetProtection(
+            ['print'],  // Permissions (Disallow Copy & Print)
+
+        );
+
         // Output the generated PDF to the browser
         return $mpdf->Output('document.pdf', 'D'); // Stream PDF to browser
 
     }
+
 
     protected function loadNgoData($lang, $id)
     {
