@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreign('ngo_id')->references('id')->on('ngos')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
+            $table->string('agreement_no')->unique(); // Unique Agreement Number
             $table->string('start_date');
             $table->string('end_date');
             $table->timestamps();

@@ -238,6 +238,8 @@ class StoresNgoController extends Controller
             'start_date' => Carbon::now()->toDateString(),
             'end_date' => Carbon::now()->addYear()->toDateString(),
         ]);
+        $agreement->agreement_no = "AG" . '-' . Carbon::now()->year . '-' . $agreement->id;
+        $agreement->save();
 
         // Make prevous state to false
         NgoStatus::where('ngo_id', $id)->update(['is_active' => false]);
