@@ -14,6 +14,7 @@ use App\Http\Requests\app\ngo\NgoRegisterRequest;
 use App\Models\Address;
 use App\Models\AddressTran;
 use App\Models\Agreement;
+use App\Models\AgreementDirector;
 use App\Models\AgreementDocument;
 use App\Models\CheckList;
 use App\Models\CheckListTrans;
@@ -254,7 +255,7 @@ class StoresNgoController extends Controller
         if ($document) {
             return $document;
         }
-        $this->directorStore($validatedData, $id);
+        $this->directorStore($validatedData, $id, $agreement->id);
 
         $this->pendingTaskRepository->deletePendingTask(
             $request->user(),
@@ -371,7 +372,7 @@ class StoresNgoController extends Controller
         }
     }
 
-    protected function directorStore($validatedData, $ngo_id)
+    protected function directorStore($validatedData, $ngo_id, $agreement_id)
     {
         $email = Email::create(['value' => $validatedData['director_email']]);
         $contact = Contact::create(['value' => $validatedData['director_contact']]);
@@ -400,10 +401,17 @@ class StoresNgoController extends Controller
             'contact_id' => $contact->id,
         ]);
 
+
+
         DirectorTran::insert([
             ['director_id' => $director->id, 'language_name' => 'en', 'name' => $validatedData['director_name_english'], 'last_name' => $validatedData['surname_english']],
             ['director_id' => $director->id, 'language_name' => 'ps', 'name' => $validatedData['director_name_pashto'], 'last_name' => $validatedData['surname_pashto']],
             ['director_id' => $director->id, 'language_name' => 'fa', 'name' => $validatedData['director_name_farsi'], 'last_name' => $validatedData['surname_farsi']],
+        ]);
+
+        AgreementDirector::create([
+            'agreement_id' => $agreement_id,
+            'director_id' => $director->id
         ]);
     }
 
