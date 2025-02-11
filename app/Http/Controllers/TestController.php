@@ -18,6 +18,7 @@ use App\Models\Director;
 use App\Models\District;
 use App\Models\Document;
 use App\Models\Province;
+use App\Models\Agreement;
 use App\Models\CheckList;
 use App\Models\Translate;
 use App\Enums\LanguageEnum;
@@ -31,6 +32,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Traits\Address\AddressTrait;
 use App\Repositories\ngo\NgoRepositoryInterface;
+use Carbon\Carbon;
 
 class TestController extends Controller
 {
@@ -44,6 +46,43 @@ class TestController extends Controller
     public function index(Request $request)
     {
         $locale = App::getLocale();
+        $query = $this->ngoRepository->ngo(4);  // Start with the base query
+        $this->ngoRepository->statusJoin($query)
+            ->emailJoin($query)
+            ->contactJoin($query);
+        $ngo = $query->select(
+            'n.profile',
+            'ns.status_type_id as status_id',
+            'n.username',
+            'c.value as contact',
+            'e.value as email'
+        )->first();
+        if (!$ngo) {
+            return response()->json([
+                'message' => __('app_translation.ngo_not_found'),
+            ], 404, [], JSON_UNESCAPED_UNICODE);
+        }
+        $result = [
+            "profile" => $ngo->profile,
+            "status_id" => $ngo->status_id,
+            "username" => $ngo->username,
+            "contact" => $ngo->contact,
+            "email" => $ngo->email,
+            "registration_expired" => false,
+        ];
+        // 2. Check NGO agreement expiration
+        $agreement = Agreement::where('ngo_id', 4)
+            ->latest('end_date')
+            ->select('end_date')
+            ->first();
+        if ($agreement) {
+            // Check Registration is expired
+            $result = $result['registration_expired'] = Carbon::parse($agreement->end_date)->isPast();
+            $result['registration_expired'] = Carbon::parse($agreement->end_date)->isPast();
+
+        }
+
+        return $result;
 
         $includes = [StatusTypeEnum::active->value, StatusTypeEnum::blocked->value];
         return $statusesType = DB::table('status_types as st')

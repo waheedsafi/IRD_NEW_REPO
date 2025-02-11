@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\api\app\ngo;
 
+use Carbon\Carbon;
 use App\Models\Ngo;
 use App\Models\Document;
+use App\Models\Agreement;
 use App\Enums\LanguageEnum;
 use App\Models\PendingTask;
 use App\Traits\Ngo\NgoTrait;
@@ -481,18 +483,32 @@ class ViewsNgoController extends Controller
             'n.username',
             'c.value as contact',
             'e.value as email'
-        )
-            ->first();
+        )->first();
         if (!$ngo) {
             return response()->json([
                 'message' => __('app_translation.ngo_not_found'),
             ], 404, [], JSON_UNESCAPED_UNICODE);
         }
+        $result = [
+            "profile" => $ngo->profile,
+            "status_id" => $ngo->status_id,
+            "username" => $ngo->username,
+            "contact" => $ngo->contact,
+            "email" => $ngo->email,
+            "registration_expired" => false,
+        ];
         // 2. Check NGO agreement expiration
-
+        $agreement = Agreement::where('ngo_id', $ngo_id)
+            ->latest('end_date')
+            ->select('end_date')
+            ->first();
+        if ($agreement) {
+            // Check Registration is expired
+            $result['registration_expired'] = Carbon::parse($agreement->end_date)->isPast();
+        }
 
         return response()->json([
-            'ngo' => $ngo,
+            'ngo' => $result,
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
     public function ngoCount()

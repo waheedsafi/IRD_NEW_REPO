@@ -179,40 +179,33 @@ class EditesNgoController extends Controller
             'comment' => 'required|string'
         ]);
 
-        $status =  NgoStatus::where('ngo_id', $validatedData['ngo_id'])->where('is_active', 1)->value('stuats_type_id');
         // Deactivate previous status
+        $status =  NgoStatus::where('ngo_id', $validatedData['ngo_id'])->where('is_active', 1)->value('status_type_id');
 
-        if (
-            ($status != StatusTypeEnum::active && $request->status_type_id == StatusTypeEnum::blocked) ||
-            ($status != StatusTypeEnum::blocked && $request->status_type_id == StatusTypeEnum::active)
-        ) {
+        if ($status === StatusTypeEnum::active->value || $status === StatusTypeEnum::blocked->value) {
+            $newStatus = NgoStatus::create([
+                'status_type_id' => $validatedData['status_type_id'],
+                'ngo_id' => $validatedData['ngo_id'],
+                'comment' => $validatedData['comment'],
+                'is_active' => 1
+            ]);
+            $status->is_active = 0;
+            $status->save();
+
+            // Prepare response data
+            $data = [
+                'ngo_status_id' => $newStatus->id,
+                'is_active' => 1,
+                'created_at' => $newStatus->created_at,
+            ];
             return response()->json([
-                'message' => $request->status_type_id == StatusTypeEnum::blocked
-                    ? __('app_translation.not_active_status')
-                    : __('app_translation.not_block_status')
+                'message' => __('app_translation.success'),
+                'status' => $data
             ], 200, [], JSON_UNESCAPED_UNICODE);
+        } else {
+            return response()->json([
+                'message' => __('app_translation.unauthorized')
+            ], 422, [], JSON_UNESCAPED_UNICODE);
         }
-
-
-        NgoStatus::where('ngo_id', $validatedData['ngo_id'])->update(['is_active' => 0]);
-        // Create new status
-        $newStatus = NgoStatus::create([
-            'status_type_id' => $validatedData['status_type_id'],
-            'ngo_id' => $validatedData['ngo_id'],
-            'comment' => $validatedData['comment'],
-            'is_active' => 1
-        ]);
-
-        // Prepare response data
-        $data = [
-            'ngo_status_id' => $newStatus->id,
-            'is_active' => 1,
-            'created_at' => $newStatus->created_at,
-        ];
-
-        return response()->json([
-            'message' => __('app_translation.success'),
-            'status' => $data
-        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }
