@@ -15,27 +15,24 @@ return new class extends Migration
             $table->id();
             $table->string("request_comment")->nullable();
             $table->string("request_date");
-            $table->string("feedback_comment")->nullable();
-            $table->string("feedback_date")->nullable();
-            $table->boolean("approved")->nullable();
-            $table->unsignedBigInteger('approvable_id');
-            $table->string('approvable_type');
+            $table->string("respond_comment")->nullable();
+            $table->string("respond_date")->nullable();
+            $table->boolean("approved")->default(false);
+            $table->unsignedBigInteger('requester_id')->comment("Person ID who sends the request");
+            $table->string('requester_type')->comment("The Requester Model class name");
+            $table->unsignedBigInteger('responder_id')->comment("Person ID who responds the request")->nullable();
+            $table->string('responder_type')->comment("The responder Model class name")->nullable();
             $table->unsignedBigInteger('request_type_id');
             $table->foreign('request_type_id')->references('id')->on('request_types')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
-            $table->unsignedBigInteger('user_id');
-            $table->foreign('user_id')->references('id')->on('users')
-                ->onUpdate('cascade')
-                ->onDelete('no action');
             $table->index(
                 [
-                    'approvable_id',
-                    'approvable_type',
+                    'requester_id',
+                    'requester_type',
                     'request_type_id',
-                    'user_id'
                 ],
-                'approvable_approvable_type_request_type_user_idx'
+                'approvable_approve_idx'
             );
             $table->timestamps();
         });

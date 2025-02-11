@@ -2,20 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\template\Auditable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Address extends Model
 {
-    use HasFactory;
+    use HasFactory, Auditable;
     protected $guarded = [];
 
 
-    public function addressTrans(){
+    public function addressTrans()
+    {
         return $this->hasMany(AddressTran::class);
     }
-
-    
-
-    
 }

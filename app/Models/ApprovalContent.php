@@ -2,11 +2,9 @@
 
 namespace App\Models;
 
-use App\Traits\template\Auditable;
 use Illuminate\Database\Eloquent\Model;
 
-class Agreement extends Model
+class ApprovalContent extends Model
 {
-    use Auditable;
     protected $guarded = [];
 }

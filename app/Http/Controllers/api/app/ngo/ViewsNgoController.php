@@ -16,6 +16,7 @@ use App\Models\PendingTaskContent;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
+use App\Models\Email;
 use App\Traits\Address\AddressTrait;
 use App\Repositories\ngo\NgoRepositoryInterface;
 use App\Repositories\Task\PendingTaskRepositoryInterface;
@@ -51,6 +52,7 @@ class ViewsNgoController extends Controller
             ->contactJoin($query);
         $query->select(
             'n.id',
+            'n.profile',
             'n.registration_no',
             'n.date_of_establishment as establishment_date',
             'stt.status_type_id as status_id',
