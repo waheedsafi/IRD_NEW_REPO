@@ -78,6 +78,7 @@ class FileController extends Controller
         ]);
     }
 
+
     public function uploadProjectFile(Request $request,)
     {
         $receiver = new FileReceiver("file", $request, HandlerFactory::classFromRequest($request));
@@ -106,6 +107,31 @@ class FileController extends Controller
     /**
      * Saves the file and validates it.
      */
+
+    public function uploadNgoExtendFile(Request $request)
+    {
+        $receiver = new FileReceiver("file", $request, HandlerFactory::classFromRequest($request));
+
+        if (!$receiver->isUploaded()) {
+            throw new UploadMissingFileException();
+        }
+
+        $save = $receiver->receive();
+
+        if ($save->isFinished()) {
+            $task_type = TaskTypeEnum::ngo_agreement_extend;
+            $ngo_id = $request->ngo_id;
+            return $this->saveFile($save->getFile(), $request, $ngo_id, $task_type);
+        }
+
+        // If not finished, send current progress.
+        $handler = $save->handler();
+
+        return response()->json([
+            "done" => $handler->getPercentageDone(),
+            "status" => true,
+        ]);
+    }
     protected function saveFile(UploadedFile $file, Request $request, $id, $task_type)
     {
         $fileActualName = $file->getClientOriginalName();
