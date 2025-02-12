@@ -312,7 +312,7 @@ class FileController extends Controller
 
                 "name" => $fileActualName,
                 "size" => $fileSize,
-                "check_list_id" => $request->checklist_id,
+                "checklist_id" => $request->checklist_id,
                 "extension" => $mimetype,
                 "path" => $dbStorePath,
                 "checklist_name" => $request->checklist_name ?? '',
