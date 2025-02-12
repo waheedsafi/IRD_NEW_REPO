@@ -24,6 +24,7 @@ use App\Models\CheckListTrans;
 use App\Models\StatusTypeTran;
 use App\Enums\CheckListTypeEnum;
 use App\Enums\Type\TaskTypeEnum;
+use App\Models\AgreementDirector;
 use App\Models\AgreementDocument;
 use App\Enums\Type\StatusTypeEnum;
 use Illuminate\Support\Facades\DB;
