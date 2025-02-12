@@ -2,54 +2,100 @@
 
 namespace App\Http\Controllers\api\app\ngo;
 
+use App\Enums\pdfFooter\PdfFooterEnum;
+use App\Enums\StaffEnum;
+use App\Http\Controllers\Controller;
+use App\Models\Director;
 use App\Models\Ngo;
 use App\Models\Staff;
-use App\Enums\StaffEnum;
-use App\Models\Director;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use App\Traits\Address\AddressTrait;
-use App\Enums\pdfFooter\PdfFooterEnum;
 use App\Traits\Report\PdfGeneratorTrait;
+use Illuminate\Http\Request;
+use ZipArchive;
 
 class NgoPdfController extends Controller
 {
     //
     use PdfGeneratorTrait, AddressTrait;
 
+    // public function generateForm(Request $request, $id)
+    // {
+    //     // return $request;
+    //     $mpdf =  $this->generatePdf();
+    //     $this->setWatermark($mpdf);
+    //     $lang = $request->input('language_name');
+    //     $lang = ['en','ps','fa'];
+
+    //     // $this->setFooter($mpdf, PdfFooterEnum::REGISTER_FOOTER->value);
+    //     // $this->setFooter($mpdf, PdfFooterEnum::MOU_FOOTER_en->value);
+
+    //     foreach($lang as $key){
+    //         $data = $this->loadNgoData($key, $id);
+
+    //     }
+
+
+
+    //     // return view('project.mou.pdf.');
+    //     // $this->pdfFilePart($mpdf, "project.mou.pdf.{$lang}.mou", $data);
+    //     $this->pdfFilePart($mpdf, "ngo.registeration.{$lang}.registeration", $data);
+    //     // Write additional HTML content
+
+    //     // $mpdf->AddPage();
+
+
+    //     $mpdf->SetProtection(
+    //         ['print'],  // Permissions (Disallow Copy & Print)
+
+    //     );
+
+    //     // Output the generated PDF to the browser
+    //     return $mpdf->Output('document.pdf', 'D'); // Stream PDF to browser
+
+    // }
+
+
+
     public function generateForm(Request $request, $id)
     {
-        // return $request;
-        $mpdf =  $this->generatePdf();
-        $this->setWatermark($mpdf);
-        $lang = $request->input('language_name');
-        $lang = 'en';
+        $languages = ['en', 'ps', 'fa'];
+        $pdfFiles = [];
 
-        // $this->setFooter($mpdf, PdfFooterEnum::REGISTER_FOOTER->value);
-        // $this->setFooter($mpdf, PdfFooterEnum::MOU_FOOTER_en->value);
+        foreach ($languages as $lang) {
+            $mpdf = $this->generatePdf();
+            $this->setWatermark($mpdf);
+            $data = $this->loadNgoData($lang, $id);
 
-        $data = $this->loadNgoData($lang, $id);
+            // Generate PDF content
+            $this->pdfFilePart($mpdf, "ngo.registeration.{$lang}.registeration", $data);
+            $mpdf->SetProtection(['print']);
 
+            // Store the PDF temporarily
+            $fileName = "{$data['ngo_name']}_registration_{$lang}.pdf";
+            $filePath = storage_path("app/public/{$fileName}");
+            $mpdf->Output($filePath, 'F'); // Save to file
 
-        // return view('project.mou.pdf.');
-        // $this->pdfFilePart($mpdf, "project.mou.pdf.{$lang}.mou", $data);
-        $this->pdfFilePart($mpdf, "ngo.registeration.{$lang}.registeration", $data);
-        // Write additional HTML content
+            $pdfFiles[] = $filePath;
+        }
 
-        // $mpdf->AddPage();
+        // Create ZIP file
+        $zipFile = storage_path('app/public/documents.zip');
+        $zip = new ZipArchive();
 
+        if ($zip->open($zipFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+            foreach ($pdfFiles as $file) {
+                $zip->addFile($file, basename($file));
+            }
+            $zip->close();
+        }
 
-        $mpdf->SetProtection(
-            ['print'],  // Permissions (Disallow Copy & Print)
+        // Delete individual PDFs after zipping
+        foreach ($pdfFiles as $file) {
+            unlink($file);
+        }
 
-        );
-
-        // Output the generated PDF to the browser
-        return $mpdf->Output('document.pdf', 'D'); // Stream PDF to browser
-
+        return response()->download($zipFile)->deleteFileAfterSend(true);
     }
-
-
     protected function loadNgoData($lang, $id)
     {
 

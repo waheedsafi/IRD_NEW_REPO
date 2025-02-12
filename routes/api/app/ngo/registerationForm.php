@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 
 
 
+Route::get('/ngo/generate/registeration/{id}', [NgoPdfController::class, 'generateForm']);
 
 
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
