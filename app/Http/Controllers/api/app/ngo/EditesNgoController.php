@@ -7,16 +7,16 @@ use App\Models\Email;
 use App\Models\Address;
 use App\Models\Contact;
 use App\Models\NgoTran;
+use App\Models\NgoStatus;
 use App\Enums\LanguageEnum;
-use App\Enums\Type\StatusTypeEnum;
 use App\Models\AddressTran;
 use Illuminate\Http\Request;
+use App\Enums\Type\StatusTypeEnum;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\app\ngo\NgoInfoUpdateRequest;
 use App\Http\Requests\app\ngo\NgoUpdatedMoreInformationRequest;
-use App\Models\NgoStatus;
 
 class EditesNgoController extends Controller
 {
@@ -178,6 +178,7 @@ class EditesNgoController extends Controller
             'status_type_id' => 'required|integer',
             'comment' => 'required|string'
         ]);
+        $authUser = $request->user();
 
         // Deactivate previous status
         $status =  NgoStatus::where('ngo_id', $validatedData['ngo_id'])->where('is_active', 1)->value('status_type_id');
@@ -187,7 +188,8 @@ class EditesNgoController extends Controller
                 'status_type_id' => $validatedData['status_type_id'],
                 'ngo_id' => $validatedData['ngo_id'],
                 'comment' => $validatedData['comment'],
-                'is_active' => 1
+                'is_active' => 1,
+                "user_id" => $authUser->id
             ]);
             $status->is_active = 0;
             $status->save();

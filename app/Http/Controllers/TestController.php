@@ -33,6 +33,7 @@ use Illuminate\Support\Facades\App;
 use App\Traits\Address\AddressTrait;
 use App\Repositories\ngo\NgoRepositoryInterface;
 use Carbon\Carbon;
+use Sway\Models\RefreshToken;
 
 class TestController extends Controller
 {
@@ -46,43 +47,66 @@ class TestController extends Controller
     public function index(Request $request)
     {
         $locale = App::getLocale();
-        $query = $this->ngoRepository->ngo(4);  // Start with the base query
-        $this->ngoRepository->statusJoin($query)
-            ->emailJoin($query)
-            ->contactJoin($query);
-        $ngo = $query->select(
-            'n.profile',
-            'ns.status_type_id as status_id',
-            'n.username',
-            'c.value as contact',
-            'e.value as email'
-        )->first();
-        if (!$ngo) {
-            return response()->json([
-                'message' => __('app_translation.ngo_not_found'),
-            ], 404, [], JSON_UNESCAPED_UNICODE);
-        }
-        $result = [
-            "profile" => $ngo->profile,
-            "status_id" => $ngo->status_id,
-            "username" => $ngo->username,
-            "contact" => $ngo->contact,
-            "email" => $ngo->email,
-            "registration_expired" => false,
+
+        $type = "Ngo";
+        return "App\Models\\{$type}";
+
+        $ngo_id = 4;
+        $ngo = Ngo::find($ngo_id);
+
+        $authUser =  DB::table('ngos as n')
+            ->where('n.id', $ngo->id)
+            ->leftjoin('ngo_statuses as ns', function ($join) {
+                $join->on('ns.ngo_id', '=', 'n.id')
+                    ->whereRaw('ns.created_at = (select max(ns2.created_at) from ngo_statuses as ns2 where ns2.ngo_id = n.id)');
+            })
+            ->leftjoin('roles as r', function ($join) {
+                $join->on('n.role_id', '=', 'r.id');
+            })
+            ->select(
+                "n.id",
+                "n.profile",
+                "n.username",
+                "n.is_editable",
+                "n.created_at",
+                "ns.status_type_id",
+                "r.id as role_id",
+                "r.name as role_name"
+            )->first();
+
+        return [
+            "id" => $authUser->id,
+            "profile" => $authUser->profile,
+            "username" => $authUser->username,
+            "is_editable" => $authUser->is_editable,
+            "created_at" => $authUser->created_at,
+            "role" => ["role" => $authUser->role_id, "name" => $authUser->role_name],
+            "status_type_id" => $authUser->status_type_id
         ];
-        // 2. Check NGO agreement expiration
-        $agreement = Agreement::where('ngo_id', 4)
-            ->latest('end_date')
-            ->select('end_date')
-            ->first();
-        if ($agreement) {
-            // Check Registration is expired
-            $result = $result['registration_expired'] = Carbon::parse($agreement->end_date)->isPast();
-            $result['registration_expired'] = Carbon::parse($agreement->end_date)->isPast();
 
-        }
+        $userPermissions = DB::table('ngos as n')
+            ->where('n.id', $ngo_id)
+            ->leftJoin('ngo_permissions as np', function ($join) {
+                $join->on('np.ngo_id', '=', 'n.id');
+            })
+            ->join('permissions as p', function ($join) {
+                $join->on('p.name', '=', 'np.permission');
+            })
+            ->select(
+                "p.name as permission",
+                "p.icon as icon",
+                "p.priority as priority",
+                "np.view",
+                "np.add",
+                "np.delete",
+                "np.edit",
+                "np.id",
+            )
+            ->orderBy("p.priority")
+            ->get();
 
-        return $result;
+
+        return $userPermissions;
 
         $includes = [StatusTypeEnum::active->value, StatusTypeEnum::blocked->value];
         return $statusesType = DB::table('status_types as st')

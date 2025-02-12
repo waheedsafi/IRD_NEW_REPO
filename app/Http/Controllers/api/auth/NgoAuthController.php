@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\api\auth;
 
+use App\Enums\RoleEnum;
 use App\Enums\Type\StatusTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
@@ -14,39 +15,60 @@ use Illuminate\Support\Facades\DB;
 
 class NgoAuthController extends Controller
 {
-    public function ngo(Request $request)
+    public function authNgo(Request $request)
     {
-        $locale = App::getLocale();
+        $ngo = $request->user();
 
-        $user = $request->user()->load([
-            'ngoTrans' => function ($user) use ($locale) {
-                $user->where('language_name', $locale)->select('id', 'ngo_id', 'name as ngo_name');
-            },
-            'contact:id,value',
-            'email:id,value',
-            'ngoStatus:id,status_type_is'
+        $authNgo =  DB::table('ngos as n')
+            ->where('n.id', $ngo->id)
+            ->leftjoin('emails as e', function ($join) {
+                $join->on('n.email_id', '=', 'e.id');
+            })
+            ->leftjoin('ngo_statuses as ns', function ($join) {
+                $join->on('ns.ngo_id', '=', 'n.id')
+                    ->whereRaw('ns.created_at = (select max(ns2.created_at) from ngo_statuses as ns2 where ns2.ngo_id = n.id)');
+            })
+            ->leftjoin('roles as r', function ($join) {
+                $join->on('n.role_id', '=', 'r.id');
+            })
+            ->select(
+                "n.id",
+                "n.profile",
+                "n.username",
+                "n.role_id",
+                "n.email_id",
+                "e.value as email",
+                "n.is_editable",
+                "n.created_at",
+                "ns.status_type_id",
+                "r.name as role_name"
+            )->first();
 
-        ]);
-        $userPermissions = $this->userWithPermission($user);
+        $ngoPermissions = $this->permission($authNgo);
 
-        return response()->json(array_merge([
-            "ngo" => [
-                "id" => $user->id,
-                "ngo_name" => $user->ngo_name,
-                'email' => $user->email ? $user->email->value : "",
-                "profile" => $user->profile,
-                "status" => $user->ngoStatus ? $user->ngoStatus->status_type_is : "",
-                'contact' => $user->contact ? $user->contact->value : "",
-                "created_at" => $user->created_at,
-            ]
-        ], [
-            "permissions" => $userPermissions["permissions"],
-        ]), 200, [], JSON_UNESCAPED_UNICODE);
+        return response()->json(
+            array_merge([
+                "user" => [
+                    "id" => $authNgo->id,
+                    "profile" => $authNgo->profile,
+                    "username" => $authNgo->username,
+                    "email" => ['id' => $authNgo->email_id, 'value' => $authNgo->email],
+                    "is_editable" => $authNgo->is_editable,
+                    "created_at" => $authNgo->created_at,
+                    "role" => ["role" => $authNgo->role_id, "name" => $authNgo->role_name],
+                    "status_type_id" => $authNgo->status_type_id
+                ]
+            ], [
+                "permissions" => $ngoPermissions,
+            ]),
+            200,
+            [],
+            JSON_UNESCAPED_UNICODE
+        );
     }
     public function login(LoginRequest $request)
     {
         $credentials = $request->validated();
-        $locale = App::getLocale();
 
         $email = Email::where('value', '=', $credentials['email'])->first();
         if (!$email) {
@@ -60,8 +82,8 @@ class NgoAuthController extends Controller
         ]);
         if ($loggedIn) {
             // Get the auth user
-            $user = $loggedIn['user'];
-            $ngoStatus = NgoStatus::where("ngo_id", $user->id)->first();
+            $ngo = $loggedIn['user'];
+            $ngoStatus = NgoStatus::where("ngo_id", $ngo->id)->first();
             if ($ngoStatus->status_type_id == StatusTypeEnum::blocked->value) {
                 return response()->json([
                     'message' => __('app_translation.account_is_block'),
@@ -73,32 +95,44 @@ class NgoAuthController extends Controller
                 $ngoStatus->save();
             }
 
-            $user = $user->load([
-                'ngoTrans' => function ($user) use ($locale) {
-                    $user->where('language_name', $locale)->select('id', 'ngo_id', 'name as ngo_name');
-                },
-                'contact:id,value',
-                'email:id,value',
-                'ngoStatus:id,status_type_id'
+            $authNgo =  DB::table('ngos as n')
+                ->where('n.id', $ngo->id)
+                ->leftjoin('ngo_statuses as ns', function ($join) {
+                    $join->on('ns.ngo_id', '=', 'n.id')
+                        ->whereRaw('ns.created_at = (select max(ns2.created_at) from ngo_statuses as ns2 where ns2.ngo_id = n.id)');
+                })
+                ->leftjoin('roles as r', function ($join) {
+                    $join->on('n.role_id', '=', 'r.id');
+                })
+                ->select(
+                    "n.id",
+                    "n.profile",
+                    "n.username",
+                    "n.email_id",
+                    "n.role_id",
+                    "n.is_editable",
+                    "n.created_at",
+                    "ns.status_type_id",
+                    "r.name as role_name"
+                )->first();
 
-            ]);
-
-            $userPermissions = $this->userWithPermission($user);
+            $ngoPermissions = $this->permission($authNgo);
 
             return response()->json(
                 array_merge([
-                    "ngo" => [
-                        "id" => $user->id,
-                        "ngo_name" => $user->ngo_name,
-                        'email' => $user->email ? $user->email->value : "",
-                        "profile" => $user->profile,
-                        "status" => $user->ngoStatus ? $user->ngoStatus->status_type_is : "",
-                        'contact' => $user->contact ? $user->contact->value : "",
-                        "created_at" => $user->created_at,
+                    "user" => [
+                        "id" => $authNgo->id,
+                        "profile" => $authNgo->profile,
+                        "username" => $authNgo->username,
+                        "email" => ['id' => $authNgo->email_id, 'value' => $credentials['email']],
+                        "is_editable" => $authNgo->is_editable,
+                        "created_at" => $authNgo->created_at,
+                        "role" => ["role" => $authNgo->role_id, "name" => $authNgo->role_name],
+                        "status_type_id" => $authNgo->status_type_id
                     ]
                 ], [
                     "token" => $loggedIn['tokens']['access_token'],
-                    "permissions" => $userPermissions["permissions"],
+                    "permissions" => $ngoPermissions,
                 ]),
                 200,
                 [],
@@ -106,7 +140,7 @@ class NgoAuthController extends Controller
             );
         } else {
             return response()->json([
-                'message' => __('app_translation.user_not_found')
+                'message' => __('app_translation.ngo_not_found')
             ], 404, [], JSON_UNESCAPED_UNICODE);
         }
     }
@@ -119,26 +153,30 @@ class NgoAuthController extends Controller
         ], 204, [], JSON_UNESCAPED_UNICODE);
     }
     // HELPER
-    protected function userWithPermission($user)
+    protected function permission($ngo)
     {
-        $userId = $user->id;
-        $userPermissions = DB::table('ngos')
-            ->join('permissions', function ($join) use ($userId) {
-                $join->on('ngo_permissions.permission', '=', 'permissions.name')
-                    ->where('ngo_permissions.ngo_id', '=', $userId);
+        $ngo_id = $ngo->id;
+        $ngoPermissions = DB::table('ngos as n')
+            ->where('n.id', $ngo_id)
+            ->leftJoin('ngo_permissions as np', function ($join) {
+                $join->on('np.ngo_id', '=', 'n.id');
+            })
+            ->join('permissions as p', function ($join) {
+                $join->on('p.name', '=', 'np.permission');
             })
             ->select(
-                // "permissions.name as permission",
-                // "permissions.icon as icon",
-                // "permissions.priority as priority",
-                // "ngo_permissions.view",
-                // "ngo_permissions.add",
-                // "ngo_permissions.delete",
-                // "ngo_permissions.edit",
-                // "ngo_permissions.id",
+                "p.name as permission",
+                "p.icon as icon",
+                "p.priority as priority",
+                "np.view",
+                "np.add",
+                "np.delete",
+                "np.edit",
+                "np.id",
             )
-            ->orderBy("priority")
+            ->orderBy("p.priority")
             ->get();
-        return ["user" => $user->toArray(), "permissions" => $userPermissions];
+
+        return $ngoPermissions;
     }
 }

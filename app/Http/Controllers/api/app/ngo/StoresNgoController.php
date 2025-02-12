@@ -2,37 +2,37 @@
 
 namespace App\Http\Controllers\api\app\ngo;
 
-use App\Enums\CheckListTypeEnum;
-use App\Enums\LanguageEnum;
-use App\Enums\PermissionEnum;
-use App\Enums\RoleEnum;
-use App\Enums\Type\StatusTypeEnum;
-use App\Enums\Type\TaskTypeEnum;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\app\ngo\NgoInitStoreRequest;
-use App\Http\Requests\app\ngo\NgoRegisterRequest;
-use App\Models\Address;
-use App\Models\AddressTran;
-use App\Models\Agreement;
-use App\Models\AgreementDocument;
-use App\Models\CheckList;
-use App\Models\CheckListTrans;
-use App\Models\Contact;
-use App\Models\Director;
-use App\Models\DirectorTran;
-use App\Models\Document;
-use App\Models\Email;
-use App\Models\Ngo;
-use App\Models\NgoPermission;
-use App\Models\NgoStatus;
-use App\Models\NgoTran;
-use App\Models\PendingTask;
-use App\Models\PendingTaskDocument;
-use App\Models\StatusTypeTran;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\App;
+use App\Models\Ngo;
+use App\Models\Email;
+use App\Enums\RoleEnum;
+use App\Models\Address;
+use App\Models\Contact;
+use App\Models\NgoTran;
+use App\Models\Director;
+use App\Models\Document;
+use App\Models\Agreement;
+use App\Models\CheckList;
+use App\Models\NgoStatus;
+use App\Enums\LanguageEnum;
+use App\Models\AddressTran;
+use App\Models\PendingTask;
+use App\Models\DirectorTran;
+use App\Enums\PermissionEnum;
+use App\Models\NgoPermission;
+use App\Models\CheckListTrans;
+use App\Models\StatusTypeTran;
+use App\Enums\CheckListTypeEnum;
+use App\Enums\Type\TaskTypeEnum;
+use App\Models\AgreementDocument;
+use App\Enums\Type\StatusTypeEnum;
 use Illuminate\Support\Facades\DB;
+use App\Models\PendingTaskDocument;
+use Illuminate\Support\Facades\App;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use App\Http\Requests\app\ngo\NgoRegisterRequest;
+use App\Http\Requests\app\ngo\NgoInitStoreRequest;
 use App\Repositories\Task\PendingTaskRepositoryInterface;
 
 class StoresNgoController extends Controller
@@ -99,6 +99,8 @@ class StoresNgoController extends Controller
                 'name' => $validatedData["name_{$name}"],
             ]);
         }
+        // Create permissions
+        $this->ngoPermissions($newNgo->id);
 
         $name =  $validatedData['name_english'];
         if ($locale == LanguageEnum::farsi->value) {
@@ -415,15 +417,15 @@ class StoresNgoController extends Controller
             "delete" => true,
             "add" => true,
             "ngo_id" => $ngo_id,
-            "permission" => PermissionEnum::ngo->value,
+            "permission" => PermissionEnum::dashboard->value,
         ]);
-        NgoPermission::create([
-            "view" => true,
-            "edit" => true,
-            "delete" => true,
-            "add" => true,
-            "ngo_id" => $ngo_id,
-            "permission" => PermissionEnum::projects->value,
-        ]);
+        // NgoPermission::create([
+        //     "view" => true,
+        //     "edit" => true,
+        //     "delete" => true,
+        //     "add" => true,
+        //     "ngo_id" => $ngo_id,
+        //     "permission" => PermissionEnum::projects->value,
+        // ]);
     }
 }
