@@ -80,7 +80,7 @@ class UserController extends Controller
             JSON_UNESCAPED_UNICODE
         );
     }
-    public function user($id, Request $request)
+    public function user($id)
     {
         $locale = App::getLocale();
 

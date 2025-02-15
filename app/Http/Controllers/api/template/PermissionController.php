@@ -67,13 +67,17 @@ class PermissionController extends Controller
         // Format response
         $userSubPermission = [];
         foreach ($subPermissions as $subPermission) {
-            $userSubPermission[$subPermission->name] = [
-                'id'     => $subPermission->id,
-                'edit'   => (bool) $subPermission->edit,
-                'delete' => (bool) $subPermission->delete,
-                'add'    => (bool) $subPermission->add,
-                'view'   => (bool) $subPermission->view,
-            ];
+            array_push(
+                $userSubPermission,
+                [
+                    'id'     => $subPermission->id,
+                    'name'   => $subPermission->name,
+                    'edit'   => (bool) $subPermission->edit,
+                    'delete' => (bool) $subPermission->delete,
+                    'add'    => (bool) $subPermission->add,
+                    'view'   => (bool) $subPermission->view,
+                ]
+            );
         }
 
         return response()->json(

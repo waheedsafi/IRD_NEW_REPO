@@ -25,9 +25,9 @@ enum SubPermissionEnum: int
         21 => "setting_language",
     ];
     public const SETTINGS = [
-        21 => "setting_language",
-        22 => "setting_job",
-        23 => "setting_destination",
+        21 => "language",
+        22 => "job",
+        23 => "destination",
     ];
         // NGO
     case ngo_add = 51;
@@ -38,13 +38,13 @@ enum SubPermissionEnum: int
     case ngo_status = 56;
     case ngo_representative = 57;
     public const NGO = [
-        51 => "ngo_add",
-        52 => "ngo_information",
-        53 => "ngo_director_information",
-        54 => "ngo_agreement",
-        55 => "ngo_more_information",
-        56 => "ngo_status",
-        57 => "ngo_representative",
+        51 => "add_ngo",
+        52 => "account_information",
+        53 => "director_information",
+        54 => "agreement_checklist",
+        55 => "more_information",
+        56 => "status",
+        57 => "representative",
     ];
         // ABOUT
     case about_director = 71;
