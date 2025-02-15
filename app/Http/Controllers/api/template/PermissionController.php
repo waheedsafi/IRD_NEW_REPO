@@ -77,11 +77,7 @@ class PermissionController extends Controller
         }
 
         return response()->json(
-            [
-                'message' =>   __('app_translation.success'),
-                'sub_permissions' =>   $userSubPermission,
-
-            ],
+            $userSubPermission,
             200,
             [],
             JSON_UNESCAPED_UNICODE
