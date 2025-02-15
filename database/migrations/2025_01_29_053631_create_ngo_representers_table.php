@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('ngo_representers', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('agreement_id');
+            $table->integer('type')->comment('use for specify the ngo or project');
             $table->foreign('agreement_id')->references('id')
                 ->on('agreements')
                 ->onUpdate('cascade')

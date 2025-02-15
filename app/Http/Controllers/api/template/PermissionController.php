@@ -4,7 +4,9 @@ namespace App\Http\Controllers\api\template;
 
 use App\Http\Controllers\Controller;
 use App\Models\RolePermission;
+use App\Models\RolePermissionSub;
 use App\Models\SubPermission;
+use App\Models\User;
 use App\Models\UserPermission;
 use App\Models\UserPermissionSub;
 use Illuminate\Http\Request;
@@ -66,6 +68,7 @@ class PermissionController extends Controller
 
         // Format response
         $userSubPermission = [];
+
         foreach ($subPermissions as $subPermission) {
             array_push(
                 $userSubPermission,
@@ -86,5 +89,176 @@ class PermissionController extends Controller
             [],
             JSON_UNESCAPED_UNICODE
         );
+    }
+
+    // public function userPermissionUpdate(Request $request)
+    // {
+
+    //     $request->validate([
+    //         'user_id' => 'required|integer',
+    //         'view' => 'boolean',
+    //         'permission' => 'required|string'
+    //     ]);
+
+    //     $role = User::select('role_id')->where('id', $request->user_id)->value();
+
+
+    //     $role_per_exists = RolePermission::where('role', $role)->where('permssion', $request->permission)->exitst();
+    //     if ($role_per_exists) {
+
+    //         $userPermission =   UserPermission::where('user_id', $request->user_id)->where('permission', $request->permission)->first();
+    //         if (!$userPermission) {
+
+
+
+    //             $userPermission =    UserPermission::create([
+    //                 'view' => $request->view,
+    //                 'visible' => $request->visible,
+    //                 'user_id' => $request->user_id,
+    //                 'permission' => $request->permission
+
+    //             ]);
+    //             foreach ($request->subPermissions as $subPermission) {
+    //                 $subPermissionValue =  RolePermissionSub::select('edit', 'delete', 'view', 'add')
+    //                     ->where('role_permission_id', $role)
+    //                     ->where('sub_permission_id', $request->$subPermission->id)->get();
+
+    //                 UserPermissionSub::create([
+    //                     'user_permission_id' => $userPermission->id,
+    //                     'sub_permission_id' => $subPermission->id,
+    //                     'edit' => $subPermissionValue->edit ?? 0,
+    //                     'delete' => $subPermissionValue->delete ?? 0,
+    //                     'add' => $subPermissionValue->add ?? 0,
+    //                     'view' => $subPermissionValue->view ?? 0,
+    //                 ]);
+    //             }
+
+
+    //             return response()->json([
+    //                 'message' => __('app_translation.success'),
+    //             ], 200, [], JSON_UNESCAPED_UNICODE);
+    //         } else {
+
+    //             $userPermission->view = $request->view;
+    //             $userPermission->save();
+
+    //             foreach ($request->subPermissions as $subPermission) {
+    //                 $subPermissionValue =  RolePermissionSub::select('edit', 'delete', 'view', 'add')
+    //                     ->where('role_permission_id', $role)
+    //                     ->where('sub_permission_id', $request->$subPermission->id)->get();
+
+    //                 $exsitsUsrPer = UserPermissionSub::where('user_permission_id', $userPermission->id)
+    //                     ->where('sub_permission_id', $subPermission->id)->first();
+
+    //                 if (!$exsitsUsrPer) {
+    //                     UserPermissionSub::create([
+    //                         'user_permission_id' => $userPermission->id,
+    //                         'sub_permission_id' => $subPermission->id,
+    //                         'edit' => $subPermissionValue->edit ?? 0,
+    //                         'delete' => $subPermissionValue->delete ?? 0,
+    //                         'add' => $subPermissionValue->add ?? 0,
+    //                         'view' => $subPermissionValue->view ?? 0,
+    //                     ]);
+    //                 } else {
+
+    //                     $exsitsUsrPer->edit = $subPermissionValue->edit ?? 0;
+    //                     $exsitsUsrPer->add = $subPermissionValue->add ?? 0;
+    //                     $exsitsUsrPer->view = $subPermissionValue->view ?? 0;
+    //                     $exsitsUsrPer->delete = $subPermissionValue->delete ?? 0;
+    //                     $exsitsUsrPer->save();
+    //                 }
+    //             }
+    //         }
+    //     } else {
+    //         return response()->json([
+    //             'message' => __('app_translation.unauthorized'),
+    //         ], 403, [], JSON_UNESCAPED_UNICODE);
+    //     }
+    // }
+
+
+
+    public function userPermissionUpdate(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer',
+            'view' => 'nullable|boolean',  // Make 'view' optional if not provided
+            'permission' => 'required|string',
+            'subPermissions' => 'array'   // assuming subPermissions is an array of objects
+        ]);
+
+        // Retrieve the role of the user directly
+        $role = User::find($request->user_id)->role_id;
+
+        if (!$role) {
+            return response()->json([
+                'message' => __('app_translation.unauthorized'),
+            ], 403, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        // Check if the role permission exists
+        $rolePermissionExists = RolePermission::where('role', $role)->where('permission', $request->permission)->exists();
+
+        if (!$rolePermissionExists) {
+            return response()->json([
+                'message' => __('app_translation.unauthorized'),
+            ], 403, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        // Find or create the user permission
+        $userPermission = UserPermission::firstOrCreate(
+            ['user_id' => $request->user_id, 'permission' => $request->permission],
+            ['view' => $request->view ?? false, 'visible' => $request->visible ?? false]
+        );
+
+        // If subPermissions exist, process them
+        if (!empty($request->subPermissions)) {
+            // Batch insert sub-permissions
+            $subPermissionsToCreate = [];
+
+            foreach ($request->subPermissions as $subPermission) {
+                // Fetch sub-permission values in a single query
+                $subPermissionValue = RolePermissionSub::select('edit', 'delete', 'view', 'add')
+                    ->where('role_permission_id', $role)
+                    ->where('sub_permission_id', $subPermission['id'])
+                    ->first(); // Use first() for a single result
+
+                if ($subPermissionValue) {
+                    // Check if the user already has this sub-permission, update if exists, else add new
+                    $existingSubPermission = UserPermissionSub::where('user_permission_id', $userPermission->id)
+                        ->where('sub_permission_id', $subPermission['id'])
+                        ->first();
+
+                    if ($existingSubPermission) {
+                        // Update the existing sub-permission
+                        $existingSubPermission->update([
+                            'edit' => $subPermissionValue->edit ?? 0,
+                            'delete' => $subPermissionValue->delete ?? 0,
+                            'add' => $subPermissionValue->add ?? 0,
+                            'view' => $subPermissionValue->view ?? 0,
+                        ]);
+                    } else {
+                        // Add new sub-permission
+                        $subPermissionsToCreate[] = [
+                            'user_permission_id' => $userPermission->id,
+                            'sub_permission_id' => $subPermission['id'],
+                            'edit' => $subPermissionValue->edit ?? 0,
+                            'delete' => $subPermissionValue->delete ?? 0,
+                            'add' => $subPermissionValue->add ?? 0,
+                            'view' => $subPermissionValue->view ?? 0,
+                        ];
+                    }
+                }
+            }
+
+            // Insert sub-permissions in batch if needed
+            if (!empty($subPermissionsToCreate)) {
+                UserPermissionSub::insert($subPermissionsToCreate);
+            }
+        }
+
+        return response()->json([
+            'message' => __('app_translation.success'),
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }
