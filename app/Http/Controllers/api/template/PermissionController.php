@@ -27,4 +27,8 @@ class PermissionController extends Controller
             JSON_UNESCAPED_UNICODE
         );
     }
+    public function subPermissions($permission)
+    {
+        $userPermissions = [];
+    }
 }
