@@ -6,5 +6,4 @@ enum CheckListTypeEnum: int
 {
     case internal = 1;
     case externel = 2;
-    
 }

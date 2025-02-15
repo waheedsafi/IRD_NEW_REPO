@@ -11,19 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user_permissions', function (Blueprint $table) {
+        Schema::create('ngo_permission_subs', function (Blueprint $table) {
             $table->id();
+            $table->boolean('edit');
+            $table->boolean('delete');
+            $table->boolean('add');
             $table->boolean('view');
-            $table->boolean("visible")->default(true);
-            $table->foreignId('user_id')
-                ->constrained()
+            $table->unsignedBigInteger('ngo_permission_id');
+            $table->foreign('ngo_permission_id')->references('id')->on('ngo_permissions')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
-            $table->string('permission');
-            $table->foreign('permission')->references('name')->on('permissions')
+            $table->unsignedBigInteger('sub_permission_id');
+            $table->foreign('sub_permission_id')->references('id')->on('sub_permissions')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
-            $table->index(["permission", "user_id"]);
+            $table->index(["ngo_permission_id", "sub_permission_id"]);
             $table->timestamps();
         });
     }
@@ -33,6 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('user_permissions');
+        Schema::dropIfExists('ngo_permission_subs');
     }
 };

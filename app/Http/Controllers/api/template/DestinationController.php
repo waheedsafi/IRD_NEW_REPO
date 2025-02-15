@@ -8,262 +8,215 @@ use App\Enums\LanguageEnum;
 use App\Models\Destination;
 use App\Models\DestinationType;
 use App\Enums\DestinationTypeEnum;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\template\destination\DestinationStoreRequest;
+use App\Models\DestinationTrans;
+
+use function PHPSTORM_META\map;
 
 class DestinationController extends Controller
 {
     public function destinations()
     {
-        try {
-            $locale = App::getLocale();
-            $tr = [];
-            if ($locale === LanguageEnum::default->value)
-                $tr = Destination::with(['type']) // Eager load relationships
-                    ->select("name", 'id', 'created_at', 'color', 'destination_type_id')->orderBy('id', 'desc')->get();
-            else {
-                $tr = $this->translations($locale, null);
-            }
-            return response()->json($tr, 200, [], JSON_UNESCAPED_UNICODE);
-        } catch (Exception $err) {
-            Log::info('statuses error =>' . $err->getMessage());
-            return response()->json([
-                'message' => __('app_translation.server_error')
-            ], 500, [], JSON_UNESCAPED_UNICODE);
-        }
+        $locale = App::getLocale();
+
+        $tr = DB::table('destinations as d')
+            ->join('destination_trans as dt', function ($join) use ($locale) {
+                $join->on('dt.destination_id', '=', 'd.id')
+                    ->where('dt.language_name', $locale);
+            })
+            ->select('d.id', "dt.value as name")->get();
+        return response()->json($tr, 200, [], JSON_UNESCAPED_UNICODE);
+    }
+    public function completeDestinations()
+    {
+        $locale = App::getLocale();
+
+        $tr = DB::table('destinations as d')
+            ->leftJoin('destination_trans as dt', function ($join) use ($locale) {
+                $join->on('dt.destination_id', '=', 'd.id')
+                    ->where('dt.language_name', $locale);
+            })
+            ->leftJoin('destination_type_trans as dtt', function ($join) use ($locale) {
+                $join->on('dtt.destination_type_id', '=', 'd.destination_type_id')
+                    ->where('dtt.language_name', $locale);
+            })
+            ->select('d.id', "dt.value as name", 'd.color', 'd.destination_type_id', 'dtt.value as type', 'd.created_at')->get();
+
+        $tr = $tr->map(function ($destination) {
+
+            return [
+                "id" => $destination->id,
+                "name" => $destination->name,
+                "color" => $destination->color,
+                "type" => ["id" => $destination->destination_type_id, "name" => $destination->type],
+                "created_at" => $destination->created_at,
+            ];
+        });
+        return response()->json($tr, 200, [], JSON_UNESCAPED_UNICODE);
     }
     public function directorates()
     {
-        try {
-            $locale = App::getLocale();
-            $tr = [];
-            if ($locale === LanguageEnum::default->value)
-                $tr = Destination::with(['type']) // Eager load relationships
-                    ->select("name", 'id', 'created_at', 'color', 'destination_type_id')
-                    ->where('destination_type_id', '=', DestinationTypeEnum::directorate->value)
-                    ->orderBy('id', 'desc')
-                    ->get();
-            else {
-                $tr = $this->translations($locale, DestinationTypeEnum::directorate->value);
-            }
-            return response()->json($tr, 200, [], JSON_UNESCAPED_UNICODE);
-        } catch (Exception $err) {
-            Log::info('statuses error =>' . $err->getMessage());
-            return response()->json([
-                'message' => __('app_translation.server_error')
-            ], 500, [], JSON_UNESCAPED_UNICODE);
-        }
+        $locale = App::getLocale();
+        $tr = DB::table('destinations as d')
+            ->where('d.destination_type_id', DestinationTypeEnum::directorate->value)
+            ->join('destination_trans as dt', function ($join) use ($locale) {
+                $join->on('dt.destination_id', '=', 'd.id')
+                    ->where('dt.language_name', $locale);
+            })->select('d.id', "dt.value as name")->get();
+        return response()->json($tr, 200, [], JSON_UNESCAPED_UNICODE);
     }
     public function muqams()
     {
-        try {
-            $locale = App::getLocale();
-            $tr = [];
-            if ($locale === LanguageEnum::default->value)
-                $tr = Destination::with(['type']) // Eager load relationships
-                    ->select("name", 'id', 'created_at', 'color', 'destination_type_id')
-                    ->where('destination_type_id', '=', DestinationTypeEnum::muqam->value)
-                    ->orderBy('id', 'desc')
-                    ->get();
-            else {
-                $tr = $this->translations($locale, DestinationTypeEnum::muqam->value);
-            }
-            return response()->json($tr, 200, [], JSON_UNESCAPED_UNICODE);
-        } catch (Exception $err) {
-            Log::info('statuses error =>' . $err->getMessage());
-            return response()->json([
-                'message' => __('app_translation.server_error')
-            ], 500, [], JSON_UNESCAPED_UNICODE);
-        }
+        $locale = App::getLocale();
+        $tr = DB::table('destinations as d')
+            ->where('d.destination_type_id', DestinationTypeEnum::muqam->value)
+            ->join('destination_trans as dt', function ($join) use ($locale) {
+                $join->on('dt.destination_id', '=', 'd.id')
+                    ->where('dt.language_name', $locale);
+            })->select('d.id', "dt.value as name")->get();
+
+        return response()->json($tr, 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function destination($id)
     {
-        try {
-            $destination = Destination::find($id);
-            if ($destination) {
-                // Get type based on current locale
-                $type = DestinationType::select('name', 'id', 'created_at')
-                    ->find($destination->destination_type_id);
-                if (!$type) {
-                    return response()->json([
-                        'message' => __('app_translation.destination_type_not_found')
-                    ], 404, [], JSON_UNESCAPED_UNICODE);
-                }
-                $data = [
-                    "id" => $destination->id,
-                    "en" => $destination->name,
-                    "color" => $destination->color,
-                    "type" => [
-                        "id" => $type->id,
-                        "name" => $this->getTranslationWithNameColumn($type, DestinationType::class),
-                        "created_at" => $type->created_at,
-                    ],
-                ];
-                $translations = Translate::where("translable_id", "=", $id)
-                    ->where('translable_type', '=', Destination::class)->get();
-                foreach ($translations as $translation) {
-                    $data[$translation->language_name] = $translation->value;
-                }
-                return response()->json([
-                    'destination' =>  $data,
-                ], 200, [], JSON_UNESCAPED_UNICODE);
-            } else
-                return response()->json([
-                    'message' => __('app_translation.failed'),
-                ], 400, [], JSON_UNESCAPED_UNICODE);
-        } catch (Exception $err) {
-            Log::info('Urgency error =>' . $err->getMessage());
-            return response()->json([
-                'message' => __('app_translation.server_error')
-            ], 500, [], JSON_UNESCAPED_UNICODE);
-        }
+        $locale = App::getLocale();
+
+        $tr = DB::table('destinations as d')
+            ->where('d.id', $id)
+            ->joinSub(function ($query) {
+                $query->from('destination_trans as dt')
+                    ->select(
+                        'destination_id',
+                        DB::raw("MAX(CASE WHEN language_name = 'fa' THEN value END) as farsi"),
+                        DB::raw("MAX(CASE WHEN language_name = 'en' THEN value END) as english"),
+                        DB::raw("MAX(CASE WHEN language_name = 'ps' THEN value END) as pashto")
+                    )
+                    ->groupBy('destination_id');
+            }, 'dt', 'dt.destination_id', '=', 'd.id')
+            // Join for the destination type translation
+            ->leftJoin('destination_type_trans as dtt', function ($join) use ($locale) {
+                $join->on('dtt.destination_type_id', '=', 'd.destination_type_id')
+                    ->where('dtt.language_name', $locale);
+            })
+            ->select(
+                'd.id',
+                'dt.english',
+                'dt.farsi',
+                'dt.pashto',
+                'd.color',
+                'd.destination_type_id',
+                'dtt.value as type',
+                'd.created_at'
+            )
+            ->first();
+
+        return response()->json([
+            "id" => $tr->id,
+            "english" => $tr->english,
+            "farsi" => $tr->farsi,
+            "pashto" => $tr->pashto,
+            "color" => $tr->color,
+            "destination_type" => ["id" => $tr->destination_type_id, "name" => $tr->type],
+            "created_at" => $tr->created_at,
+
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function store(DestinationStoreRequest $request)
     {
-        $payload = $request->validated();
-        try {
-            $destinationType = DestinationType::find($payload['destination_type_id']);
-            if (!$destinationType) {
-                return response()->json([
-                    'message' => __('app_translation.destination_type_not_found')
-                ], 200, [], JSON_UNESCAPED_UNICODE);
-            }
-            // 1. Create
-            $destination = Destination::create([
-                "name" => $payload["english"],
-                "color" => $payload["color"],
-                "destination_type_id" => $destinationType->id,
-            ]);
-            if ($destination) {
-                // 1. Translate
-                $this->TranslateFarsi($payload["farsi"], $destination->id, Destination::class);
-                $this->TranslatePashto($payload["pashto"], $destination->id, Destination::class);
-                // Get local
-                $locale = App::getLocale();
-                if ($locale === LanguageEnum::default->value) {
-                    return response()->json([
-                        'message' => __('app_translation.success'),
-                        'destination' => [
-                            "id" => $destination->id,
-                            "name" => $destination->name,
-                            "color" => $destination->color,
-                            "type" => [
-                                "id" => $destinationType->id,
-                                "name" => $destinationType->name,
-                                "created_at" => $destinationType->created_at,
-                            ],
-                            "created_at" => $destination->created_at
-                        ]
-                    ], 200, [], JSON_UNESCAPED_UNICODE);
-                } else if ($locale === LanguageEnum::pashto->value) {
-                    return response()->json([
-                        'message' => __('app_translation.success'),
-                        'destination' => [
-                            "id" => $destination->id,
-                            "name" => $payload["pashto"],
-                            "color" => $destination->color,
-                            "type" => [
-                                "id" => $destinationType->id,
-                                "name" => $this->getTranslationWithNameColumn($destinationType, DestinationType::class),
-                                "created_at" => $destinationType->created_at,
-                            ],
-                            "created_at" => $destination->created_at
-                        ]
-                    ], 200, [], JSON_UNESCAPED_UNICODE);
-                } else {
-                    return response()->json([
-                        'message' => __('app_translation.success'),
-                        'destination' => [
-                            "id" => $destination->id,
-                            "name" => $payload["farsi"],
-                            "color" => $destination->color,
-                            "type" => [
-                                "id" => $destinationType->id,
-                                "name" => $this->getTranslationWithNameColumn($destinationType, DestinationType::class),
-                                "created_at" => $destinationType->created_at,
-                            ],
-                            "created_at" => $destination->created_at
-                        ]
-                    ], 200, [], JSON_UNESCAPED_UNICODE);
-                }
-
-                return response()->json([
-                    'message' => __('app_translation.success'),
-                ], 200, [], JSON_UNESCAPED_UNICODE);
-            } else
-                return response()->json([
-                    'message' => __('app_translation.failed'),
-                ], 400, [], JSON_UNESCAPED_UNICODE);
-        } catch (Exception $err) {
-            Log::info('User login error =>' . $err->getMessage());
+        $request->validated();
+        $destinationType = DestinationType::find($request->destination_type_id);
+        if (!$destinationType) {
             return response()->json([
-                'message' => __('app_translation.server_error')
-            ], 500, [], JSON_UNESCAPED_UNICODE);
+                'message' => __('app_translation.destination_type_not_found')
+            ], 200, [], JSON_UNESCAPED_UNICODE);
         }
+        // 1. Create
+        $destination = Destination::create([
+            "color" => $request->color,
+            "destination_type_id" => $destinationType->id,
+        ]);
+
+        foreach (LanguageEnum::LANGUAGES as $code => $name) {
+            DestinationTrans::create([
+                "value" => $request["{$name}"],
+                "destination_id" => $destination->id,
+                "language_name" => $code,
+            ]);
+        }
+
+        $locale = App::getLocale();
+        $name = $request->english;
+        if ($locale == LanguageEnum::farsi->value) {
+            $name = $request->farsi;
+        } else {
+            $name = $request->pashto;
+        }
+        return response()->json([
+            'message' => __('app_translation.success'),
+            'destination' => [
+                "id" => $destination->id,
+                "name" => $name,
+                "color" => $destination->color,
+                "created_at" => $destination->created_at
+            ]
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function update(DestinationStoreRequest $request)
     {
-        $payload = $request->validated();
+        $request->validated();
         // This validation not exist in UrgencyStoreRequest
         $request->validate([
             "id" => "required"
         ]);
-        try {
-            // 1. Find
-            $destination = Destination::find($request->id);
-            $type = DestinationType::find($request->destination_type_id);
-            if ($destination && $type) {
-                $locale = App::getLocale();
-                // 1. Update
-                $destination->name = $payload['english'];
-                $destination->color = $payload['color'];
-                $destination->destination_type_id  = $type->id;
-                $destination->save();
-                $translations =
-                    Translate::where("translable_id", "=", $destination->id)
-                    ->where('translable_type', '=', Destination::class)->get();
-                foreach ($translations as $translation) {
-                    if ($translation->language_name === LanguageEnum::farsi->value) {
-                        $translation->value = $payload['farsi'];
-                    } else if ($translation->language_name === LanguageEnum::pashto->value) {
-                        $translation->value = $payload['pashto'];
-                    }
-                    $translation->save();
-                }
-                if ($locale === LanguageEnum::pashto->value) {
-                    $destination->name = $payload['pashto'];
-                } else if ($locale === LanguageEnum::farsi->value) {
-                    $destination->name = $payload['farsi'];
-                }
-                return response()->json([
-                    'message' => __('app_translation.success'),
-                    'destination' => [
-                        "id" => $destination->id,
-                        "color" => $destination->color,
-                        "name" => $destination->name,
-                        "created_at" => $destination->created_at,
-                        "type" => [
-                            "id" => $type->id,
-                            "name" => $this->getTranslationWithNameColumn($type, DestinationType::class),
-                            "created_at" => $type->created_at
-                        ]
-                    ],
-                ], 200, [], JSON_UNESCAPED_UNICODE);
-            } else
-                return response()->json([
-                    'message' => __('app_translation.failed'),
-                ], 400, [], JSON_UNESCAPED_UNICODE);
-        } catch (Exception $err) {
-            Log::info('User login error =>' . $err->getMessage());
+        // 1. Find
+        $destination = Destination::find($request->id);
+        if (!$destination) {
             return response()->json([
-                'message' => __('app_translation.server_error')
-            ], 500, [], JSON_UNESCAPED_UNICODE);
+                'message' => __('app_translation.destination_not_found')
+            ], 404, [], JSON_UNESCAPED_UNICODE);
         }
+        $type = DestinationType::find($request->destination_type_id);
+        if (!$type) {
+            return response()->json([
+                'message' => __('app_translation.destination_type_not_found')
+            ], 404, [], JSON_UNESCAPED_UNICODE);
+        }
+        $trans = DestinationTrans::where('destination_id', $request->id)->select('id', 'language_name')->get();
+        // Update
+        foreach (LanguageEnum::LANGUAGES as $code => $name) {
+            $tran =  $trans->where('language_name', $code)->first();
+            $tran->value = $request["{$name}"];
+            $tran->save();
+        }
+        $destination->color = $request->color;
+        $destination->destination_type_id = $request->destination_type_id;
+        $destination->save();
+
+        $locale = App::getLocale();
+        $name = $request->english;
+        if ($locale == LanguageEnum::farsi->value) {
+            $name = $request->farsi;
+        } else {
+            $name = $request->pashto;
+        }
+
+
+        return response()->json([
+            'message' => __('app_translation.success'),
+            'destination' => [
+                "id" => $destination->id,
+                "color" => $destination->color,
+                "name" => $name,
+                "created_at" => $destination->created_at,
+            ],
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function destroy($id)
@@ -288,58 +241,5 @@ class DestinationController extends Controller
                 'message' => __('app_translation.server_error')
             ], 500, [], JSON_UNESCAPED_UNICODE);
         }
-    }
-
-    // Utils
-    private function translations($locale, $destination_type_id)
-    {
-        // Fetch destinations with translations and related destination type translations
-        $query = Destination::with([
-            'translations' => function ($query) use ($locale) {
-                // Filter translations by locale and select required fields
-                $query->select('id', 'value', 'created_at', 'translable_id')
-                    ->where('language_name', '=', $locale);
-            },
-            'type.translations' => function ($query) use ($locale) {
-                // Filter translations for the related type by locale
-                $query->select('id', 'value', 'created_at', 'translable_id')
-                    ->where('language_name', '=', $locale);
-            }
-        ])->select('id', 'color', 'destination_type_id', 'created_at');
-
-        // Apply filter for destination type if passed
-        if ($destination_type_id) {
-            $query->where('destination_type_id', '=', $destination_type_id);
-        }
-
-        $destinations = $query->get();
-
-        // Transform the collection
-        $destinations = $destinations->map(function ($destination) {
-            // Get the translated name of the destination
-            $destinationTranslation = $destination->translations->first();
-
-            // Prepare the destination data
-            $destinationData = [
-                'id' => $destination->id,
-                'name' => $destinationTranslation ? $destinationTranslation->value : null,  // Translated name
-                'color' => $destination->color,
-                'created_at' => $destination->created_at,
-            ];
-
-            // Get the translated name for the destination type
-            $destinationTypeTranslation = $destination->type->translations->first();
-            $destinationData['type'] = [
-                'id' => $destination->destination_type_id,
-                'name' => $destinationTypeTranslation ? $destinationTypeTranslation->value : null,  // Translated name
-                'created_at' => $destinationTypeTranslation ? $destinationTypeTranslation->created_at : null
-            ];
-
-            // Return transformed destination data
-            return $destinationData;
-        });
-
-        // Return the transformed collection
-        return $destinations;
     }
 }

@@ -9,7 +9,6 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Models\Email;
 use App\Models\NgoStatus;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -172,6 +171,7 @@ class NgoAuthController extends Controller
                 "np.add",
                 "np.delete",
                 "np.edit",
+                "np.visible",
                 "np.id",
             )
             ->orderBy("p.priority")

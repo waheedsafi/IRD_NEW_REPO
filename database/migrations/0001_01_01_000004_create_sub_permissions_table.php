@@ -11,19 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user_permissions', function (Blueprint $table) {
+        Schema::create('sub_permissions', function (Blueprint $table) {
             $table->id();
-            $table->boolean('view');
-            $table->boolean("visible")->default(true);
-            $table->foreignId('user_id')
-                ->constrained()
-                ->onUpdate('cascade')
-                ->onDelete('cascade');
             $table->string('permission');
             $table->foreign('permission')->references('name')->on('permissions')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
-            $table->index(["permission", "user_id"]);
+            $table->string("name");
             $table->timestamps();
         });
     }
@@ -33,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('user_permissions');
+        Schema::dropIfExists('sub_permissions');
     }
 };

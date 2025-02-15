@@ -427,13 +427,15 @@ class StoresNgoController extends Controller
             "ngo_id" => $ngo_id,
             "permission" => PermissionEnum::dashboard->value,
         ]);
-        // NgoPermission::create([
-        //     "view" => true,
-        //     "edit" => true,
-        //     "delete" => true,
-        //     "add" => true,
-        //     "ngo_id" => $ngo_id,
-        //     "permission" => PermissionEnum::projects->value,
-        // ]);
+
+        NgoPermission::create([
+            "visible" => false,
+            "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
+            "ngo_id" => $ngo_id,
+            "permission" => PermissionEnum::ngo->value,
+        ]);
     }
 }

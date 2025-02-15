@@ -11,15 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('destinations', function (Blueprint $table) {
+        Schema::create('destination_type_trans', function (Blueprint $table) {
             $table->id();
-            $table->string('color', 64);
+            $table->string('value', 128);
             $table->unsignedBigInteger('destination_type_id');
             $table->foreign('destination_type_id')->references('id')->on('destination_types')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
-            $table->index(['destination_type_id']);
+            $table->string('language_name');
+            $table->foreign('language_name')->references('name')->on('languages')
+                ->onUpdate('cascade')
+                ->onDelete('no action');
             $table->timestamps();
+            $table->index(["language_name", "destination_type_id"]);
         });
     }
 
@@ -28,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('destinations');
+        Schema::dropIfExists('destination_type_trans');
     }
 };

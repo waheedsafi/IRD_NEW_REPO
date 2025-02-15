@@ -7,7 +7,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class HasDeletePermissionMiddleware
+class UserHasViewPermissionMiddleware
 {
     /**
      * Handle an incoming request.
@@ -21,7 +21,8 @@ class HasDeletePermissionMiddleware
             // 1. Check user has user permission
             $permission = UserPermission::where("user_id", "=", $authUser->id)
                 ->where("permission", '=', $permission)
-                ->where('delete', true)
+                ->where('view', true)
+                ->select('id')
                 ->first();
             if ($permission) {
                 return $next($request);

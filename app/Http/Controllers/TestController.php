@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\Ngo;
 use App\Models\News;
 use App\Models\User;
-use App\Models\Email;
 
+use App\Models\Email;
 use App\Models\Staff;
 use App\Models\Gender;
-use App\Models\Address;
 
+use App\Models\Address;
 use App\Models\Country;
 use App\Models\NgoTran;
 use App\Enums\StaffEnum;
@@ -25,28 +26,189 @@ use App\Enums\LanguageEnum;
 use App\Models\AddressTran;
 use App\Models\NidTypeTrans;
 use Illuminate\Http\Request;
+use App\Enums\PermissionEnum;
+use Sway\Models\RefreshToken;
 use App\Models\StatusTypeTran;
+use App\Enums\SubPermissionEnum;
+use App\Enums\DestinationTypeEnum;
 use App\Enums\Type\StatusTypeEnum;
 use App\Models\PendingTaskContent;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Traits\Address\AddressTrait;
 use App\Repositories\ngo\NgoRepositoryInterface;
-use Carbon\Carbon;
-use Sway\Models\RefreshToken;
+use App\Repositories\User\UserRepositoryInterface;
 
 class TestController extends Controller
 {
     protected $ngoRepository;
+    protected $userRepository;
 
-    public function __construct(NgoRepositoryInterface $ngoRepository)
-    {
+    public function __construct(
+        NgoRepositoryInterface $ngoRepository,
+        UserRepositoryInterface $userRepository
+    ) {
         $this->ngoRepository = $ngoRepository;
+        $this->userRepository = $userRepository;
     }
     use AddressTrait;
     public function index(Request $request)
     {
         $locale = App::getLocale();
+
+        return $this->userRepository->formattedPermissions(1);
+
+        $tr = DB::table('destinations as d')
+            // Join for the destination translations per language
+            ->joinSub(function ($query) {
+                $query->from('destination_trans as dt')
+                    ->select(
+                        'destination_id',
+                        DB::raw("MAX(CASE WHEN language_name = 'fa' THEN value END) as farsi"),
+                        DB::raw("MAX(CASE WHEN language_name = 'en' THEN value END) as english"),
+                        DB::raw("MAX(CASE WHEN language_name = 'ps' THEN value END) as pashto")
+                    )
+                    ->groupBy('destination_id');
+            }, 'dt', 'dt.destination_id', '=', 'd.id')
+            // Join for the destination type translation
+            ->leftJoin('destination_type_trans as dtt', function ($join) use ($locale) {
+                $join->on('dtt.destination_type_id', '=', 'd.destination_type_id')
+                    ->where('dtt.language_name', $locale);
+            })
+            ->select(
+                'd.id',
+                'dt.english',
+                'dt.farsi',
+                'dt.pashto',
+                'd.color',
+                'd.destination_type_id',
+                'dtt.value as type',
+                'd.created_at'
+            )
+            ->first();
+
+
+        return [
+            "id" => $tr->id,
+            "english" => $tr->english,
+            "farsi" => $tr->farsi,
+            "pashto" => $tr->pashto,
+            "color" => $tr->color,
+            "type" => ["id" => $tr->destination_type_id, "name" => $tr->type],
+            "created_at" => $tr->created_at,
+        ];
+
+
+        return DB::table('destinations as d')
+            ->where('d.destination_type_id', DestinationTypeEnum::muqam->value)
+            ->join('destination_trans as dt', function ($join) use ($locale) {
+                $join->on('dt.destination_id', '=', 'd.id')
+                    ->where('dt.language_name', $locale);
+            })->select('d.id', "dt.value as name")->get();
+
+
+
+        // Define user ID
+        $userId = 1;  // Example user ID. You can replace it with the variable as needed.
+        $permissions = DB::table('users as u')
+            ->where('u.id', $userId)
+            ->join('user_permissions as up', 'u.id', '=', 'up.user_id')
+            ->join('permissions as p', 'up.permission', '=', 'p.name')
+            ->leftJoin('user_permission_subs as ups', 'up.id', '=', 'ups.user_permission_id')
+            ->leftJoin('sub_permissions as sp', 'ups.sub_permission_id', '=', 'sp.id')
+            ->select(
+                'up.id as permission_id',
+                'p.name as permission',
+                'p.icon',
+                'p.priority',
+                'up.view',
+                'up.visible',
+                DB::raw('ups.sub_permission_id as sub_permission_id'),
+                DB::raw('ups.add as sub_add'),
+                DB::raw('ups.delete as sub_delete'),
+                DB::raw('ups.edit as sub_edit')
+            )
+            ->orderBy('p.priority')  // Optional: If you want to order by priority, else remove
+            ->get();
+
+        // Transform data to match desired structure (for example, if you need nested `sub` permissions)
+        $formattedPermissions = $permissions->groupBy('permission_id')->map(function ($group) {
+            $subPermissions = $group->filter(function ($item) {
+                return $item->sub_permission_id !== null; // Filter for permissions that have sub-permissions
+            });
+
+            $permission = $group->first(); // Get the first permission for this group
+
+            $permission->view = $permission->view == 1;  // Convert 1 to true, 0 to false
+            $permission->visible = $permission->visible == 1;  // Convert 1 to true, 0 to false
+            if ($subPermissions->isNotEmpty()) {
+
+                $permission->sub = $subPermissions->map(function ($sub) {
+                    return [
+                        'id' => $sub->sub_permission_id,
+                        'add' => $sub->sub_add == 1,   // Convert 1 to true, 0 to false
+                        'delete' => $sub->sub_delete == 1,  // Convert 1 to true, 0 to false
+                        'edit' => $sub->sub_edit == 1   // Convert 1 to true, 0 to false
+                    ];
+                });
+            } else {
+                $permission->sub = [];
+            }
+            // If there are no sub-permissions, remove the unwanted fields
+            unset($permission->sub_permission_id);
+            unset($permission->sub_add);
+            unset($permission->sub_delete);
+            unset($permission->sub_edit);
+
+            return $permission;
+        })->values();
+
+
+        $user = DB::table('users as u')
+            ->where('u.id', $userId)
+            ->join('model_job_trans as mjt', 'mjt.model_job_id', '=', 'u.job_id')
+            ->join('contacts as c', 'c.id', '=', 'u.contact_id')
+            ->join('emails as e', 'e.id', '=', 'u.email_id')
+            ->join('roles as r', 'r.id', '=', 'u.role_id')
+            ->join('destination_trans as dt', function ($join) use ($locale) {
+                $join->on('dt.destination_id', '=', 'u.destination_id')
+                    ->where('dt.language_name', $locale);
+            })->select(
+                'u.id',
+                "u.profile",
+                "u.status",
+                "u.grant_permission",
+                'u.full_name',
+                'u.username',
+                'c.value as contact',
+                'u.contact_id',
+                'e.value as email',
+                'r.name as role_name',
+                'u.role_id',
+                'dt.value as destination',
+                "mjt.value as job",
+                "u.created_at"
+            )
+            ->first();
+
+        // Output the transformed permissions
+        return response()->json([
+            "user" => [
+                "id" => $user->id,
+                "full_name" => $user->full_name,
+                "username" => $user->username,
+                'email' => $user->email,
+                "profile" => $user->profile,
+                "status" => $user->status,
+                "grant" => $user->grant_permission,
+                "role" => ["role" => $user->role_id, "name" => $user->role_name],
+                'contact' => $user->contact,
+                "destination" => $user->destination,
+                "job" => $user->job,
+                "created_at" => $user->created_at,
+            ],
+            'permissions' => $formattedPermissions
+        ]);
 
         $type = "Ngo";
         return "App\Models\\{$type}";

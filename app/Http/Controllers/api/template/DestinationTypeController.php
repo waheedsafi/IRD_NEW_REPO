@@ -10,26 +10,19 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\template\destination\DestinationTypeStoreRequest;
+use Illuminate\Support\Facades\DB;
 
 class DestinationTypeController extends Controller
 {
     public function DestinationTypes()
     {
-        try {
-            $locale = App::getLocale();
-            $tr = [];
-            if ($locale === LanguageEnum::default->value)
-                $tr =  DestinationType::select("name", 'id', 'created_at as createdAt')->orderBy('id', 'desc')->get();
-            else {
-                $tr = $this->getTableTranslations(DestinationType::class, $locale, 'desc');
-            }
-            return response()->json($tr, 200, [], JSON_UNESCAPED_UNICODE);
-        } catch (Exception $err) {
-            Log::info('User login error =>' . $err->getMessage());
-            return response()->json([
-                'message' => __('app_translation.server_error')
-            ], 500, [], JSON_UNESCAPED_UNICODE);
-        }
+        $locale = App::getLocale();
+        $tr = DB::table("destination_types as dt")
+            ->join('destination_type_trans as dtt', function ($join) use ($locale) {
+                return $join->on('dtt.destination_type_id', 'dt.id')
+                    ->where('language_name', $locale);
+            })->select('dt.id', 'dtt.value as name')->get();
+        return response()->json($tr, 200, [], JSON_UNESCAPED_UNICODE);
     }
     public function store(DestinationTypeStoreRequest $request)
     {

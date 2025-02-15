@@ -25,7 +25,7 @@ class CheckListSeeder extends Seeder
     {
         CheckListType::create(
             [
-                'id' => CheckListTypeEnum::externel,
+                'id' => CheckListTypeEnum::internal,
                 'name' => 'Internal'
             ]
         );

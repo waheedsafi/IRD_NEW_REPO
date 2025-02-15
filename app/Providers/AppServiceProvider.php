@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use App\Repositories\ngo\NgoRepository;
 use Illuminate\Support\ServiceProvider;
+use App\Repositories\User\UserRepository;
 use App\Repositories\ngo\NgoRepositoryInterface;
 use App\Repositories\Task\PendingTaskRepository;
+use App\Repositories\User\UserRepositoryInterface;
 use App\Repositories\Task\PendingTaskRepositoryInterface;
 
 class AppServiceProvider extends ServiceProvider
@@ -16,6 +18,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(NgoRepositoryInterface::class, NgoRepository::class);
+        $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(PendingTaskRepositoryInterface::class, PendingTaskRepository::class);
     }
 

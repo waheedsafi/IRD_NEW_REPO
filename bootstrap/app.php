@@ -12,12 +12,12 @@ use App\Http\Middleware\api\template\ValidateApiKey;
 use App\Http\Middleware\web\AllowedApiUserMiddleware;
 use App\Http\Middleware\api\template\LocaleMiddleware;
 use App\Http\Middleware\api\template\AccessUserCheckMiddleware;
-use App\Http\Middleware\api\template\HasAddPermissionMiddleware;
 use App\Http\Middleware\api\template\AllowAdminOrSuperMiddleware;
-use App\Http\Middleware\api\template\HasEditPermissionMiddleware;
-use App\Http\Middleware\api\template\HasViewPermissionMiddleware;
 use App\Http\Middleware\api\template\HasGrantPermissionMiddleware;
-use App\Http\Middleware\api\template\HasDeletePermissionMiddleware;
+use App\Http\Middleware\api\template\UserHasAddPermissionMiddleware;
+use App\Http\Middleware\api\template\UserHasEditPermissionMiddleware;
+use App\Http\Middleware\api\template\UserHasViewPermissionMiddleware;
+use App\Http\Middleware\api\template\UserHasDeletePermissionMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -29,10 +29,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(LocaleMiddleware::class)
             ->alias([
-                'hasViewPermission' => HasViewPermissionMiddleware::class,
-                'hasDeletePermission' => HasDeletePermissionMiddleware::class,
-                'hasEditPermission' => HasEditPermissionMiddleware::class,
-                'hasAddPermission' => HasAddPermissionMiddleware::class,
+                'userHasViewPermission' => UserHasViewPermissionMiddleware::class,
+                'userHasDeletePermission' => UserHasDeletePermissionMiddleware::class,
+                'userHasEditPermission' => UserHasEditPermissionMiddleware::class,
+                'userHasAddPermission' => UserHasAddPermissionMiddleware::class,
                 'hasGrantPermission' => HasGrantPermissionMiddleware::class,
                 'allowAdminOrSuper'  => AllowAdminOrSuperMiddleware::class,
                 'apiAllowedUser'  => AllowedApiUserMiddleware::class,

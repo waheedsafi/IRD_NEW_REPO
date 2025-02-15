@@ -35,11 +35,11 @@ return new class extends Migration
             $table->unsignedBigInteger('job_id')->nullable();
             $table->foreign('job_id')->references('id')->on('model_jobs')
                 ->onUpdate('cascade')
-                ->onDelete('set null');
+                ->onDelete('no action');
             $table->unsignedBigInteger('destination_id')->nullable();
             $table->foreign('destination_id')->references('id')->on('destinations')
                 ->onUpdate('cascade')
-                ->onDelete('set null');
+                ->onDelete('no action');
             $table->index(["email_id", "job_id", "destination_id", "role_id"]);
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();

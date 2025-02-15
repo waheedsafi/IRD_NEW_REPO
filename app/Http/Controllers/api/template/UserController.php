@@ -20,12 +20,19 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use App\Repositories\User\UserRepositoryInterface;
 use App\Http\Requests\template\user\UpdateUserRequest;
 use App\Http\Requests\template\user\UserRegisterRequest;
 use App\Http\Requests\template\user\UpdateUserPasswordRequest;
 
 class UserController extends Controller
 {
+    protected $userRepository;
+
+    public function __construct(UserRepositoryInterface $userRepository)
+    {
+        $this->userRepository = $userRepository;
+    }
     public function users(Request $request)
     {
         $locale = App::getLocale();
@@ -34,53 +41,33 @@ class UserController extends Controller
         $page = $request->input('page', 1); // Current page
 
         // Start building the query
-        $query = [];
-        if ($locale === LanguageEnum::default->value) {
-            $query = UsersEnView::query();
-        } else if ($locale === LanguageEnum::farsi->value) {
-            $query = UsersFaView::query();
-        } else {
-            $query = UsersPsView::query();
-        }
-        // Apply date filtering conditionally if provided
-        $startDate = $request->input('filters.date.startDate');
-        $endDate = $request->input('filters.date.endDate');
+        $query = DB::table('users as u')
+            ->leftJoin('contacts as c', 'c.id', '=', 'u.contact_id')
+            ->join('emails as e', 'e.id', '=', 'u.email_id')
+            ->join('roles as r', 'r.id', '=', 'u.role_id')
+            ->leftjoin('destination_trans as dt', function ($join) use ($locale) {
+                $join->on('dt.destination_id', '=', 'u.destination_id')
+                    ->where('dt.language_name', $locale);
+            })
+            ->leftjoin('model_job_trans as mjt', function ($join) use ($locale) {
+                $join->on('mjt.model_job_id', '=', 'u.job_id')
+                    ->where('mjt.language_name', $locale);
+            })
+            ->select(
+                "u.id",
+                "u.username",
+                "u.profile",
+                "u.status",
+                "u.created_at",
+                "e.value AS email",
+                "c.value AS contact",
+                "dt.value as destination",
+                "mjt.value as job"
+            );
 
-        if ($startDate || $endDate) {
-            // Apply date range filtering
-            if ($startDate && $endDate) {
-                $query->whereBetween('created_at', [$startDate, $endDate]);
-            } elseif ($startDate) {
-                $query->where('created_at', '>=', $startDate);
-            } elseif ($endDate) {
-                $query->where('created_at', '<=', $endDate);
-            }
-        }
-
-        // Apply search filter if present
-        $searchColumn = $request->input('filters.search.column');
-        $searchValue = $request->input('filters.search.value');
-
-        if ($searchColumn && $searchValue) {
-            $allowedColumns = ['username', 'contact', 'email'];
-
-            // Ensure that the search column is allowed
-            if (in_array($searchColumn, $allowedColumns)) {
-                $query->where($searchColumn, 'like', '%' . $searchValue . '%');
-            }
-        }
-
-        // Apply sorting if present
-        $sort = $request->input('filters.sort'); // Sorting column
-        $order = $request->input('filters.order', 'asc'); // Sorting order (default is 'asc')
-
-        // Apply sorting by provided column or default to 'created_at'
-        if ($sort && in_array($sort, ['username', 'created_at', 'status', 'job', 'destination'])) {
-            $query->orderBy($sort, $order);
-        } else {
-            // Default sorting if no sort is provided
-            $query->orderBy("created_at", $order);
-        }
+        $this->applyDate($query, $request);
+        $this->applyFilters($query, $request);
+        $this->applySearch($query, $request);
 
         // Apply pagination (ensure you're paginating after sorting and filtering)
         $tr = $query->paginate($perPage, ['*'], 'page', $page);
@@ -95,67 +82,67 @@ class UserController extends Controller
     }
     public function user($id, Request $request)
     {
-        // 1. Retrive current user all permissions
-        $foundUser = User::with(['userPermissions', 'contact', 'email', 'role', 'job', 'destination'])
-            ->find($id);
+        $locale = App::getLocale();
 
-
-        if ($foundUser) {
-            $rolePermissions = RolePermission::where('role', '=', $foundUser->role_id)
-                ->select('permission')
-                ->get();
-
-            $authUser = $request->user()->load('userPermissions');
-            // 2. Combine permissions of user1 and user2
-            $combinedPermissions = $foundUser->userPermissions->concat($authUser->userPermissions)->unique('permission');
-            $concateArr = [];
-            foreach ($combinedPermissions as $permission) {
-                for ($index = 0; $index < count($rolePermissions); $index++) {
-                    $item = $rolePermissions[$index]['permission'];
-                    if ($item == $permission->permission) {
-                        $actualUser = $permission->user_id == $foundUser->id;
-
-                        array_push($concateArr, [
-                            'permission' => $permission->permission,
-                            'view' => $actualUser ? $permission->view : false,
-                            'add' => $actualUser ? $permission->add : false,
-                            'delete' => $actualUser ? $permission->delete : false,
-                            'edit' => $actualUser ? $permission->edit : false,
-                            'id' => $permission->id,
-                        ]);
-
-                        break;
-                    }
-                }
-            }
-
+        $user = DB::table('users as u')
+            ->where('u.id', $id)
+            ->join('model_job_trans as mjt', function ($join) use ($locale) {
+                $join->on('mjt.model_job_id', '=', 'u.job_id')
+                    ->where('mjt.language_name', $locale);
+            })
+            ->leftJoin('contacts as c', 'c.id', '=', 'u.contact_id')
+            ->join('emails as e', 'e.id', '=', 'u.email_id')
+            ->join('roles as r', 'r.id', '=', 'u.role_id')
+            ->join('destination_trans as dt', function ($join) use ($locale) {
+                $join->on('dt.destination_id', '=', 'u.destination_id')
+                    ->where('dt.language_name', $locale);
+            })->select(
+                'u.id',
+                "u.profile",
+                "u.status",
+                "u.grant_permission",
+                'u.full_name',
+                'u.username',
+                'c.value as contact',
+                'u.contact_id',
+                'e.value as email',
+                'r.name as role_name',
+                'u.role_id',
+                'dt.value as destination',
+                "mjt.value as job",
+                "u.created_at",
+                "u.destination_id",
+                "u.job_id"
+            )
+            ->first();
+        if (!$user) {
             return response()->json([
-                "user" => [
-                    "id" => $foundUser->id,
-                    "full_name" => $foundUser->full_name,
-                    "username" => $foundUser->username,
-                    'email' => $foundUser->email ? $foundUser->email->value : null,
-                    "profile" => $foundUser->profile,
-                    "status" => $foundUser->status,
-                    "grant" => $foundUser->grant_permission,
-                    "role" => $foundUser->role,
-                    'contact' => $foundUser->contact ? $foundUser->contact->value : null,
-                    "destination" => [
-                        'id' => $foundUser->destination_id,
-                        'name' => $this->getTranslationWithNameColumn($foundUser->destination, Destination::class)
-                    ],
-                    "job" => [
-                        'id' => $foundUser->job_id,
-                        'name' => $this->getTranslationWithNameColumn($foundUser->job, ModelJob::class),
-                    ],
-                    "created_at" => $foundUser->created_at,
-                ],
-                "permission" => $concateArr
-            ], 200, [], JSON_UNESCAPED_UNICODE);
-        } else
-            return response()->json([
-                'message' => __('app_translation.not_found'),
+                'message' => __('app_translation.user_not_found'),
             ], 404, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        return response()->json(
+            [
+                "user" => [
+                    "id" => $user->id,
+                    "full_name" => $user->full_name,
+                    "username" => $user->username,
+                    'email' => $user->email,
+                    "profile" => $user->profile,
+                    "status" => $user->status == 1,
+                    "grant" => $user->grant_permission == 1,
+                    "role" => $user->role_name,
+                    'contact' => $user->contact,
+                    "destination" => ["id" => $user->destination_id, "name" => $user->destination],
+                    "job" => ["id" => $user->job_id, "name" => $user->job],
+                    "created_at" => $user->created_at,
+                ],
+                "permission" => $this->userRepository->formattedPermissions($id),
+            ],
+            200,
+            [],
+            JSON_UNESCAPED_UNICODE
+        );
     }
     public function validateEmailContact(Request $request)
     {
@@ -462,5 +449,56 @@ class UserController extends Controller
         return response()->json([
             'message' => __('app_translation.success'),
         ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    protected function applyDate($query, $request)
+    {
+        // Apply date filtering conditionally if provided
+        $startDate = $request->input('filters.date.startDate');
+        $endDate = $request->input('filters.date.endDate');
+
+        if ($startDate) {
+            $query->where('n.created_at', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->where('n.created_at', '<=', $endDate);
+        }
+    }
+    // search function 
+    protected function applySearch($query, $request)
+    {
+        $searchColumn = $request->input('filters.search.column');
+        $searchValue = $request->input('filters.search.value');
+
+        $allowedColumns = ['username', 'contact', 'email'];
+
+        if ($searchColumn && $searchValue) {
+            $allowedColumns = [
+                'username' => 'u.username',
+                'contact' => 'c.value',
+                'email' => 'e.value'
+            ];
+            // Ensure that the search column is allowed
+            if (in_array($searchColumn, array_keys($allowedColumns))) {
+                $query->where($allowedColumns[$searchColumn], 'like', '%' . $searchValue . '%');
+            }
+        }
+    }
+    // filter function
+    protected function applyFilters($query, $request)
+    {
+
+        $sort = $request->input('filters.sort'); // Sorting column
+        $order = $request->input('filters.order', 'asc'); // Sorting order (default 
+        $allowedColumns = [
+            'username' => 'u.username',
+            'created_at' => 'u.created_at',
+            'status' => 'u.status',
+            'job' => 'mjt.value',
+            'destination' => 'dt.value'
+        ];
+        if (in_array($sort, array_keys($allowedColumns))) {
+            $query->orderBy($allowedColumns[$sort], $order);
+        }
     }
 }
