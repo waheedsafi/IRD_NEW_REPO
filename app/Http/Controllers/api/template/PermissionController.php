@@ -81,10 +81,7 @@ class PermissionController extends Controller
         }
 
         return response()->json(
-            [
-
-                $userSubPermission,  // Return array of sub-permissions
-            ],
+            $userSubPermission,
             200,
             [],
             JSON_UNESCAPED_UNICODE
