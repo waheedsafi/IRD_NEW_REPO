@@ -66,8 +66,10 @@ class PermissionController extends Controller
 
         // Format response
         $userSubPermission = [];
+
         foreach ($subPermissions as $subPermission) {
-            $userSubPermission[$subPermission->name] = [
+            $userSubPermission[] = [  // Append to array instead of overwriting
+                'name'   => $subPermission->name,
                 'id'     => $subPermission->id,
                 'edit'   => (bool) $subPermission->edit,
                 'delete' => (bool) $subPermission->delete,
@@ -78,9 +80,8 @@ class PermissionController extends Controller
 
         return response()->json(
             [
-                'message' =>   __('app_translation.success'),
-                'sub_permissions' =>   $userSubPermission,
 
+                $userSubPermission,  // Return array of sub-permissions
             ],
             200,
             [],
