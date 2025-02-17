@@ -10,5 +10,6 @@ Route::get('sub-permissions', [PermissionController::class, 'subPermissions']);
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
     Route::get('/permissions/{id}', [PermissionController::class, "permissions"]);
     Route::get('sub-permissions', [PermissionController::class, 'subPermissions']);
-    Route::post('sub-permission/update', [PermissionController::class,'userPermissionUpdate']);
+    Route::post('sub-permission/update', [PermissionController::class, 'userPermissionUpdate']);
+    Route::post('/single/user/update-permission', [PermissionController::class, 'singleUserEditPermission']);
 });

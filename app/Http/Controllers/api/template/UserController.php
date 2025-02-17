@@ -80,6 +80,7 @@ class UserController extends Controller
             JSON_UNESCAPED_UNICODE
         );
     }
+    public function userPermissions($id) {}
     public function user($id)
     {
         $locale = App::getLocale();
@@ -137,7 +138,6 @@ class UserController extends Controller
                     "job" => ["id" => $user->job_id, "name" => $user->job],
                     "created_at" => $user->created_at,
                 ],
-                "permission" => $this->userRepository->formattedPermissions($id),
             ],
             200,
             [],

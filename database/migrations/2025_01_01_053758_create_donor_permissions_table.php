@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('donor_permissions', function (Blueprint $table) {
             $table->id();
+            $table->boolean('edit');
+            $table->boolean('delete');
+            $table->boolean('add');
             $table->boolean('view');
             $table->foreignId('donor_id')
                 ->constrained()

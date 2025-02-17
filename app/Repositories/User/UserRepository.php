@@ -20,6 +20,9 @@ class UserRepository implements UserRepositoryInterface
                 'p.icon',
                 'p.priority',
                 'up.view',
+                'up.edit',
+                'up.delete',
+                'up.add',
                 'up.visible',
                 DB::raw('ups.sub_permission_id as sub_permission_id'),
                 DB::raw('ups.add as sub_add'),
@@ -38,17 +41,19 @@ class UserRepository implements UserRepositoryInterface
 
             $permission = $group->first(); // Get the first permission for this group
 
-            $permission->view = $permission->view == 1;  // Convert 1 to true, 0 to false
-            $permission->visible = $permission->visible == 1;  // Convert 1 to true, 0 to false
+            $permission->view = (bool) $permission->view;
+            $permission->edit = (bool) $permission->edit;
+            $permission->delete = (bool) $permission->delete;
+            $permission->add = (bool) $permission->add;
+            $permission->visible = (bool) $permission->visible;
             if ($subPermissions->isNotEmpty()) {
-
                 $permission->sub = $subPermissions->map(function ($sub) {
                     return [
                         'id' => $sub->sub_permission_id,
-                        'add' => $sub->sub_add == 1,   // Convert 1 to true, 0 to false
-                        'delete' => $sub->sub_delete == 1,  // Convert 1 to true, 0 to false
-                        'edit' => $sub->sub_edit == 1,   // Convert 1 to true, 0 to false
-                        'view' => $sub->sub_view == 1,   // Convert 1 to true, 0 to false
+                        'add' => (bool) $sub->sub_add,
+                        'delete' => (bool) $sub->sub_delete,
+                        'edit' => (bool) $sub->sub_edit,
+                        'view' => (bool) $sub->sub_view,
                     ];
                 });
             } else {

@@ -25,61 +25,93 @@ class UserPermissionSeeder extends Seeder
     {
         UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::super->value,
             "permission" => "dashboard"
         ]);
         $userPermission = UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::super->value,
             "permission" => "ngo"
         ]);
         $this->addNgoSubPermissions($userPermission);
         UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::super->value,
             "permission" => "donor"
         ]);
         UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::super->value,
             "permission" => "projects"
         ]);
         $userPermission = UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::super->value,
             "permission" => "management/news"
         ]);
-        $this->addNewsSubPermissions($userPermission);
         $userPermission = UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::super->value,
             "permission" => "management/about"
         ]);
         $this->addAboutSubPermissions($userPermission);
         $userPermission = UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::super->value,
             "permission" => "users"
         ]);
         $this->addUserSubPermissions($userPermission);
         $userPermission = UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::super->value,
             "permission" => "settings"
         ]);
         $this->addSettingSubPermissions($userPermission);
         UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::super->value,
             "permission" => "reports"
         ]);
         UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::super->value,
             "permission" => "logs"
         ]);
         UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::super->value,
             "permission" => "audit"
         ]);
@@ -88,11 +120,17 @@ class UserPermissionSeeder extends Seeder
     {
         UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::admin->value,
             "permission" => "dashboard"
         ]);
         $userPermission = UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::admin->value,
             "permission" => "ngo"
         ]);
@@ -100,22 +138,33 @@ class UserPermissionSeeder extends Seeder
 
         UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::admin->value,
             "permission" => "donor"
         ]);
         UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::admin->value,
             "permission" => "projects"
         ]);
         $userPermission = UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::admin->value,
             "permission" => "management/news"
         ]);
-        $this->addNewsSubPermissions($userPermission);
         $userPermission = UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::admin->value,
             "permission" => "management/about"
         ]);
@@ -123,6 +172,9 @@ class UserPermissionSeeder extends Seeder
 
         $userPermission = UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::admin->value,
             "permission" => "users"
         ]);
@@ -130,12 +182,18 @@ class UserPermissionSeeder extends Seeder
 
         $userPermission = UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::admin->value,
             "permission" => "settings"
         ]);
         $this->addSettingSubPermissions($userPermission);
         UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::admin->value,
             "permission" => "reports"
         ]);
@@ -144,39 +202,59 @@ class UserPermissionSeeder extends Seeder
     {
         UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::user->value,
             "permission" => "dashboard"
         ]);
         $userPermission  = UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::user->value,
             "permission" => "ngo"
         ]);
         $this->addNgoSubPermissions($userPermission);
         UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::user->value,
             "permission" => "projects"
         ]);
         $userPermission = UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::user->value,
             "permission" => "management/news"
         ]);
-        $this->addNewsSubPermissions($userPermission);
         $userPermission = UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::user->value,
             "permission" => "management/about"
         ]);
         $this->addAboutSubPermissions($userPermission);
         UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::user->value,
             "permission" => "reports"
         ]);
         $userPermission = UserPermission::factory()->create([
             "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
             "user_id" => RoleEnum::user->value,
             "permission" => "settings"
         ]);
@@ -186,17 +264,26 @@ class UserPermissionSeeder extends Seeder
     {
         UserPermission::factory()->create([
             "view" => true,
-            "user_id" => 3,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
+            "user_id" => RoleEnum::debugger->value,
             "permission" => "dashboard"
         ]);
         UserPermission::factory()->create([
             "view" => true,
-            "user_id" => 3,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
+            "user_id" => RoleEnum::debugger->value,
             "permission" => "logs"
         ]);
         $userPermission = UserPermission::factory()->create([
             "view" => true,
-            "user_id" => 3,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
+            "user_id" => RoleEnum::debugger->value,
             "permission" => "settings"
         ]);
         $this->addSettingSubPermissions($userPermission);
@@ -244,19 +331,6 @@ class UserPermissionSeeder extends Seeder
     public function addAboutSubPermissions($userPermission)
     {
         foreach (SubPermissionEnum::ABOUT as $id => $role) {
-            UserPermissionSub::factory()->create([
-                "edit" => true,
-                "delete" => true,
-                "add" => true,
-                "view" => true,
-                "user_permission_id" => $userPermission->id,
-                "sub_permission_id" => $id,
-            ]);
-        }
-    }
-    public function addnEWSSubPermissions($userPermission)
-    {
-        foreach (SubPermissionEnum::NEWS as $id => $role) {
             UserPermissionSub::factory()->create([
                 "edit" => true,
                 "delete" => true,

@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('ngo_permissions', function (Blueprint $table) {
             $table->id();
+            $table->boolean('edit');
+            $table->boolean('delete');
+            $table->boolean('add');
             $table->boolean('view');
             $table->boolean('visible')->default(true);
             $table->foreignId('ngo_id')

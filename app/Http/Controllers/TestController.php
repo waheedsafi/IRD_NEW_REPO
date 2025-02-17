@@ -31,13 +31,20 @@ use Sway\Models\RefreshToken;
 use App\Models\StatusTypeTran;
 use App\Enums\SubPermissionEnum;
 use App\Enums\DestinationTypeEnum;
+use App\Enums\RoleEnum;
 use App\Enums\Type\StatusTypeEnum;
 use App\Models\PendingTaskContent;
+use App\Models\Role;
+use App\Models\RolePermission;
+use App\Models\RolePermissionSub;
+use App\Models\UserPermission;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Traits\Address\AddressTrait;
 use App\Repositories\ngo\NgoRepositoryInterface;
 use App\Repositories\User\UserRepositoryInterface;
+
+use function Laravel\Prompts\select;
 
 class TestController extends Controller
 {
@@ -54,7 +61,194 @@ class TestController extends Controller
     use AddressTrait;
     public function index(Request $request)
     {
+
+        $user_id = 4;
+        $role_id = 4;
+
+        return $permissions = DB::table('role_permissions as rp', 'rp.role', '=', $role_id)
+            ->join('permissions as p', 'rp.permission', '=', 'p.name')
+            ->join('role_permission_subs as rps', 'rps.role_permission_id', '=', 'rp.id')
+            ->leftJoin('sub_permissions as sp', 'rps.sub_permission_id', '=', 'sp.id')
+            ->select(
+                'p.name as permission',
+                'sp.name',
+                'p.icon',
+                'p.priority'
+            )
+            ->orderBy('p.priority')  // Optional: If you want to order by priority, else remove
+            ->get();
+
+        // Transform data to match desired structure (for example, if you need nested `sub` permissions)
+        $formattedPermissions = $permissions->groupBy('user_permission_id')->map(function ($group) {
+            $subPermissions = $group->filter(function ($item) {
+                return $item->sub_permission_id !== null; // Filter for permissions that have sub-permissions
+            });
+
+            $permission = $group->first(); // Get the first permission for this group
+
+            $permission->view = $permission->view == 1;  // Convert 1 to true, 0 to false
+            $permission->add = $permission->add == 1;  // Convert 1 to true, 0 to false
+            $permission->delete = $permission->delete == 1;  // Convert 1 to true, 0 to false
+            $permission->edit = $permission->edit == 1;  // Convert 1 to true, 0 to false
+            $permission->visible = $permission->visible == 1;  // Convert 1 to true, 0 to false
+            if ($subPermissions->isNotEmpty()) {
+
+                $permission->sub = $subPermissions->map(function ($sub) {
+                    return [
+                        'id' => $sub->sub_permission_id,
+                        'add' => $sub->sub_add == 1,   // Convert 1 to true, 0 to false
+                        'delete' => $sub->sub_delete == 1,  // Convert 1 to true, 0 to false
+                        'edit' => $sub->sub_edit == 1,   // Convert 1 to true, 0 to false
+                        'view' => $sub->sub_view == 1,   // Convert 1 to true, 0 to false
+                    ];
+                });
+            } else {
+                $permission->sub = [];
+            }
+            // If there are no sub-permissions, remove the unwanted fields
+            unset($permission->sub_permission_id);
+            unset($permission->sub_add);
+            unset($permission->sub_delete);
+            unset($permission->sub_edit);
+
+            return $permission;
+        })->values();
+
+        return $formattedPermissions;
+
         $locale = App::getLocale();
+        $permissions = [
+            ['id' => 21, 'name' => 'language', 'edit' => false, 'delete' => false, 'add' => true, 'view' => true],
+            ['id' => 22, 'name' => 'job', 'edit' => true, 'delete' => true, 'add' => true, 'view' => true],
+            ['id' => 23, 'name' => 'destination', 'edit' => true, 'delete' => true, 'add' => true, 'view' => true],
+        ];
+        $user_id = RoleEnum::debugger->value;
+        $role_id = RoleEnum::debugger->value;
+        $permissionName = PermissionEnum::settings->value;
+        // 1. Check Permission in Role Table
+        $rolePermission = DB::table('role_permissions as rp')->where('rp.role', $role_id)
+            ->where("rp.permission", $permissionName)
+            ->join('role_permission_subs as rps', 'rps.role_permission_id', '=', 'rp.id')
+            ->select('rps.role_permission_id', 'rps.sub_permission_id')
+            ->get();
+
+        if ($rolePermission && $rolePermission->isNotEmpty()) {
+            // 2. Check Request permission matches the role Permission
+            foreach ($permissions as $permission) {
+                $per = $rolePermission->where('sub_permission_id', $permission['id'])
+                    ->first();
+
+                if (!$per) {
+                    // User try to assign unauthorize permission
+                    return response()->json([
+                        'message' => __('app_translation.unauthorized_role_per')
+                    ], 403, [], JSON_UNESCAPED_UNICODE);
+                }
+            }
+            // 3. Get user Permission
+            $userPermissions = UserPermission::where('user_permissions.user_id', $user_id)
+                ->where("user_permissions.permission", $permissionName)
+                ->join('user_permission_subs as ups', 'ups.user_permission_id', '=', 'user_permissions.id')
+                ->select('ups.user_permission_id', 'ups.sub_permission_id', 'ups.id')
+                ->get();
+
+            // 3.1. PermissionName exist then update SubPermissions
+            if ($userPermissions && $userPermissions->isNotEmpty()) {
+
+                foreach ($permissions as $subPermission) {
+                    $per = $userPermissions->where('sub_permission_id', $subPermission['id'])
+                        ->first();
+
+                    // 3.1. SubPermissions exist then update
+                    if ($per) {
+                        if ($subPermission['main'] == true) {
+                            // It is UserPermission value
+                            $user_permission_id = $userPermissions->first()->user_permission_id;
+                            DB::table('user_permission_subs')
+                                ->where('id', $user_permission_id)
+                                ->update([
+                                    'edit' => $subPermission['edit'],
+                                    'delete' => $subPermission['delete'],
+                                    'add' => $subPermission['add'],
+                                    'view' => $subPermission['view'],
+                                ]);
+                        }
+                        DB::table('user_permission_subs')
+                            ->where('id', $per->id)
+                            ->update([
+                                'edit' => $subPermission['edit'],
+                                'delete' => $subPermission['delete'],
+                                'add' => $subPermission['add'],
+                                'view' => $subPermission['view'],
+                            ]);
+                    } else {
+                        // 3.1. SubPermissions doen't exist hence newly added to system
+                        $user_permission_id = $userPermissions->first()->user_permission_id;
+                        DB::table('user_permission_subs')->insert([
+                            'user_permission_id' => $user_permission_id,  // Ensure this is set correctly
+                            'sub_permission_id' => $subPermission['id'],
+                            'edit' => $subPermission['edit'],
+                            'delete' => $subPermission['delete'],
+                            'add' => $subPermission['add'],
+                            'view' => $subPermission['view'],
+                        ]);
+                    }
+                }
+            } else {
+                // 3.2 PermissionName does not exist hence newly added to system hence
+                // Permission and RolePermissions
+                $userPermission = UserPermission::create([
+                    "view" => false,
+                    "visible" => false,
+                    "user_id" => $user_id,
+                    "permission " => $permissionName,
+                ]);
+                // 3.3 add all SubPermissions
+                foreach ($permissions as $subPermission) {
+                    if ($subPermission['main'] == true) {
+                        // It is UserPermission value
+                        $userPermission->edit =  $subPermission['edit'];
+                        $userPermission->delete =  $subPermission['delete'];
+                        $userPermission->add =  $subPermission['add'];
+                        $userPermission->view =  $subPermission['view'];
+                        $userPermission->save();
+                    }
+                    // 3.1. SubPermissions exist then update
+                    DB::table('user_permission_subs')->insert([
+                        'user_permission_id' => $userPermission->id,  // Ensure this is set correctly
+                        'sub_permission_id' => $subPermission['id'],
+                        'edit' => $subPermission['edit'],
+                        'delete' => $subPermission['delete'],
+                        'add' => $subPermission['add'],
+                        'view' => $subPermission['view'],
+                    ]);
+                }
+            }
+
+            return "Success";
+        } else {
+            // Handle the case when the result is null or empty
+            return response()->json([
+                'message' => __('app_translation.unauthorized')
+            ], 403, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        return "Success";
+        // UserPermission::where("user_id",$user_id);
+        return DB::table('role_permissions as rp')
+            ->where('rp.role', $role_id)
+            ->join('role_permission_subs as rps', function ($join) {
+                $join->on('rps.role_permission_id', '=', 'rp.id');
+            })
+            ->leftJoin('user_permissions as up', function ($join) use ($user_id) {
+                $join->on('up.sub_permission_id', 'rps.sub_permission_id')
+                    ->where('up.user_id');
+            })
+            ->leftJoin('user_permission_subs as ups', function ($join) use ($user_id) {
+                $join->on('ups.user_permission_id', 'up.id');
+            })
+            ->get();
+
 
         return $this->userRepository->formattedPermissions(1);
 

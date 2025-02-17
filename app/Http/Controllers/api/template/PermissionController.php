@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers\api\template;
 
-use App\Http\Controllers\Controller;
-use App\Models\RolePermission;
-use App\Models\RolePermissionSub;
-use App\Models\SubPermission;
 use App\Models\User;
-use App\Models\UserPermission;
-use App\Models\UserPermissionSub;
 use Illuminate\Http\Request;
+use App\Models\SubPermission;
+use App\Models\RolePermission;
+use App\Models\UserPermission;
+use App\Models\RolePermissionSub;
+use App\Models\UserPermissionSub;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 
 class PermissionController extends Controller
 {
@@ -178,6 +179,39 @@ class PermissionController extends Controller
 
 
 
+    public function singleUserEditPermission(Request $request)
+    {
+        $request->validated([
+            "subPermissions" => "required",
+            "permission" => "required",
+            "user_id" => "required",
+        ]);
+        // Retrieve the subPermissions array from the request
+        $subPermissions = $request->input('subPermissions');
+        $permission = $request->input('permission');
+        $user_id = $request->input('user_id');
+
+        // Loop through the subPermissions array
+        foreach ($subPermissions as $permission) {
+            // Access each permission's properties
+            $id = $permission['id'];
+            $name = $permission['name'];
+            $edit = $permission['edit'];
+            $delete = $permission['delete'];
+            $add = $permission['add'];
+            $view = $permission['view'];
+
+            // You can now use these variables to do something with the data
+            // For example, updating permissions or storing them in a database
+
+            // Example: Print the permission details
+            Log::info("Permission ID: $id, Name: $name, Edit: $edit, Delete: $delete, Add: $add, View: $view");
+        }
+
+        return response()->json([
+            'message' => __('app_translation.success'),
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
     public function userPermissionUpdate(Request $request)
     {
         $request->validate([

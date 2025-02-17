@@ -13,10 +13,6 @@ return new class extends Migration
     {
         Schema::create('role_permission_subs', function (Blueprint $table) {
             $table->id();
-            $table->boolean('edit');
-            $table->boolean('delete');
-            $table->boolean('add');
-            $table->boolean('view');
             $table->unsignedBigInteger('role_permission_id');
             $table->foreign('role_permission_id')->references('id')->on('role_permissions')
                 ->onUpdate('cascade')

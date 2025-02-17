@@ -34,5 +34,6 @@ return [
     "ngo_not_found" => "موسسه یافت نشد.",
     "agreement_exists" => "تعهد نام موجود است",
     "ngo_trans_not_found" => "ترجمه موسسه یافت نشد.",
-    "donor_not_found" => "دونر یافت نشد"
+    "donor_not_found" => "دونر یافت نشد",
+    "unauthorized_role_per" => "نقش شما این مجوز را ندارد."
 ];

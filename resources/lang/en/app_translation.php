@@ -34,5 +34,6 @@ return [
     "ngo_not_found" => "Ngo Not found.",
     "agreement_exists" => "Agreement Exists",
     "ngo_trans_not_found" => "NGO Translation Not found.",
-    "donor_not_found" => "Donor Not Found"
+    "donor_not_found" => "Donor Not Found",
+    "unauthorized_role_per" => "Your Role does not have this permission."
 ];
