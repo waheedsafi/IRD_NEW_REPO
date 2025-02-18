@@ -13,7 +13,6 @@ Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(
     Route::get('/users/record/count', [UserController::class, "userCount"]);
     Route::get('/users', [UserController::class, "users"])->middleware(["userHasViewPermission:" . PermissionEnum::users->value]);
     Route::get('/user/{id}', [UserController::class, "user"])->middleware(['accessUserCheck', "userHasViewPermission:" . PermissionEnum::users->value]);
-    Route::get('/user-permissions/{id}', [UserController::class, "userPermissions"])->middleware(['accessUserCheck', "userHasViewPermission:" . PermissionEnum::users->value]);
     Route::post('/user/change-password', [UserController::class, 'changePassword'])->middleware(['accessUserCheck']);
     Route::delete('/user/delete-profile/{id}', [UserController::class, 'deleteProfile']);
     Route::post('/user/update-profile', [UserController::class, 'updateProfile']);

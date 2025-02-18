@@ -11,28 +11,32 @@ use App\Models\RolePermissionSub;
 use App\Models\UserPermissionSub;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use App\Repositories\Permission\PermissionRepositoryInterface;
 
 class PermissionController extends Controller
 {
-    public function permissions($id, Request $request)
-    {
-        $userPermissions = [];
-        $user = $request->user();
-        if ($user->grant_permission) {
-            $userPermissions = RolePermission::where("role", '=', $id)->select("permission as name")->get();
-        } else {
-            return response()->json([
-                'message' => __('app_translation.unauthorized'),
-            ], 403, [], JSON_UNESCAPED_UNICODE);
-        }
+    protected $permissionRepository;
 
+    public function __construct(PermissionRepositoryInterface $permissionRepository)
+    {
+        $this->permissionRepository = $permissionRepository;
+    }
+    public function userPermissions($id)
+    {
+        $user = User::where('id', $id)->first();
+        if (!$user) {
+            return response()->json([
+                'message' => __('app_translation.user_not_found'),
+            ], 404, [], JSON_UNESCAPED_UNICODE);
+        }
         return response()->json(
-            $userPermissions,
+            $this->permissionRepository->assigningPermissions($user->id, $user->role_id),
             200,
             [],
             JSON_UNESCAPED_UNICODE
         );
     }
+
 
     public function subPermissions(Request $request)
     {
