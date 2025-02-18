@@ -2,21 +2,20 @@
 
 namespace App\Http\Controllers\api\template;
 
-use App\Enums\LanguageEnum;
-use App\Enums\StaffEnum;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\template\office\OfficeStoreRequest;
-use App\Http\Requests\template\office\OfficeUpdateRequest;
-use App\Http\Requests\template\office\StaffStoreRequest;
-use App\Http\Requests\template\office\StaffUpdateRequest;
-use App\Models\OfficeInformation;
-use App\Models\Slider;
 use App\Models\Staff;
+use App\Models\Slider;
+use App\Enums\StaffEnum;
 use App\Models\StaffTran;
-
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\DB;
+use App\Enums\LanguageEnum;
 use Illuminate\Http\Request;
+use App\Models\OfficeInformation;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\App;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\template\office\StaffStoreRequest;
+use App\Http\Requests\template\office\OfficeStoreRequest;
+use App\Http\Requests\template\office\StaffUpdateRequest;
+use App\Http\Requests\template\office\OfficeUpdateRequest;
 
 
 class AboutController extends Controller

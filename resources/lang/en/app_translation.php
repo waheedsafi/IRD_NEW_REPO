@@ -35,5 +35,6 @@ return [
     "agreement_exists" => "Agreement Exists",
     "ngo_trans_not_found" => "NGO Translation Not found.",
     "donor_not_found" => "Donor Not Found",
-    "unauthorized_role_per" => "Your Role does not have this permission."
+    "unauthorized_role_per" => "Your Role does not have this permission.",
+    "unauthorized_role_sub_per" => "You are not authorized, to assign this sub permission."
 ];

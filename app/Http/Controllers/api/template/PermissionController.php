@@ -95,93 +95,6 @@ class PermissionController extends Controller
         );
     }
 
-    // public function userPermissionUpdate(Request $request)
-    // {
-
-    //     $request->validate([
-    //         'user_id' => 'required|integer',
-    //         'view' => 'boolean',
-    //         'permission' => 'required|string'
-    //     ]);
-
-    //     $role = User::select('role_id')->where('id', $request->user_id)->value();
-
-
-    //     $role_per_exists = RolePermission::where('role', $role)->where('permssion', $request->permission)->exitst();
-    //     if ($role_per_exists) {
-
-    //         $userPermission =   UserPermission::where('user_id', $request->user_id)->where('permission', $request->permission)->first();
-    //         if (!$userPermission) {
-
-
-
-    //             $userPermission =    UserPermission::create([
-    //                 'view' => $request->view,
-    //                 'visible' => $request->visible,
-    //                 'user_id' => $request->user_id,
-    //                 'permission' => $request->permission
-
-    //             ]);
-    //             foreach ($request->subPermissions as $subPermission) {
-    //                 $subPermissionValue =  RolePermissionSub::select('edit', 'delete', 'view', 'add')
-    //                     ->where('role_permission_id', $role)
-    //                     ->where('sub_permission_id', $request->$subPermission->id)->get();
-
-    //                 UserPermissionSub::create([
-    //                     'user_permission_id' => $userPermission->id,
-    //                     'sub_permission_id' => $subPermission->id,
-    //                     'edit' => $subPermissionValue->edit ?? 0,
-    //                     'delete' => $subPermissionValue->delete ?? 0,
-    //                     'add' => $subPermissionValue->add ?? 0,
-    //                     'view' => $subPermissionValue->view ?? 0,
-    //                 ]);
-    //             }
-
-
-    //             return response()->json([
-    //                 'message' => __('app_translation.success'),
-    //             ], 200, [], JSON_UNESCAPED_UNICODE);
-    //         } else {
-
-    //             $userPermission->view = $request->view;
-    //             $userPermission->save();
-
-    //             foreach ($request->subPermissions as $subPermission) {
-    //                 $subPermissionValue =  RolePermissionSub::select('edit', 'delete', 'view', 'add')
-    //                     ->where('role_permission_id', $role)
-    //                     ->where('sub_permission_id', $request->$subPermission->id)->get();
-
-    //                 $exsitsUsrPer = UserPermissionSub::where('user_permission_id', $userPermission->id)
-    //                     ->where('sub_permission_id', $subPermission->id)->first();
-
-    //                 if (!$exsitsUsrPer) {
-    //                     UserPermissionSub::create([
-    //                         'user_permission_id' => $userPermission->id,
-    //                         'sub_permission_id' => $subPermission->id,
-    //                         'edit' => $subPermissionValue->edit ?? 0,
-    //                         'delete' => $subPermissionValue->delete ?? 0,
-    //                         'add' => $subPermissionValue->add ?? 0,
-    //                         'view' => $subPermissionValue->view ?? 0,
-    //                     ]);
-    //                 } else {
-
-    //                     $exsitsUsrPer->edit = $subPermissionValue->edit ?? 0;
-    //                     $exsitsUsrPer->add = $subPermissionValue->add ?? 0;
-    //                     $exsitsUsrPer->view = $subPermissionValue->view ?? 0;
-    //                     $exsitsUsrPer->delete = $subPermissionValue->delete ?? 0;
-    //                     $exsitsUsrPer->save();
-    //                 }
-    //             }
-    //         }
-    //     } else {
-    //         return response()->json([
-    //             'message' => __('app_translation.unauthorized'),
-    //         ], 403, [], JSON_UNESCAPED_UNICODE);
-    //     }
-    // }
-
-
-
     public function singleUserEditPermission(Request $request)
     {
         $request->validated([
@@ -297,5 +210,52 @@ class PermissionController extends Controller
         return response()->json([
             'message' => __('app_translation.success'),
         ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+    public function editUserPermissions(Request $request)
+    {
+        $request->validated([
+            'user_id' => "required",
+            'permissions' => "required"
+        ]);
+        $permissions = $request->permissions;
+        $user_id = $request->user_id;
+        $user = User::where('id', $user_id)->first();
+        if (!$user) {
+            return response()->json([
+                'message' => __('app_translation.user_not_found'),
+            ], 404, [], JSON_UNESCAPED_UNICODE);
+        }
+        $rolePermissions = $this->permissionRepository->rolePermissions($user->role_id);
+        $formattedRolePermissions = $this->permissionRepository->formatRolePermissions($rolePermissions);
+
+        foreach ($permissions as $permission) {
+            $perm = $formattedRolePermissions->where("permission", $permission->permission)->first();
+            // 1. If permission not found set
+            if (!$perm) {
+                return response()->json([
+                    'message' => __('app_translation.unauthorized_role_per'),
+                ], 403, [], JSON_UNESCAPED_UNICODE);
+            } else {
+                // 2. If permission found check for any missing Sub Permissions
+                $permSub = $perm->sub;
+                foreach ($permission->sub as $subPermission) {
+                    $subExists = true;
+                    for ($i = 0; $i < count($permSub); $i++) {
+                        $sub = $permSub[$i];
+                        if ($sub['id'] != $subPermission['id']) {
+                            $subExists = false;
+                            break;
+                        }
+                    }
+                    if (!$subExists) {
+                        return response()->json([
+                            'message' => __('app_translation.unauthorized_role_sub_per'),
+                        ], 403, [], JSON_UNESCAPED_UNICODE);
+                    } else {
+                        // Permission and sub permission exist update 
+                    }
+                }
+            }
+        }
     }
 }
