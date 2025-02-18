@@ -253,6 +253,13 @@ class PermissionController extends Controller
                         ], 403, [], JSON_UNESCAPED_UNICODE);
                     } else {
                         // Permission and sub permission exist update
+                        // 1. If id is null create a new permission 
+                        if ($perm->id) {
+                            // 2. Permission exist update
+                            // 2. Sub Permission exist update
+                        } else {
+                            // 1.1. Check if this permission has sub permission create those 
+                        }
                     }
                 }
             }
