@@ -252,7 +252,7 @@ class PermissionController extends Controller
                             'message' => __('app_translation.unauthorized_role_sub_per'),
                         ], 403, [], JSON_UNESCAPED_UNICODE);
                     } else {
-                        // Permission and sub permission exist update 
+                        // Permission and sub permission exist update
                     }
                 }
             }

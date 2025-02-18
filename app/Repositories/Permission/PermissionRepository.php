@@ -52,6 +52,7 @@ class PermissionRepository implements PermissionRepositoryInterface
                 'p.name as permission',
                 'sp.name',
                 'p.priority',
+                'up.id',
                 'up.view',
                 'up.edit',
                 'up.delete',
