@@ -37,7 +37,6 @@ class PermissionController extends Controller
         );
     }
 
-
     public function subPermissions(Request $request)
     {
         $request->validate([

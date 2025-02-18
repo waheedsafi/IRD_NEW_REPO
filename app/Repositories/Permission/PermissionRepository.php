@@ -8,57 +8,40 @@ class PermissionRepository implements PermissionRepositoryInterface
 {
     public function assigningPermissions($user_id, $role_id)
     {
-        $rolePermissions = DB::table('role_permissions as rp')
-            ->where('rp.role', '=', $role_id)
-            ->join('permissions as p', 'rp.permission', '=', 'p.name')
-            ->leftJoin('role_permission_subs as rps', 'rps.role_permission_id', '=', 'rp.id')
-            ->leftJoin('sub_permissions as sp', 'rps.sub_permission_id', '=', 'sp.id')
-            ->select(
-                'p.name as permission',
-                'sp.name',
-                'p.priority',
-                "rps.sub_permission_id",
-                'sp.name'
-            )
-            ->orderBy('p.priority')  // Optional: If you want to order by priority, else remove
-            ->get();
+        $rolePermissions = $this->rolePermissions($role_id);
+        $formattedRolePermissions = $this->formatRolePermissions($rolePermissions);
+        $permissions = $this->userPermissions($user_id);
+        $formattedPermissions = $this->formatUserPermissions($permissions);
 
-        $formattedRolePermissions = $rolePermissions->groupBy('permission')->map(function ($group) {
-            $subPermissions = $group->filter(function ($item) {
-                return $item->sub_permission_id !== null; // Filter for permissions that have sub-permissions
-            });
-
-            $permission = $group->first(); // Get the first permission for this group
-
-            $permission->view = false;
-            $permission->add = false;
-            $permission->delete = false;
-            $permission->edit = false;
-            if ($subPermissions->isNotEmpty()) {
-
-                $permission->sub = $subPermissions->map(function ($sub) {
-                    return [
-                        'id' => $sub->sub_permission_id,
-                        'name' => $sub->name,
-                        'add' => false,
-                        'delete' => false,
-                        'edit' => false,
-                        'view' => false
-                    ];
-                });
+        // Merger permissions
+        $formattedRolePermissions->each(function ($permission) use (&$formattedPermissions) {
+            $perm = $formattedPermissions->where("permission", $permission->permission)->first();
+            // 1. If permission not found set
+            if (!$perm) {
+                $formattedPermissions->push($permission);
             } else {
-                $permission->sub = [];
+                // 2. If permission found check for any missing Sub Permissions
+                $permSub = $perm->sub;
+                foreach ($permission->sub as $subPermission) {
+                    $subExists = false;
+                    for ($i = 0; $i < count($permSub); $i++) {
+                        $sub = $permSub[$i];
+                        if ($sub['id'] == $subPermission['id']) {
+                            $subExists = true;
+                            break;
+                        }
+                    }
+                    if (!$subExists) {
+                        $perm->sub[] = $subPermission;
+                    }
+                }
             }
-            // // If there are no sub-permissions, remove the unwanted fields
-            unset($permission->sub_permission_id);
-            unset($permission->name);
-            // unset($permission->sub_delete);
-            // unset($permission->sub_edit);
-
-            return $permission;
-        })->values();
-
-        $permissions = DB::table('users as u')
+        });
+        return $formattedPermissions;
+    }
+    public function userPermissions($user_id)
+    {
+        return DB::table('users as u')
             ->where('u.id', $user_id)
             ->join('user_permissions as up', 'u.id', '=', 'up.user_id')
             ->join('permissions as p', 'up.permission', '=', 'p.name')
@@ -81,9 +64,10 @@ class PermissionRepository implements PermissionRepositoryInterface
             )
             ->orderBy('p.priority')  // Optional: If you want to order by priority, else remove
             ->get();
-
-        // Transform data to match desired structure (for example, if you need nested `sub` permissions)
-        $formattedPermissions = $permissions->groupBy('user_permission_id')->map(function ($group) {
+    }
+    public function formatUserPermissions($permissions)
+    {
+        return  $permissions->groupBy('user_permission_id')->map(function ($group) {
             $subPermissions = $group->filter(function ($item) {
                 return $item->sub_permission_id !== null; // Filter for permissions that have sub-permissions
             });
@@ -119,31 +103,58 @@ class PermissionRepository implements PermissionRepositoryInterface
 
             return $permission;
         })->values();
+    }
+    public function rolePermissions($role_id)
+    {
+        return DB::table('role_permissions as rp')
+            ->where('rp.role', '=', $role_id)
+            ->join('permissions as p', 'rp.permission', '=', 'p.name')
+            ->leftJoin('role_permission_subs as rps', 'rps.role_permission_id', '=', 'rp.id')
+            ->leftJoin('sub_permissions as sp', 'rps.sub_permission_id', '=', 'sp.id')
+            ->select(
+                'p.name as permission',
+                'sp.name',
+                'p.priority',
+                "rps.sub_permission_id",
+                'sp.name'
+            )
+            ->get();
+    }
+    public function formatRolePermissions($rolePermissions)
+    {
+        return $rolePermissions->groupBy('permission')->map(function ($group) {
+            $subPermissions = $group->filter(function ($item) {
+                return $item->sub_permission_id !== null; // Filter for permissions that have sub-permissions
+            });
 
-        // Merger permissions
-        $formattedRolePermissions->each(function ($permission) use (&$formattedPermissions) {
-            $perm = $formattedPermissions->where("permission", $permission->permission)->first();
-            // 1. If permission not found set
-            if (!$perm) {
-                $formattedPermissions->push($permission);
+            $permission = $group->first(); // Get the first permission for this group
+
+            $permission->view = false;
+            $permission->add = false;
+            $permission->delete = false;
+            $permission->edit = false;
+            if ($subPermissions->isNotEmpty()) {
+
+                $permission->sub = $subPermissions->map(function ($sub) {
+                    return [
+                        'id' => $sub->sub_permission_id,
+                        'name' => $sub->name,
+                        'add' => false,
+                        'delete' => false,
+                        'edit' => false,
+                        'view' => false
+                    ];
+                });
             } else {
-                // 2. If permission found check for any missing Sub Permissions
-                $permSub = $perm->sub;
-                foreach ($permission->sub as $subPermission) {
-                    $subExists = false;
-                    for ($i = 0; $i < count($permSub); $i++) {
-                        $sub = $permSub[$i];
-                        if ($sub['id'] == $subPermission['id']) {
-                            $subExists = true;
-                            break;
-                        }
-                    }
-                    if (!$subExists) {
-                        $perm->sub[] = $subPermission;
-                    }
-                }
+                $permission->sub = [];
             }
-        });
-        return $formattedPermissions;
+            // // If there are no sub-permissions, remove the unwanted fields
+            unset($permission->sub_permission_id);
+            unset($permission->name);
+            // unset($permission->sub_delete);
+            // unset($permission->sub_edit);
+
+            return $permission;
+        })->values();
     }
 }
