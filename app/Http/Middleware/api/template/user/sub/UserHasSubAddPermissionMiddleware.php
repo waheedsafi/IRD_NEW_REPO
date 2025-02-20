@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Middleware\api\template;
+namespace App\Http\Middleware\api\template\user\sub;
 
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
-class UserHasAddPermissionMiddleware
+class UserHasSubAddPermissionMiddleware
 {
     /**
      * Handle an incoming request.
@@ -25,7 +25,7 @@ class UserHasAddPermissionMiddleware
                 ->join("user_permission_subs as ups", function ($join) use ($subPermission) {
                     return $join->on('ups.user_permission_id', '=', 'up.id')
                         ->where('ups.sub_permission_id', $subPermission)
-                        ->where('add', true);
+                        ->where('ups.add', true);
                 })->select("ups.id")->first();
 
             if ($permission) {

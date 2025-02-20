@@ -74,7 +74,7 @@ class UserAuthController extends Controller
                     "job" => $user->job,
                     "created_at" => $user->created_at,
                 ],
-                "permissions" => $this->userRepository->formattedPermissions($user->id),
+                "permissions" => $this->userRepository->authFormattedPermissions($user->id),
             ],
             200,
             [],
@@ -133,7 +133,7 @@ class UserAuthController extends Controller
             return response()->json(
                 [
                     "token" => $loggedIn['tokens']['access_token'],
-                    "permissions" => $this->userRepository->formattedPermissions($user->id),
+                    "permissions" => $this->userRepository->authFormattedPermissions($user->id),
                     "user" => [
                         "id" => $user->id,
                         "full_name" => $user->full_name,

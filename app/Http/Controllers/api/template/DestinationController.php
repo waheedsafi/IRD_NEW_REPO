@@ -121,7 +121,7 @@ class DestinationController extends Controller
             "farsi" => $tr->farsi,
             "pashto" => $tr->pashto,
             "color" => $tr->color,
-            "destination_type" => ["id" => $tr->destination_type_id, "name" => $tr->type],
+            "type" => ["id" => $tr->destination_type_id, "name" => $tr->type],
             "created_at" => $tr->created_at,
 
         ], 200, [], JSON_UNESCAPED_UNICODE);
@@ -188,7 +188,8 @@ class DestinationController extends Controller
                 'message' => __('app_translation.destination_type_not_found')
             ], 404, [], JSON_UNESCAPED_UNICODE);
         }
-        $trans = DestinationTrans::where('destination_id', $request->id)->select('id', 'language_name')->get();
+        $trans = DestinationTrans::where('destination_id', $request->id)
+            ->select('id', 'language_name', 'value')->get();
         // Update
         foreach (LanguageEnum::LANGUAGES as $code => $name) {
             $tran =  $trans->where('language_name', $code)->first();
@@ -207,7 +208,6 @@ class DestinationController extends Controller
             $name = $request->pashto;
         }
 
-
         return response()->json([
             'message' => __('app_translation.success'),
             'destination' => [
@@ -221,25 +221,15 @@ class DestinationController extends Controller
 
     public function destroy($id)
     {
-        try {
-            $destination = Destination::find($id);
-            if ($destination) {
-                // 1. Delete Translation
-                Translate::where("translable_id", "=", $id)
-                    ->where('translable_type', '=', Destination::class)->delete();
-                $destination->delete();
-                return response()->json([
-                    'message' => __('app_translation.success'),
-                ], 200, [], JSON_UNESCAPED_UNICODE);
-            } else
-                return response()->json([
-                    'message' => __('app_translation.failed'),
-                ], 400, [], JSON_UNESCAPED_UNICODE);
-        } catch (Exception $err) {
-            Log::info('User login error =>' . $err->getMessage());
+        $destination = Destination::find($id);
+        if ($destination) {
+            $destination->delete();
             return response()->json([
-                'message' => __('app_translation.server_error')
-            ], 500, [], JSON_UNESCAPED_UNICODE);
-        }
+                'message' => __('app_translation.success'),
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+        } else
+            return response()->json([
+                'message' => __('app_translation.failed'),
+            ], 400, [], JSON_UNESCAPED_UNICODE);
     }
 }

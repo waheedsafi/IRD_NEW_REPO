@@ -14,10 +14,14 @@ use App\Http\Middleware\api\template\LocaleMiddleware;
 use App\Http\Middleware\api\template\AccessUserCheckMiddleware;
 use App\Http\Middleware\api\template\AllowAdminOrSuperMiddleware;
 use App\Http\Middleware\api\template\HasGrantPermissionMiddleware;
-use App\Http\Middleware\api\template\UserHasAddPermissionMiddleware;
-use App\Http\Middleware\api\template\UserHasEditPermissionMiddleware;
-use App\Http\Middleware\api\template\UserHasViewPermissionMiddleware;
-use App\Http\Middleware\api\template\UserHasDeletePermissionMiddleware;
+use App\Http\Middleware\api\template\user\sub\UserHasSubAddPermissionMiddleware;
+use App\Http\Middleware\api\template\user\sub\UserHasSubEditPermissionMiddleware;
+use App\Http\Middleware\api\template\user\sub\UserHasSubViewPermissionMiddleware;
+use App\Http\Middleware\api\template\user\main\UserHasMainAddPermissionMiddleware;
+use App\Http\Middleware\api\template\user\main\UserHasMainEditPermissionMiddleware;
+use App\Http\Middleware\api\template\user\main\UserHasMainViewPermissionMiddleware;
+use App\Http\Middleware\api\template\user\sub\UserHasSubDeletePermissionMiddleware;
+use App\Http\Middleware\api\template\user\main\UserHasMainDeletePermissionMiddleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -29,10 +33,14 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(LocaleMiddleware::class)
             ->alias([
-                'userHasViewPermission' => UserHasViewPermissionMiddleware::class,
-                'userHasDeletePermission' => UserHasDeletePermissionMiddleware::class,
-                'userHasEditPermission' => UserHasEditPermissionMiddleware::class,
-                'userHasAddPermission' => UserHasAddPermissionMiddleware::class,
+                'userHasMainViewPermission' => UserHasMainViewPermissionMiddleware::class,
+                'userHasMainDeletePermission' => UserHasMainDeletePermissionMiddleware::class,
+                'userHasMainEditPermission' => UserHasMainEditPermissionMiddleware::class,
+                'userHasMainAddPermission' => UserHasMainAddPermissionMiddleware::class,
+                'userHasSubViewPermission' => UserHasSubViewPermissionMiddleware::class,
+                'userHasSubDeletePermission' => UserHasSubDeletePermissionMiddleware::class,
+                'userHasSubEditPermission' => UserHasSubEditPermissionMiddleware::class,
+                'userHasSubAddPermission' => UserHasSubAddPermissionMiddleware::class,
                 'hasGrantPermission' => HasGrantPermissionMiddleware::class,
                 'allowAdminOrSuper'  => AllowAdminOrSuperMiddleware::class,
                 'apiAllowedUser'  => AllowedApiUserMiddleware::class,

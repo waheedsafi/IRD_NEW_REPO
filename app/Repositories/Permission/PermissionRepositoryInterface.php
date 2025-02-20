@@ -46,4 +46,13 @@ interface PermissionRepositoryInterface
      * @return @var mixed $formattedRolePermissions
      */
     public function formatRolePermissions($rolePermissions);
+    /**
+     * Retrieve Formatted Role permissions.
+     * 
+     *
+     * @param string user_id
+     * @param @var mixed $permissions
+     * @return @var mixed $Response
+     */
+    public function editUserPermission($user_id, $permissions);
 }

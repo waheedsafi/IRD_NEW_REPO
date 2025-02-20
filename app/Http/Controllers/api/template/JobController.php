@@ -2,83 +2,62 @@
 
 namespace App\Http\Controllers\api\template;
 
-use App\Enums\LanguageEnum;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\template\job\JobStoreRequest;
 use App\Models\ModelJob;
 use App\Models\Translate;
+use App\Enums\LanguageEnum;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\template\job\JobStoreRequest;
+use App\Models\ModelJobTrans;
 
 class JobController extends Controller
 {
     public function jobs()
     {
         $locale = App::getLocale();
-        $tr = [];
-        if ($locale === LanguageEnum::default->value)
-            $tr =  ModelJob::select("name", 'id', 'created_at as createdAt')->orderBy('id', 'desc')->get();
-        else {
-            $tr = $this->getTableTranslations(ModelJob::class, $locale, 'desc');
-        }
+        $tr = DB::table('model_jobs as mj')
+            ->join('model_job_trans as mjt', function ($join) use ($locale) {
+                $join->on('mjt.model_job_id', '=', 'mj.id')
+                    ->where('mjt.language_name', $locale);
+            })
+            ->select('mj.id', "mjt.value as name", 'mj.created_at')->get();
         return response()->json($tr, 200, [], JSON_UNESCAPED_UNICODE);
     }
     public function store(JobStoreRequest $request)
     {
-        $payload = $request->validated();
+        $request->validated();
         // 1. Create
-        $job = ModelJob::create([
-            "name" => $payload["english"]
-        ]);
-        if ($job) {
-            // 1. Translate
-            $this->TranslateFarsi($payload["farsi"], $job->id, ModelJob::class);
-            $this->TranslatePashto($payload["pashto"], $job->id, ModelJob::class);
-            // Get local
-            $locale = App::getLocale();
-            if ($locale === LanguageEnum::default->value) {
-                return response()->json([
-                    'message' => __('app_translation.success'),
-                    'job' => [
-                        "id" => $job->id,
-                        "name" => $job->name,
-                        "createdAt" => $job->created_at
-                    ],
-                ], 200, [], JSON_UNESCAPED_UNICODE);
-            } else if ($locale === LanguageEnum::pashto->value) {
-                return response()->json([
-                    'message' => __('app_translation.success'),
-                    'job' => [
-                        "id" => $job->id,
-                        "name" => $payload["pashto"],
-                        "createdAt" => $job->created_at
-                    ]
-                ], 200, [], JSON_UNESCAPED_UNICODE);
-            } else {
-                return response()->json([
-                    'message' => __('app_translation.success'),
-                    'job' => [
-                        "id" => $job->id,
-                        "name" => $payload["farsi"],
-                        "createdAt" => $job->created_at
-                    ]
-                ], 200, [], JSON_UNESCAPED_UNICODE);
-            }
+        $job = ModelJob::create([]);
 
-            return response()->json([
-                'message' => __('app_translation.success'),
-            ], 200, [], JSON_UNESCAPED_UNICODE);
-        } else
-            return response()->json([
-                'message' => __('app_translation.failed'),
-            ], 400, [], JSON_UNESCAPED_UNICODE);
+        foreach (LanguageEnum::LANGUAGES as $code => $name) {
+            ModelJobTrans::create([
+                "value" => $request["{$name}"],
+                "model_job_id" => $job->id,
+                "language_name" => $code,
+            ]);
+        }
+
+        $locale = App::getLocale();
+        $name = $request->english;
+        if ($locale == LanguageEnum::farsi->value) {
+            $name = $request->farsi;
+        } else {
+            $name = $request->pashto;
+        }
+        return response()->json([
+            'message' => __('app_translation.success'),
+            'job' => [
+                "id" => $job->id,
+                "name" => $name,
+                "created_at" => $job->created_at
+            ]
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
     public function destroy($id)
     {
         $job = ModelJob::find($id);
         if ($job) {
-            // 1. Delete Translation
-            Translate::where("translable_id", "=", $id)
-                ->where('translable_type', '=', ModelJob::class)->delete();
             $job->delete();
             return response()->json([
                 'message' => __('app_translation.success'),
@@ -90,61 +69,68 @@ class JobController extends Controller
     }
     public function job($id)
     {
-        $job = ModelJob::find($id);
-        if ($job) {
-            $data = [
-                "id" => $job->id,
-                "en" => $job->name,
-            ];
-            $translations = Translate::where("translable_id", "=", $id)
-                ->where('translable_type', '=', ModelJob::class)->get();
-            foreach ($translations as $translation) {
-                $data[$translation->language_name] = $translation->value;
-            }
-            return response()->json([
-                'job' =>  $data,
-            ], 200, [], JSON_UNESCAPED_UNICODE);
-        } else
-            return response()->json([
-                'message' => __('app_translation.failed'),
-            ], 400, [], JSON_UNESCAPED_UNICODE);
+        $job = DB::table('model_job_trans as mjt')
+            ->where('mjt.model_job_id', 4)
+            ->select(
+                'mjt.model_job_id',
+                DB::raw("MAX(CASE WHEN mjt.language_name = 'fa' THEN value END) as farsi"),
+                DB::raw("MAX(CASE WHEN mjt.language_name = 'en' THEN value END) as english"),
+                DB::raw("MAX(CASE WHEN mjt.language_name = 'ps' THEN value END) as pashto")
+            )
+            ->groupBy('mjt.model_job_id')
+            ->first();
+        return response()->json(
+            [
+                "id" => $job->model_job_id,
+                "english" => $job->english,
+                "farsi" => $job->farsi,
+                "pashto" => $job->pashto,
+            ],
+            200,
+            [],
+            JSON_UNESCAPED_UNICODE
+        );
     }
     public function update(JobStoreRequest $request)
     {
-        $payload = $request->validated();
-        // This validation not exist in JobStoreRequest
+        $request->validated();
+        // This validation not exist in UrgencyStoreRequest
         $request->validate([
             "id" => "required"
         ]);
         // 1. Find
         $job = ModelJob::find($request->id);
-        if ($job) {
-            $locale = App::getLocale();
-            // 1. Update
-            $job->name = $payload['english'];
-            $job->save();
-            $translations = Translate::where("translable_id", "=", $job->id)
-                ->where('translable_type', '=', ModelJob::class)->get();
-            foreach ($translations as $translation) {
-                if ($translation->language_name === LanguageEnum::farsi->value) {
-                    $translation->value = $payload['farsi'];
-                } else if ($translation->language_name === LanguageEnum::pashto->value) {
-                    $translation->value = $payload['pashto'];
-                }
-                $translation->save();
-            }
-            if ($locale === LanguageEnum::pashto->value) {
-                $job->name = $payload['pashto'];
-            } else if ($locale === LanguageEnum::farsi->value) {
-                $job->name = $payload['farsi'];
-            }
+        if (!$job) {
             return response()->json([
-                'message' => __('app_translation.success'),
-                'job' => $job,
-            ], 200, [], JSON_UNESCAPED_UNICODE);
-        } else
-            return response()->json([
-                'message' => __('app_translation.failed'),
-            ], 400, [], JSON_UNESCAPED_UNICODE);
+                'message' => __('app_translation.job_not_found')
+            ], 404, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        $trans = ModelJobTrans::where('model_job_id', $request->id)
+            ->select('id', 'language_name', 'value')
+            ->get();
+        // Update
+        foreach (LanguageEnum::LANGUAGES as $code => $name) {
+            $tran =  $trans->where('language_name', $code)->first();
+            $tran->value = $request["{$name}"];
+            $tran->save();
+        }
+
+        $locale = App::getLocale();
+        $name = $request->english;
+        if ($locale == LanguageEnum::farsi->value) {
+            $name = $request->farsi;
+        } else {
+            $name = $request->pashto;
+        }
+
+        return response()->json([
+            'message' => __('app_translation.success'),
+            'job' => [
+                "id" => $job->id,
+                "name" => $name,
+                "created_at" => $job->created_at
+            ],
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }

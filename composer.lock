@@ -2659,12 +2659,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sayednaweed/sway.git",
-                "reference": "9b3f918acc85f646bb90ad4f94ce5da67218559e"
+                "reference": "1aac153a8dab1b34b6b009138c783e40b74365f1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sayednaweed/sway/zipball/9b3f918acc85f646bb90ad4f94ce5da67218559e",
-                "reference": "9b3f918acc85f646bb90ad4f94ce5da67218559e",
+                "url": "https://api.github.com/repos/sayednaweed/sway/zipball/1aac153a8dab1b34b6b009138c783e40b74365f1",
+                "reference": "1aac153a8dab1b34b6b009138c783e40b74365f1",
                 "shasum": ""
             },
             "require": {
@@ -2683,7 +2683,8 @@
                         "Sway\\Providers\\SwayAuthServiceProvider"
                     ],
                     "middleware": [
-                        "Sway\\Middleware\\AuthenticateSwayMiddleware"
+                        "Sway\\Middleware\\AuthenticateSwayMiddleware",
+                        "Sway\\Middleware\\DoubleAuthenticateSwayMiddleware"
                     ]
                 }
             },
@@ -2707,7 +2708,7 @@
                 "issues": "https://github.com/sayednaweed/sway/issues",
                 "source": "https://github.com/sayednaweed/sway/tree/v1.0.0"
             },
-            "time": "2025-02-11T19:32:34+00:00"
+            "time": "2025-02-19T06:11:22+00:00"
         },
         {
             "name": "nunomaduro/termwind",

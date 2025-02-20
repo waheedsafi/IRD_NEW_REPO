@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Middleware\api\template;
+namespace App\Http\Middleware\api\template\user\main;
 
-use App\Models\UserPermission;
 use Closure;
 use Illuminate\Http\Request;
+use App\Models\UserPermission;
 use Symfony\Component\HttpFoundation\Response;
 
-class UserHasViewPermissionMiddleware
+class UserHasMainEditPermissionMiddleware
 {
     /**
      * Handle an incoming request.
@@ -21,7 +21,7 @@ class UserHasViewPermissionMiddleware
             // 1. Check user has user permission
             $permission = UserPermission::where("user_id", "=", $authUser->id)
                 ->where("permission", '=', $permission)
-                ->where('view', true)
+                ->where('edit', true)
                 ->select('id')
                 ->first();
             if ($permission) {

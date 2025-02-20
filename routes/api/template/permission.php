@@ -1,16 +1,18 @@
 
 <?php
 
-use App\Http\Controllers\api\template\PermissionController;
+use App\Enums\PermissionEnum;
+use App\Enums\SubPermissionEnum;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\api\template\PermissionController;
 
-
-Route::get('sub-permissions', [PermissionController::class, 'subPermissions']);
+Route::prefix('v1')->middleware(['api.key', "doubleAuthorized:" . 'user:api,ngo:api'])->group(function () {
+    Route::get('/role-permissions/{id}', [PermissionController::class, "rolePermissions"]);
+});
 
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
-    Route::get('/user-permissions/{id}', [PermissionController::class, "userPermissions"]);
-    Route::post('/edit/user-permissions', [PermissionController::class, "editUserPermissions"]);
-    Route::get('sub-permissions', [PermissionController::class, 'subPermissions']);
-    Route::post('sub-permission/update', [PermissionController::class, 'userPermissionUpdate']);
-    Route::post('/single/user/update-permission', [PermissionController::class, 'singleUserEditPermission']);
+    Route::get('/role-permissions/{id}', [PermissionController::class, "rolePermissions"]);
+    Route::get('/user-permissions/{id}', [PermissionController::class, "userPermissions"])->middleware(['hasGrantPermission', "userHasMainViewPermission:" . PermissionEnum::users->value]);
+    Route::post('/edit/user-permissions', [PermissionController::class, "editUserPermissions"])
+        ->middleware(['hasGrantPermission', "userHasSubEditPermission:" . PermissionEnum::users->value . "," . SubPermissionEnum::user_permission->value]);
 });

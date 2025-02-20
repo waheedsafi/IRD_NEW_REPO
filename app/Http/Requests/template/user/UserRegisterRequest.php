@@ -26,11 +26,9 @@ class UserRegisterRequest extends FormRequest
             "username" => ['required', "string", "min:3", "max:45"],
             "email" => ["required", "email"],
             "password" => ["required", "string", "min:8", "max:25"],
-            "role" => ["required", "string"],
-            "job" => ["required", "string"],
-            "destination" => ["required", "string"],
-            "status" => ["required"],
-            "grant" => ["string", "required"],
+            "role" => ["required"],
+            "job" => ["required"],
+            "destination" => ["required"]
         ];
     }
 }

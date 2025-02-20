@@ -45,6 +45,10 @@ return new class extends Migration
             $table->string('password');
             $table->string('profile')->nullable();
             $table->boolean('is_editable')->default(true);
+            $table->foreignId('user_id')
+                ->constrained()
+                ->onUpdate('cascade')
+                ->onDelete('no action');
             $table->rememberToken();
             $table->timestamps();
         });

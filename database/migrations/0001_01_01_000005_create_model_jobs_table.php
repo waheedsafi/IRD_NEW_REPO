@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('model_jobs', function (Blueprint $table) {
             $table->id();
-            $table->integer('type');
             $table->timestamps();
         });
     }

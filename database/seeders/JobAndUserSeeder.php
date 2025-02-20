@@ -9,7 +9,6 @@ use App\Enums\RoleEnum;
 use App\Models\Contact;
 use App\Models\ModelJob;
 use App\Models\ModelJobTrans;
-use App\Enums\Type\JobTypeEnum;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -20,9 +19,7 @@ class JobAndUserSeeder extends Seeder
      */
     public function run(): void
     {
-        $job =  ModelJob::factory()->create([
-            "type" => JobTypeEnum::users,
-        ]);
+        $job =  ModelJob::factory()->create([]);
         ModelJobTrans::factory()->create([
             "value" => "Administrator",
             "model_job_id" => $job->id,
@@ -40,9 +37,7 @@ class JobAndUserSeeder extends Seeder
         ]);
 
         // 
-        $job =  ModelJob::factory()->create([
-            "type" => JobTypeEnum::users,
-        ]);
+        $job =  ModelJob::factory()->create([]);
         ModelJobTrans::factory()->create([
             "value" => "Manager",
             "model_job_id" => $job->id,

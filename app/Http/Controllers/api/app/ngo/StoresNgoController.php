@@ -47,6 +47,7 @@ class StoresNgoController extends Controller
     public function store(NgoRegisterRequest $request)
     {
         $validatedData = $request->validated();
+        $authUser = $request->user();
         $locale = App::getLocale();
         // Begin transaction
         DB::beginTransaction();
@@ -69,6 +70,7 @@ class StoresNgoController extends Controller
         }
         // Create NGO
         $newNgo = Ngo::create([
+            "user_id" => $authUser->id,
             'abbr' => $validatedData['abbr'],
             'registration_no' => "",
             'role_id' => RoleEnum::ngo->value,
@@ -86,11 +88,11 @@ class StoresNgoController extends Controller
         // Set ngo status
         NgoStatus::create([
             "ngo_id" => $newNgo->id,
+            "user_id" => $authUser->id,
             "is_active" => true,
             "status_type_id" => StatusTypeEnum::not_logged_in->value,
             "comment" => "Newly Created"
         ]);
-
 
         // * Translations
         foreach (LanguageEnum::LANGUAGES as $code => $name) {

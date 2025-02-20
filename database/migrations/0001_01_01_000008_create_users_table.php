@@ -21,8 +21,8 @@ return new class extends Migration
                 ->onDelete('set null');
             $table->string('password');
             $table->string('profile')->nullable();
-            $table->boolean('status');
-            $table->boolean('grant_permission');
+            $table->boolean('status')->default(false);
+            $table->boolean('grant_permission')->default(false);
             $table->unsignedBigInteger('role_id');
             $table->foreign('role_id')->references('id')->on('roles')
                 ->onUpdate('cascade')

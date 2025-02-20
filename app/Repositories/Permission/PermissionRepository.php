@@ -2,6 +2,9 @@
 
 namespace App\Repositories\Permission;
 
+use App\Models\User;
+use App\Models\UserPermission;
+use App\Models\UserPermissionSub;
 use Illuminate\Support\Facades\DB;
 
 class PermissionRepository implements PermissionRepositoryInterface
@@ -38,33 +41,6 @@ class PermissionRepository implements PermissionRepositoryInterface
             }
         });
         return $formattedPermissions;
-    }
-    public function userPermissions($user_id)
-    {
-        return DB::table('users as u')
-            ->where('u.id', $user_id)
-            ->join('user_permissions as up', 'u.id', '=', 'up.user_id')
-            ->join('permissions as p', 'up.permission', '=', 'p.name')
-            ->leftJoin('user_permission_subs as ups', 'up.id', '=', 'ups.user_permission_id')
-            ->leftJoin('sub_permissions as sp', 'ups.sub_permission_id', '=', 'sp.id')
-            ->select(
-                'up.id as user_permission_id',
-                'p.name as permission',
-                'sp.name',
-                'p.priority',
-                'up.id',
-                'up.view',
-                'up.edit',
-                'up.delete',
-                'up.add',
-                'ups.sub_permission_id as sub_permission_id',
-                'ups.add as sub_add',
-                'ups.delete as sub_delete',
-                'ups.edit as sub_edit',
-                'ups.view as sub_view',
-            )
-            ->orderBy('p.priority')  // Optional: If you want to order by priority, else remove
-            ->get();
     }
     public function formatUserPermissions($permissions)
     {
@@ -158,4 +134,120 @@ class PermissionRepository implements PermissionRepositoryInterface
             return $permission;
         })->values();
     }
+    /*
+    USER
+    */
+    public function editUserPermission($user_id, $permissions)
+    {
+        $user = User::where('id', $user_id)->first();
+        if (!$user) {
+            return 400;
+        }
+        $rolePermissions = $this->rolePermissions($user->role_id);
+        $formattedRolePermissions = $this->formatRolePermissions($rolePermissions);
+
+        foreach ($permissions as $permission) {
+            $rolePerm = $formattedRolePermissions->where("permission", $permission['permission'])->first();
+            // 1. If permission not found set
+            if (!$rolePerm) {
+                return 401;
+            } else {
+                // 2. Permission exist in role
+                $userPermission = null;
+                if (isset($permission['id'])) {
+                    // UserPermission Found
+                    $userPermission = UserPermission::where('id', $permission['id'])
+                        ->select('id', 'edit', 'delete', 'add', 'view')->first();
+                    if (!$userPermission) {
+                        return 402;
+                    }
+                    $userPermission->edit = $permission['edit'];
+                    $userPermission->delete = $permission['delete'];
+                    $userPermission->add = $permission['add'];
+                    $userPermission->view = $permission['view'];
+                    $userPermission->save();
+                } else {
+                    // UserPermission Not Found
+                    $userPermission = UserPermission::create([
+                        "edit" => $permission['edit'],
+                        "delete" => $permission['delete'],
+                        "add" => $permission['add'],
+                        "view" => $permission['view'],
+                        "visible" => true,
+                        "user_id" => $user_id,
+                        "permission" => $permission['permission'],
+                    ]);
+                }
+                // 3. Check for any missing Sub Permissions
+                $rolePermSub = $rolePerm->sub;
+                foreach ($permission['sub'] as $subPermission) {
+                    $subFound = false;
+                    $roleSub = null;
+                    for ($i = 0; $i < count($rolePermSub); $i++) {
+                        $roleSub = $rolePermSub[$i];
+                        if ($subPermission['id'] == $roleSub['id']) {
+                            $subFound = true;
+                            break;
+                        }
+                    }
+                    if ($subFound) {
+                        // SubPermission Found
+                        $userPermissionSub = UserPermissionSub::where("sub_permission_id", $subPermission['id'])
+                            ->where("user_permission_id", $userPermission->id)
+                            ->select('id', 'edit', 'delete', 'add', 'view')->first();
+                        if ($userPermissionSub) {
+                            $userPermissionSub->edit = $subPermission['edit'];
+                            $userPermissionSub->delete = $subPermission['delete'];
+                            $userPermissionSub->add = $subPermission['add'];
+                            $userPermissionSub->view = $subPermission['view'];
+                            $userPermissionSub->save();
+                        } else {
+                            UserPermissionSub::create([
+                                "edit" => $subPermission['edit'],
+                                "delete" => $subPermission['delete'],
+                                "add" => $subPermission['add'],
+                                "view" => $subPermission['view'],
+                                "user_permission_id" => $userPermission['id'],
+                                "sub_permission_id" => $roleSub['id'],
+                            ]);
+                        }
+                    }
+                }
+            }
+        }
+        return 200;
+    }
+    public function userPermissions($user_id)
+    {
+        return DB::table('users as u')
+            ->where('u.id', $user_id)
+            ->join('user_permissions as up', 'u.id', '=', 'up.user_id')
+            ->join('permissions as p', 'up.permission', '=', 'p.name')
+            ->leftJoin('user_permission_subs as ups', 'up.id', '=', 'ups.user_permission_id')
+            ->leftJoin('sub_permissions as sp', 'ups.sub_permission_id', '=', 'sp.id')
+            ->select(
+                'up.id as user_permission_id',
+                'p.name as permission',
+                'sp.name',
+                'p.priority',
+                'up.id',
+                'up.view',
+                'up.edit',
+                'up.delete',
+                'up.add',
+                'ups.sub_permission_id as sub_permission_id',
+                'ups.add as sub_add',
+                'ups.delete as sub_delete',
+                'ups.edit as sub_edit',
+                'ups.view as sub_view',
+            )
+            ->orderBy('p.priority')  // Optional: If you want to order by priority, else remove
+            ->get();
+    }
+    /*
+    NGO
+    */
+    /*
+    DONOR
+    */
 }

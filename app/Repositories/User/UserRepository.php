@@ -6,14 +6,19 @@ use Illuminate\Support\Facades\DB;
 
 class UserRepository implements UserRepositoryInterface
 {
-    public function formattedPermissions($user_id)
+    public function authFormattedPermissions($user_id)
     {
         $permissions = DB::table('users as u')
             ->where('u.id', $user_id)
             ->join('user_permissions as up', 'u.id', '=', 'up.user_id')
-            ->join('permissions as p', 'up.permission', '=', 'p.name')
-            ->leftJoin('user_permission_subs as ups', 'up.id', '=', 'ups.user_permission_id')
-            // ->leftJoin('sub_permissions as sp', 'ups.sub_permission_id', '=', 'sp.id')
+            ->join('permissions as p', function ($join) {
+                $join->on('up.permission', '=', 'p.name')
+                    ->where('up.view', true);
+            })
+            ->leftJoin('user_permission_subs as ups', function ($join) {
+                $join->on('up.id', '=', 'ups.user_permission_id')
+                    ->where('ups.view', true);
+            })
             ->select(
                 'up.id as user_permission_id',
                 'p.name as permission',

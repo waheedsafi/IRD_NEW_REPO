@@ -1,13 +1,17 @@
 
 <?php
 
-use App\Http\Controllers\api\template\JobController;
+use App\Enums\PermissionEnum;
+use App\Enums\SubPermissionEnum;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\api\template\JobController;
 
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
-    Route::get('/jobs', [JobController::class, "jobs"])->middleware(['allowAdminOrSuper']);
-    Route::delete('/job/{id}', [JobController::class, "destroy"])->middleware(['allowAdminOrSuper']);
-    Route::get('/job/{id}', [JobController::class, "job"])->middleware(['allowAdminOrSuper']);
-    Route::post('/job/store', [JobController::class, "store"])->middleware(['allowAdminOrSuper']);
-    Route::post('/job/update', [JobController::class, "update"])->middleware(['allowAdminOrSuper']);
+    Route::delete('/job/{id}', [JobController::class, "destroy"])->middleware(["userHasSubDeletePermission:" . PermissionEnum::settings->value . "," . SubPermissionEnum::setting_job->value]);
+    Route::post('/job/store', [JobController::class, "store"])->middleware(["userHasSubAddPermission:" . PermissionEnum::settings->value . "," . SubPermissionEnum::setting_job->value]);
+    Route::post('/job/update', [JobController::class, "update"])->middleware(["userHasSubEditPermission:" . PermissionEnum::settings->value . "," . SubPermissionEnum::setting_job->value]);
+});
+Route::prefix('v1')->middleware(['api.key'])->group(function () {
+    Route::get('/jobs', [JobController::class, "jobs"]);
+    Route::get('/job/{id}', [JobController::class, "job"]);
 });

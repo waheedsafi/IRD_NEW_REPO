@@ -63,6 +63,20 @@ class TestController extends Controller
     public function index(Request $request)
     {
 
+        return DB::table('model_job_trans as mjt')
+            ->where('mjt.model_job_id', 4)
+            ->select(
+                'mjt.model_job_id',
+                DB::raw("MAX(CASE WHEN mjt.language_name = 'fa' THEN value END) as farsi"),
+                DB::raw("MAX(CASE WHEN mjt.language_name = 'en' THEN value END) as english"),
+                DB::raw("MAX(CASE WHEN mjt.language_name = 'ps' THEN value END) as pashto")
+            )
+            ->groupBy('mjt.model_job_id')
+            ->first();
+
+        return UserPermission::find(28)
+            ->select('id', 'edit', 'delete', 'add', 'view')->first();
+
         $user_id = 4;
         $role_id = 4;
 

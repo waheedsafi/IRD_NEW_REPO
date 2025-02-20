@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Middleware\api\template;
+namespace App\Http\Middleware\api\template\user\sub;
 
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
-class UserHasEditPermissionMiddleware
+class UserHasSubDeletePermissionMiddleware
 {
     /**
      * Handle an incoming request.
@@ -17,6 +17,7 @@ class UserHasEditPermissionMiddleware
     public function handle(Request $request, Closure $next, $permission = null, $subPermission = null): Response
     {
         $authUser = $request->user();
+
         if ($authUser) {
             // 1. Check user has user permission
             $permission = DB::table("user_permissions as up")
@@ -25,7 +26,7 @@ class UserHasEditPermissionMiddleware
                 ->join("user_permission_subs as ups", function ($join) use ($subPermission) {
                     return $join->on('ups.user_permission_id', '=', 'up.id')
                         ->where('ups.sub_permission_id', $subPermission)
-                        ->where('edit', true);
+                        ->where('ups.delete', true);
                 })->select("ups.id")->first();
 
             if ($permission) {

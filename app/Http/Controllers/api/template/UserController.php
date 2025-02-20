@@ -24,14 +24,19 @@ use App\Repositories\User\UserRepositoryInterface;
 use App\Http\Requests\template\user\UpdateUserRequest;
 use App\Http\Requests\template\user\UserRegisterRequest;
 use App\Http\Requests\template\user\UpdateUserPasswordRequest;
+use App\Repositories\Permission\PermissionRepositoryInterface;
 
 class UserController extends Controller
 {
     protected $userRepository;
+    protected $permissionRepository;
 
-    public function __construct(UserRepositoryInterface $userRepository)
-    {
+    public function __construct(
+        UserRepositoryInterface $userRepository,
+        PermissionRepositoryInterface $permissionRepository
+    ) {
         $this->userRepository = $userRepository;
+        $this->permissionRepository = $permissionRepository;
     }
     public function users(Request $request)
     {
@@ -203,38 +208,26 @@ class UserController extends Controller
             "destination_id" => $request->destination,
             "contact_id" => $contact ? $contact->id : $contact,
             "profile" => null,
-            "status" => $request->status === "true" ? true : false,
-            "grant_permission" => $request->grant === "true" ? true : false,
+            "status" => $request->status,
+            "grant_permission" => $request->grant,
         ]);
 
         // 4. Add user permissions
-        if ($request->Permission) {
-            $data = json_decode($request->Permission, true);
-
-            foreach ($data as $category  => $permissions) {
-                $userPermissions = new UserPermission();
-                $userPermissions->permission = $category;
-                $userPermissions->user_id = $newUser->id;
-                // If no access is givin to secction no need to add record
-                $addModel = false;
-                foreach ($permissions as $action => $allowed) {
-                    // Check if the value is true or false
-                    if ($allowed)
-                        $addModel = true;
-                    if ($action == "Add")
-                        $userPermissions->add = $allowed;
-                    else if ($action == "Edit")
-                        $userPermissions->edit = $allowed;
-                    else if ($action == "Delete")
-                        $userPermissions->delete = $allowed;
-                    else
-                        $userPermissions->view = $allowed;
-                }
-                if ($addModel)
-                    $userPermissions->save();
-            }
+        $result = $this->permissionRepository->editUserPermission($newUser->id, $request->permissions);
+        if ($result == 400) {
+            return response()->json([
+                'message' => __('app_translation.user_not_found'),
+            ], 404, [], JSON_UNESCAPED_UNICODE);
+        } else if ($result == 401) {
+            return response()->json([
+                'message' => __('app_translation.unauthorized_role_per'),
+            ], 403, [], JSON_UNESCAPED_UNICODE);
+        } else if ($result == 402) {
+            return response()->json([
+                'message' => __('app_translation.per_not_found'),
+            ], 404, [], JSON_UNESCAPED_UNICODE);
         }
-        $newUser->load('job', 'destination',); // Adjust according to your relationships
+        $newUser->load('job', 'destination'); // Adjust according to your relationships
         return response()->json([
             'user' => [
                 "id" => $newUser->id,
@@ -404,49 +397,6 @@ class UserController extends Controller
                 "activeUserCount" => $statistics[0]->activeUserCount,
                 "inActiveUserCount" =>  $statistics[0]->inActiveUserCount
             ],
-        ], 200, [], JSON_UNESCAPED_UNICODE);
-    }
-    public function updatePermission(Request $request)
-    {
-        $request->validate([
-            "user_id" => "required"
-        ]);
-
-        if ($request->Permission != "undefined") {
-            $user = User::find($request->user_id);
-            // 1. Check if it is super user ID 1 do not allow to change permissions
-            if ($user === null || $user->id == "1")
-                return response()->json(['message' => "You are not authorized!"], 403);
-
-            // 2. Delete all permissions
-            UserPermission::where("user_id", "=", $request->user_id)->delete();
-            // 3. Add permissions again
-            $data = json_decode($request->permission, true);
-            foreach ($data as $category  => $permissions) {
-                $userPermissions = new UserPermission;
-                $userPermissions->permission = $category;
-                $userPermissions->user_id = $request->user_id;
-                // If no access is givin to secction no need to add record
-                $addModel = false;
-                foreach ($permissions as $action => $allowed) {
-                    // Check if the value is true or false
-                    if ($allowed == "true")
-                        $addModel = true;
-                    if ($action == "add")
-                        $userPermissions->Add = $allowed;
-                    else if ($action == "edit")
-                        $userPermissions->edit = $allowed;
-                    else if ($action == "delete")
-                        $userPermissions->delete = $allowed;
-                    else if ($action == "view")
-                        $userPermissions->view = $allowed;
-                }
-                if ($addModel)
-                    $userPermissions->save();
-            }
-        }
-        return response()->json([
-            'message' => __('app_translation.success'),
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 

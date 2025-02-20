@@ -9,9 +9,9 @@ enum SubPermissionEnum: int
     case user_password = 4;
     case user_permission = 5;
     public const USERS = [
-        1 => "user_information",
-        2 => "user_password",
-        3 => "user_permission"
+        1 => "account_information",
+        2 => "update_account_password",
+        3 => "permissions"
     ];
         // settings
     case setting_language = 21;
