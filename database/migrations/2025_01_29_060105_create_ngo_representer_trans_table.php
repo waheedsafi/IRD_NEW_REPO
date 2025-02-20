@@ -19,12 +19,8 @@ return new class extends Migration
             $table->string('language_name');
             $table->foreign('language_name')->references('name')->on('languages')->onUpdate('cascade')
                 ->onDelete('no action');
-            $table->unsignedBigInteger('job_id')->nullable();
-            $table->foreign('job_id')->references('id')->on('model_jobs')
-                ->onUpdate('cascade')
-                ->onDelete('no action');
-            $table->string('name', 64);
-            $table->string('last_name', 64)->nullable();
+            $table->string('full_name', 64);
+            $table->boolean('is_active')->default(false);
             $table->timestamps();
         });
     }
