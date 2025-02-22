@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Enums\CheckListEnum;
+use App\Enums\CheckList\CheckListEnum;
 use App\Enums\CheckListTypeEnum;
 use App\Enums\LanguageEnum;
 use App\Enums\RoleEnum;
@@ -36,6 +36,7 @@ class CheckListSeeder extends Seeder
             'check_list_type_id' => $checklist->id,
             'language_name' => LanguageEnum::default,
         ]);
+
         CheckListTypeTrans::create([
             'value' => "ثبت موسسه",
             'check_list_type_id' => $checklist->id,
@@ -96,6 +97,7 @@ class CheckListSeeder extends Seeder
         ]);
         // 2.
         $checklist = CheckList::create([
+            'id' => CheckListEnum::ministry_of_economy_work_permit,
             'check_list_type_id' => CheckListTypeEnum::ngoRegister,
             'acceptable_extensions' => "pdf,jpeg,jpg,png",
             'acceptable_mimes' => ".pdf,.jpeg,.jpg,.png",
@@ -119,7 +121,10 @@ class CheckListSeeder extends Seeder
             'language_name' => LanguageEnum::pashto,
         ]);
         // 3.
+
+
         $checklist = CheckList::create([
+            'id' => CheckListEnum::articles_of_association,
             'check_list_type_id' => CheckListTypeEnum::ngoRegister,
             'acceptable_extensions' => "pdf,jpeg,jpg,png",
             'acceptable_mimes' => ".pdf,.jpeg,.jpg,.png",
@@ -143,6 +148,31 @@ class CheckListSeeder extends Seeder
             'language_name' => LanguageEnum::pashto,
         ]);
         // 4.
+        $checklist = CheckList::create([
+            "id" => CheckListEnum::representer_document,
+            'check_list_type_id' => CheckListTypeEnum::ngoRegister,
+            'acceptable_extensions' => "pdf,jpeg,jpg,png",
+            'acceptable_mimes' => ".pdf,.jpeg,.jpg,.png",
+            'description' => "",
+            'file_size' => 2048,
+            'user_id' => RoleEnum::super,
+        ]);
+        CheckListTrans::create([
+            'check_list_id' => $checklist->id,
+            'value' => "Represter introducation document",
+            'language_name' => LanguageEnum::default,
+        ]);
+        CheckListTrans::create([
+            'check_list_id' => $checklist->id,
+            'value' => "مکتوب معرفی نمایده",
+            'language_name' => LanguageEnum::farsi,
+        ]);
+        CheckListTrans::create([
+            'check_list_id' => $checklist->id,
+            'value' => "د استازی د معرفت مکتوب",
+            'language_name' => LanguageEnum::pashto,
+        ]);
+        //5.
         $checklist = CheckList::create([
             'check_list_type_id' => CheckListTypeEnum::ngoRegister,
             'acceptable_extensions' => "pdf,jpeg,jpg,png",

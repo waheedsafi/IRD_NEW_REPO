@@ -2,7 +2,7 @@
 
 namespace App\Enums\Type;
 
-enum RepresnterTypeEnum: int
+enum RepresenterTypeEnum: int
 {
   case ngo = 1;
   case project = 2;

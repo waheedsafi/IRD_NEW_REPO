@@ -2,39 +2,44 @@
 
 namespace App\Http\Controllers\api\app\ngo;
 
-use Carbon\Carbon;
-use App\Models\Ngo;
-use App\Models\Email;
-use App\Enums\RoleEnum;
-use App\Models\Address;
-use App\Models\Contact;
-use App\Models\NgoTran;
-use App\Models\Director;
-use App\Models\Document;
-use App\Models\Agreement;
-use App\Models\CheckList;
-use App\Models\NgoStatus;
-use App\Enums\LanguageEnum;
-use App\Models\AddressTran;
-use App\Models\PendingTask;
-use App\Models\DirectorTran;
-use App\Enums\PermissionEnum;
-use App\Models\NgoPermission;
-use App\Models\CheckListTrans;
-use App\Models\StatusTypeTran;
+use App\Enums\CheckList\CheckListEnum;
 use App\Enums\CheckListTypeEnum;
+use App\Enums\LanguageEnum;
+use App\Enums\PermissionEnum;
+use App\Enums\RoleEnum;
+use App\Enums\Type\RepresenterTypeEnum;
+use App\Enums\Type\RepresnterTypeEnum;
+use App\Enums\Type\StatusTypeEnum;
 use App\Enums\Type\TaskTypeEnum;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\app\ngo\NgoInitStoreRequest;
+use App\Http\Requests\app\ngo\NgoRegisterRequest;
+use App\Models\Address;
+use App\Models\AddressTran;
+use App\Models\Agreement;
 use App\Models\AgreementDirector;
 use App\Models\AgreementDocument;
-use App\Enums\Type\StatusTypeEnum;
-use Illuminate\Support\Facades\DB;
+use App\Models\CheckList;
+use App\Models\CheckListTrans;
+use App\Models\Contact;
+use App\Models\Director;
+use App\Models\DirectorTran;
+use App\Models\Document;
+use App\Models\Email;
+use App\Models\Ngo;
+use App\Models\NgoPermission;
+use App\Models\NgoStatus;
+use App\Models\NgoTran;
+use App\Models\PendingTask;
 use App\Models\PendingTaskDocument;
-use Illuminate\Support\Facades\App;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Hash;
-use App\Http\Requests\app\ngo\NgoRegisterRequest;
-use App\Http\Requests\app\ngo\NgoInitStoreRequest;
+use App\Models\Representer;
+use App\Models\RepresenterTran;
+use App\Models\StatusTypeTran;
 use App\Repositories\Task\PendingTaskRepositoryInterface;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class StoresNgoController extends Controller
 {
@@ -94,6 +99,16 @@ class StoresNgoController extends Controller
             "comment" => "Newly Created"
         ]);
 
+        // **Fix agreement creation**
+        $agreement = Agreement::create([
+            'ngo_id' => $newNgo->id,
+            'start_date' => Carbon::now()->toDateString(),
+            'end_date' => Carbon::now()->addYear()->toDateString(),
+        ]);
+        $agreement->agreement_no = "AG" . '-' . Carbon::now()->year . '-' . $agreement->id;
+        $agreement->save();
+
+        $this->storeRepresenter($request, $agreement->id);
         // * Translations
         foreach (LanguageEnum::LANGUAGES as $code => $name) {
             NgoTran::create([
@@ -111,6 +126,7 @@ class StoresNgoController extends Controller
         } else if ($locale == LanguageEnum::pashto->value) {
             $name = $validatedData['name_pashto'];
         }
+
         // If everything goes well, commit the transaction
         DB::commit();
 
@@ -141,6 +157,43 @@ class StoresNgoController extends Controller
         );
     }
 
+    protected function storeRepresenter($request, $agreement_id)
+    {
+
+        $representer =    Representer::create(
+            [
+
+                'type' => RepresenterTypeEnum::ngo,
+                'represented_id' => $agreement_id,
+            ]
+
+        );
+
+        foreach (LanguageEnum::LANGUAGES as $code => $name) {
+            RepresenterTran::create([
+                'representer_id' => $representer->id,
+                'language_name' =>  $code,
+                'full_name' => $request->representer_name_ . $name,
+                'is_active' => true,
+
+
+            ]);
+        }
+
+
+        $document =  Document::create([
+            'actual_name' => $request->input('representer.name'),
+            'size' => $request->input('representer.size'),
+            'path' => $request->input('representer.path'),
+            'type' => $request->input('representer.extension'),
+            'check_list_id' => CheckListEnum::representer_document,
+        ]);
+        AgreementDocument::create([
+            'agreement_id' => $agreement_id,
+            'document_id' => $document->id,
+        ]);
+    }
+
     public function registerFormCompleted(NgoInitStoreRequest $request)
     {
         // return $request;
@@ -158,7 +211,7 @@ class StoresNgoController extends Controller
             ], 409);
         }
 
-        // 2. Check NGO exist
+        // 2. CheckListEnum:: NGO exist
         $ngo = Ngo::find($id);
         if (!$ngo) {
             return response()->json([
@@ -177,7 +230,7 @@ class StoresNgoController extends Controller
                 'error' => __('app_translation.task_not_found')
             ], 404);
         }
-        // 4. Check task exists
+        // 4. CheckListEnum:: task exists
         $errors = $this->validateCheckList($task);
         if ($errors) {
             return response()->json([
@@ -237,15 +290,9 @@ class StoresNgoController extends Controller
         $ngo_addres_fa->save();
         $ngo->save();
 
-        // **Fix agreement creation**
-        $agreement = Agreement::create([
-            'ngo_id' => $id,
-            'start_date' => Carbon::now()->toDateString(),
-            'end_date' => Carbon::now()->addYear()->toDateString(),
-        ]);
-        $agreement->agreement_no = "AG" . '-' . Carbon::now()->year . '-' . $agreement->id;
-        $agreement->save();
 
+
+        $agreement = Agreement::find($id, 'ngo_id');
         // Make prevous state to false
         NgoStatus::where('ngo_id', $id)->update(['is_active' => false]);
         NgoStatus::create([

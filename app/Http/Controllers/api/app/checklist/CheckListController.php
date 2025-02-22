@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\api\app\checklist;
 
-use App\Enums\CheckListEnum;
+use App\Enums\CheckList\CheckListEnum;
 use App\Enums\CheckListTypeEnum;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 
 class CheckListController extends Controller
