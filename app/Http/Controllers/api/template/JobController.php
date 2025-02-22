@@ -70,7 +70,7 @@ class JobController extends Controller
     public function job($id)
     {
         $job = DB::table('model_job_trans as mjt')
-            ->where('mjt.model_job_id', 4)
+            ->where('mjt.model_job_id', $id)
             ->select(
                 'mjt.model_job_id',
                 DB::raw("MAX(CASE WHEN mjt.language_name = 'fa' THEN value END) as farsi"),

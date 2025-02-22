@@ -18,6 +18,9 @@ use App\Http\Controllers\api\app\ngo\DeletesNgoController;
 Route::prefix('v1')->group(function () {
   Route::get('public/ngos', [ViewsNgoController::class, 'publicNgos']);
 });
+Route::prefix('v1')->middleware(['api.key', "doubleAuthorized:" . 'user:api,ngo:api'])->group(function () {
+  // Route::get('/role-permissions/{id}', [PermissionController::class, "rolePermissions"]);
+});
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
   Route::get('/ngo/more-information/{id}', [ViewsNgoController::class, 'moreInformation']);
   Route::get('/ngo/agreement-documents', [ViewsNgoController::class, 'agreementDocuments']);

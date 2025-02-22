@@ -4,6 +4,6 @@ namespace App\Enums;
 
 enum CheckListTypeEnum: int
 {
-    case internal = 1;
-    case externel = 2;
+    case projectRegister = 1;
+    case ngoRegister = 2;
 }

@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CheckListEnum;
 use Carbon\Carbon;
 use App\Models\Ngo;
 use App\Models\News;
-use App\Models\User;
+use App\Models\Role;
 
+use App\Models\User;
 use App\Models\Email;
 use App\Models\Staff;
-use App\Models\Gender;
 
+use App\Models\Gender;
+use App\Enums\RoleEnum;
 use App\Models\Address;
 use App\Models\Country;
 use App\Models\NgoTran;
@@ -28,24 +31,24 @@ use App\Models\NidTypeTrans;
 use Illuminate\Http\Request;
 use App\Enums\PermissionEnum;
 use Sway\Models\RefreshToken;
-use App\Models\StatusTypeTran;
-use App\Enums\SubPermissionEnum;
-use App\Enums\DestinationTypeEnum;
-use App\Enums\RoleEnum;
-use App\Enums\Type\StatusTypeEnum;
-use App\Models\PendingTaskContent;
-use App\Models\Role;
 use App\Models\RolePermission;
-use App\Models\RolePermissionSub;
+use App\Models\StatusTypeTran;
 use App\Models\UserPermission;
+use App\Enums\CheckListTypeEnum;
+use App\Enums\SubPermissionEnum;
+use App\Models\RolePermissionSub;
+use App\Enums\DestinationTypeEnum;
+use App\Enums\Type\StatusTypeEnum;
+use App\Models\CheckListType;
+use App\Models\PendingTaskContent;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Log;
 use App\Traits\Address\AddressTrait;
+use function Laravel\Prompts\select;
+
 use App\Repositories\ngo\NgoRepositoryInterface;
 use App\Repositories\User\UserRepositoryInterface;
-use Illuminate\Support\Facades\Log;
-
-use function Laravel\Prompts\select;
 
 class TestController extends Controller
 {
@@ -62,17 +65,64 @@ class TestController extends Controller
     use AddressTrait;
     public function index(Request $request)
     {
-
-        return DB::table('model_job_trans as mjt')
-            ->where('mjt.model_job_id', 4)
+        $locale = App::getLocale();
+        return DB::table('check_lists as cl')
+            ->join('users as u', 'u.id', '=', 'cl.user_id')
+            ->join('check_list_trans as clt', 'clt.check_list_id', '=', 'cl.id')
+            ->where('clt.language_name', $locale)
+            ->join('check_list_types as cltt', 'cltt.id', '=', 'cl.check_list_type_id')
+            ->join('check_list_type_trans as clttt', 'clttt.check_list_type_id', '=', 'cltt.id')
+            ->where('clttt.language_name', $locale)
             ->select(
-                'mjt.model_job_id',
-                DB::raw("MAX(CASE WHEN mjt.language_name = 'fa' THEN value END) as farsi"),
-                DB::raw("MAX(CASE WHEN mjt.language_name = 'en' THEN value END) as english"),
-                DB::raw("MAX(CASE WHEN mjt.language_name = 'ps' THEN value END) as pashto")
+                'clt.value as name',
+                'cl.id',
+                'cl.acceptable_mimes',
+                'cl.acceptable_extensions',
+                'cl.description',
+                'cl.active',
+                'clttt.value as type',
+                'cltt.id as type_id',
+                'u.username as saved_by',
             )
-            ->groupBy('mjt.model_job_id')
+            ->orderBy('cltt.id')
+            ->get();
+
+        $checklist = DB::table('check_lists as cl')
+            ->join('check_list_trans as clt', 'clt.check_list_id', '=', 'cl.id')
+            ->where('clt.language_name', $locale)
+            ->join('check_list_types as cltt', 'cltt.id', '=', 'cl.check_list_type_id')
+            ->join('check_list_type_trans as clttt', 'clttt.check_list_type_id', '=', 'cltt.id')
+            ->where('clttt.language_name', $locale)
+            ->select(
+                'clt.value as name',
+                'cl.id',
+                'cl.acceptable_mimes',
+                'cl.acceptable_extensions',
+                'cl.description',
+                'cl.active',
+                'cl.file_size',
+                'clttt.value as type',
+                'clttt.id as type_id',
+            )
+            ->orderBy('cltt.id')
             ->first();
+
+        // Post-process the result
+        $checklist->acceptable_mimes = explode(',', $checklist->acceptable_mimes);
+        $checklist->acceptable_extensions = explode(',', $checklist->acceptable_extensions);
+        return $checklist;
+
+
+
+        DB::table('check_list_types as clt')
+            ->join('check_list_type_trans as cltt', 'cltt.check_list_type_id', '=', 'clt.id')
+            ->where('cltt.language_name', $locale)
+            ->select(
+                'cltt.value as name',
+                'clt.id',
+            )
+            ->orderBy('cl.id')
+            ->get();
 
         return UserPermission::find(28)
             ->select('id', 'edit', 'delete', 'add', 'view')->first();
