@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\api\app\checklist;
 
-use App\Enums\CheckListEnum;
+use App\Enums\CheckList\CheckListEnum;
 use App\Enums\CheckListTypeEnum;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 
 class CheckListController extends Controller
@@ -18,6 +18,7 @@ class CheckListController extends Controller
             ->where('cl.active', true)
             ->where('cl.check_list_type_id', CheckListTypeEnum::ngoRegister->value)
             ->where('cl.id', '!=', CheckListEnum::director_work_permit->value)
+            ->where('cl.id', '!=', CheckListEnum::representer_document->value)
             ->join('check_list_trans as clt', 'clt.check_list_id', '=', 'cl.id')
             ->where('clt.language_name', $locale)
             ->select(

@@ -36,6 +36,13 @@ class NgoRegisterRequest extends FormRequest
             'name_english' => 'required|string|unique:ngo_trans,name',
             'name_pashto' => 'required|string|unique:ngo_trans,name',
             'name_farsi' => 'required|string|unique:ngo_trans,name',
+            'full_name_english' => 'required|string|max:128',
+            'full_name_farsi' => 'required|string|max:128',
+            'full_name_pashto' => 'required|string|max:128',
+            'representer' => 'required|array'
+
+
+
         ];
     }
 }

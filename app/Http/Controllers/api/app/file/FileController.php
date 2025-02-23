@@ -312,14 +312,14 @@ class FileController extends Controller
 
             $ngo = NgoTran::where('ngo_id', $request->ngo_id)->where('language_name', 'en')->value('name');
             $agreement_id = AgreementDocument::where('document_id', $request->document_id)->value('agreement_id');
-            $newDirectory = storage_path() . "/app/private/ngos/{$ngo}/{$agreement_id}/";
+            $newDirectory = storage_path() . "/app/private/ngos/{$ngo}/{$agreement_id}/{$request->checklist_id}/";
             if (!file_exists($newDirectory)) {
                 mkdir($newDirectory, 0775, true);
             }
 
             $newPath = $newDirectory . basename($storePath); // Keep original filename
 
-            $dbStorePath = "private/ngos/{$ngo}/{$agreement_id}/"
+            $dbStorePath = "private/ngos/{$ngo}/{$agreement_id}/{$request->checklist_id}/"
                 . basename($storePath);
             $document = Document::find($request->document_id);
 
