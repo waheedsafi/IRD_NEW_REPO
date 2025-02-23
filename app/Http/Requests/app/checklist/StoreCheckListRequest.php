@@ -4,7 +4,7 @@ namespace App\Http\Requests\app\checklist;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreCheckList extends FormRequest
+class StoreCheckListRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -28,8 +28,7 @@ class StoreCheckList extends FormRequest
             "file_size" => "required|numeric",
             "type" => "required",
             "status" => "required|boolean",
-            "detail" => "required",
-            "extensions" => "required",
+            "file_type" => "required",
         ];
     }
 }

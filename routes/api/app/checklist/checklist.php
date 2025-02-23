@@ -1,8 +1,10 @@
 
 <?php
 
-use App\Http\Controllers\api\app\checklist\CheckListController;
+use App\Enums\PermissionEnum;
+use App\Enums\SubPermissionEnum;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\api\app\checklist\CheckListController;
 
 
 
@@ -16,7 +18,7 @@ Route::prefix('v1')->middleware(['api.key', "doubleAuthorized:" . 'user:api,ngo:
 });
 
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
-  Route::post('checklist/store', [CheckListController::class, 'store']);
-  Route::delete('checklist/{id}', [CheckListController::class, 'destroy']);
-  Route::post('checklist/update', [CheckListController::class, 'update']);
+  Route::post('checklist/store', [CheckListController::class, 'store'])->middleware(["userHasSubAddPermission:" . PermissionEnum::settings->value . "," . SubPermissionEnum::setting_checklist->value]);
+  Route::delete('checklist/{id}', [CheckListController::class, 'destroy'])->middleware(["userHasSubDeletePermission:" . PermissionEnum::settings->value . "," . SubPermissionEnum::setting_checklist->value]);;
+  Route::post('checklist/update', [CheckListController::class, 'update'])->middleware(["userHasSubEditPermission:" . PermissionEnum::settings->value . "," . SubPermissionEnum::setting_checklist->value]);;
 });

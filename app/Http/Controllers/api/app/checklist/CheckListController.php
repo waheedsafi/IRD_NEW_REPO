@@ -9,9 +9,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
 use App\Enums\CheckList\CheckListEnum;
-use App\Http\Requests\app\checklist\StoreCheckList;
+use App\Http\Requests\app\checklist\StoreCheckListRequest;
 use App\Models\CheckList;
 use App\Models\CheckListTrans;
+use App\Models\CheckListType;
 
 class CheckListController extends Controller
 {
@@ -67,13 +68,13 @@ class CheckListController extends Controller
             'ngos' => $tr
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
-    public function store(StoreCheckList $request)
+    public function store(StoreCheckListRequest $request)
     {
         $request->validated();
         $authUser = $request->user();
         $convertedMimes = [];
         $convertedExtensions = [];
-        foreach ($request->extensions as $extension) {
+        foreach ($request->file_type as $extension) {
             $convertedMimes[] = $extension['frontEndName'];
             $convertedExtensions[] = $extension['name'];
         }
@@ -121,12 +122,81 @@ class CheckListController extends Controller
             JSON_UNESCAPED_UNICODE
         );
     }
-    public function update(Request $request)
+    public function update(StoreCheckListRequest $request)
     {
+        $request->validated();
+        $request->validate([
+            'id' => "required"
+        ]);
+        $authUser = $request->user();
+        $id = $request->id;
+        $checklist = CheckList::find($id);
+        if (!$checklist) {
+            return response()->json([
+                'message' => __('app_translation.checklist_not_found')
+            ], 404, [], JSON_UNESCAPED_UNICODE);
+        }
+        $type = CheckListType::find($request->type['id']);
+        if (!$type) {
+            return response()->json([
+                'message' => __('app_translation.checklist_type_not_found')
+            ], 404, [], JSON_UNESCAPED_UNICODE);
+        }
+        // Begin transaction
+        DB::beginTransaction();
+        // 1. Update checklist
+        $convertedMimes = [];
+        $convertedExtensions = [];
+        foreach ($request->file_type as $extension) {
+            $convertedMimes[] = $extension['frontEndName'];
+            $convertedExtensions[] = $extension['name'];
+        }
+
+        $checklist->acceptable_mimes = implode(',', $convertedMimes);
+        $checklist->acceptable_extensions = implode(',', $convertedExtensions);
+        $checklist->check_list_type_id = $type->id;
+        $checklist->active = $request->status;
+        $checklist->file_size = $request->file_size;
+        $checklist->description = $request->detail;
+        $checklist->user_id  = $authUser->id;
+        $checklist->save();
+        // 2. Update translations
+        $trans = CheckListTrans::where('check_list_id', $checklist->id)
+            ->select('language_name', 'value', 'id')
+            ->get();
+        foreach (LanguageEnum::LANGUAGES as $code => $name) {
+            $translation = $trans->where('language_name', $code)->first();
+            if ($translation) {
+                $translation->value = $request["name_{$name}"];
+                $translation->save();
+            } else {
+                return response()->json([
+                    'message' => __('app_translation.failed')
+                ], 500, [], JSON_UNESCAPED_UNICODE);
+            }
+        }
+
+        DB::commit();
         $locale = App::getLocale();
-        $tr =  [];
+        $name = $request->name_english;
+        if ($locale == LanguageEnum::farsi->value) {
+            $name = $request->name_farsi;
+        } else {
+            $name = $request->name_pashto;
+        }
+        $tr =  [
+            "id" => $checklist->id,
+            "name" => $name,
+            "description" => $checklist->description,
+            "active" => $checklist->active,
+            "type" => $request->type['name'],
+            "type_id" => $request->type['id'],
+            "saved_by" => $authUser->username,
+            "created_at" => $checklist->created_at,
+        ];
         return response()->json([
-            'ngos' => $tr
+            'checklist' => $tr,
+            'message' => __('app_translation.success'),
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
     public function destroy($id)
@@ -202,7 +272,7 @@ class CheckListController extends Controller
                 'cl.active as status',
                 'cl.file_size',
                 'clttt.value as type',
-                'clttt.id as type_id',
+                'cltt.id as type_id',
                 'clt_farsi.value as name_farsi', // Farsi translation
                 'clt_english.value as name_english', // English translation
                 'clt_pashto.value as name_pashto',
@@ -232,7 +302,7 @@ class CheckListController extends Controller
             }
 
             // Assign the combined array to the checklist object
-            $checklist->extensions = $combined;
+            $checklist->file_type = $combined;
         }
         $checklist->status = (bool) $checklist->status;
         // Remove unwanted data from the checklist
@@ -244,7 +314,7 @@ class CheckListController extends Controller
             "name_english" => $checklist->name_english,
             "name_pashto" => $checklist->name_pashto,
             "detail" => $checklist->description,
-            "extensions" => $checklist->extensions,
+            "file_type" => $checklist->file_type,
             "type" => [
                 'id' => $checklist->type_id,
                 'name' => $checklist->type

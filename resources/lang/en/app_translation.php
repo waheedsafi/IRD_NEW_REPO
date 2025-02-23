@@ -39,4 +39,5 @@ return [
     "unauthorized_role_per" => "Your Role does not have this permission.",
     "unauthorized_role_sub_per" => "You are not authorized, to assign this sub permission.",
     "job_not_found" => "Job Not Found",
+    "checklist_type_not_found" => "CheckList Type Not Found",
 ];
