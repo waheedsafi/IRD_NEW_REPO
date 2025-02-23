@@ -66,51 +66,93 @@ class TestController extends Controller
     public function index(Request $request)
     {
         $locale = App::getLocale();
-        return DB::table('check_lists as cl')
-            ->join('users as u', 'u.id', '=', 'cl.user_id')
-            ->join('check_list_trans as clt', 'clt.check_list_id', '=', 'cl.id')
-            ->where('clt.language_name', $locale)
-            ->join('check_list_types as cltt', 'cltt.id', '=', 'cl.check_list_type_id')
-            ->join('check_list_type_trans as clttt', 'clttt.check_list_type_id', '=', 'cltt.id')
-            ->where('clttt.language_name', $locale)
-            ->select(
-                'clt.value as name',
-                'cl.id',
-                'cl.acceptable_mimes',
-                'cl.acceptable_extensions',
-                'cl.description',
-                'cl.active',
-                'clttt.value as type',
-                'cltt.id as type_id',
-                'u.username as saved_by',
-            )
-            ->orderBy('cltt.id')
-            ->get();
 
+        $id = 9;
         $checklist = DB::table('check_lists as cl')
-            ->join('check_list_trans as clt', 'clt.check_list_id', '=', 'cl.id')
-            ->where('clt.language_name', $locale)
+            ->where('cl.id', $id)
+            ->leftJoin('check_list_trans as clt_farsi', function ($join) {
+                $join->on('clt_farsi.check_list_id', '=', 'cl.id')
+                    ->where('clt_farsi.language_name', 'fa'); // Join for Farsi (fa)
+            })
+            ->leftJoin('check_list_trans as clt_english', function ($join) {
+                $join->on('clt_english.check_list_id', '=', 'cl.id')
+                    ->where('clt_english.language_name', 'en'); // Join for English (en)
+            })
+            ->leftJoin('check_list_trans as clt_pashto', function ($join) {
+                $join->on('clt_pashto.check_list_id', '=', 'cl.id')
+                    ->where('clt_pashto.language_name', 'ps'); // Join for Pashto (ps)
+            })
             ->join('check_list_types as cltt', 'cltt.id', '=', 'cl.check_list_type_id')
             ->join('check_list_type_trans as clttt', 'clttt.check_list_type_id', '=', 'cltt.id')
             ->where('clttt.language_name', $locale)
             ->select(
-                'clt.value as name',
                 'cl.id',
                 'cl.acceptable_mimes',
                 'cl.acceptable_extensions',
                 'cl.description',
-                'cl.active',
+                'cl.active as status',
                 'cl.file_size',
                 'clttt.value as type',
                 'clttt.id as type_id',
+                'clt_farsi.value as name_farsi', // Farsi translation
+                'clt_english.value as name_english', // English translation
+                'clt_pashto.value as name_pashto' // Pashto translation
             )
             ->orderBy('cltt.id')
             ->first();
 
-        // Post-process the result
-        $checklist->acceptable_mimes = explode(',', $checklist->acceptable_mimes);
-        $checklist->acceptable_extensions = explode(',', $checklist->acceptable_extensions);
+        // Check if acceptable_mimes and acceptable_extensions are present
+        if ($checklist) {
+            // Exploding the comma-separated strings into arrays
+            $acceptableMimes = explode(',', $checklist->acceptable_mimes);
+            $acceptableExtensions = explode(',', $checklist->acceptable_extensions);
+
+            // Combine them into an array of objects
+            $combined = [];
+            foreach ($acceptableMimes as $index => $mime) {
+                // Assuming the index of mimes matches with extensions
+                if (isset($acceptableExtensions[$index])) {
+                    $combined[] = [
+                        'name' => $acceptableExtensions[$index],
+                        "label" => $mime,
+                        'frontEndName' => $mime
+                    ];
+                }
+            }
+
+            // Assign the combined array to the checklist object
+            $checklist->extensions = $combined;
+        }
+        $checklist->status = (bool) $checklist->status;
+        // Remove unwanted data from the checklist
+        unset($checklist->acceptable_mimes);
+        unset($checklist->acceptable_extensions);
+
+        $convertedMimes = [];
+        $convertedExtensions = [];
+        foreach ($checklist->extensions as $extension) {
+            $convertedMimes[] = $extension['frontEndName'];
+            $convertedExtensions[] = $extension['name'];
+        }
+
+        $checklist->acceptable_mimes = implode(',', $convertedMimes);
+        $checklist->acceptable_extensions = implode(',', $convertedExtensions);
+
         return $checklist;
+
+        return [
+            "id" => $checklist->id,
+            "name_farsi" => $checklist->name_farsi,
+            "name_english" => $checklist->name_english,
+            "name_pashto" => $checklist->name_pashto,
+            "detail" => $checklist->description,
+            "status" => (bool) $checklist->active,
+            "type" => [
+                "id" => $checklist->type_id,
+                "name" => $checklist->type,
+            ],
+            "extensions" => []
+        ];
 
 
 

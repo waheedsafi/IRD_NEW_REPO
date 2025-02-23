@@ -12,11 +12,11 @@ Route::prefix('v1')->middleware(['api.key', "doubleAuthorized:" . 'user:api,ngo:
   Route::get('project/register/checklist', [CheckListController::class, 'projectRegister']);
   Route::get('ngo/register/checklist', [CheckListController::class, 'ngoRegister']);
   Route::get('ngo/register/abroad/director-checklist', [CheckListController::class, 'ngoRegisterAbroadDirector']);
+  Route::get('ngo-checklist/{id}', [CheckListController::class, 'checklist']);
 });
 
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
-  Route::get('ngo/checklist/{id}', [CheckListController::class, 'checklist']);
-  Route::get('checklist/store', [CheckListController::class, 'store']);
-  Route::delete('delete/checklist/{id}', [CheckListController::class, 'destroy']);
+  Route::post('checklist/store', [CheckListController::class, 'store']);
+  Route::delete('checklist/{id}', [CheckListController::class, 'destroy']);
   Route::post('checklist/update', [CheckListController::class, 'update']);
 });
