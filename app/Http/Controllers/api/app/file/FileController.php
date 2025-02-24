@@ -222,7 +222,6 @@ class FileController extends Controller
                 'user_type' => $role,
                 'task_type' => $task_type,
                 'task_id' => $id
-
             ]);
         }
         return $task->id;
