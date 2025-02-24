@@ -160,13 +160,11 @@ class StoresNgoController extends Controller
     protected function storeRepresenter($request, $agreement_id)
     {
 
-        $representer =    Representer::create(
+        $representer =  Representer::create(
             [
-
                 'type' => RepresenterTypeEnum::ngo,
                 'represented_id' => $agreement_id,
             ]
-
         );
 
         foreach (LanguageEnum::LANGUAGES as $code => $name) {
@@ -175,11 +173,8 @@ class StoresNgoController extends Controller
                 'language_name' =>  $code,
                 'full_name' => $request->representer_name_ . $name,
                 'is_active' => true,
-
-
             ]);
         }
-
 
         $document =  Document::create([
             'actual_name' => $request->input('representer.name'),

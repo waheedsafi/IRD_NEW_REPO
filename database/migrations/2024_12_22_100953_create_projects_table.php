@@ -13,35 +13,27 @@ return new class extends Migration
     {
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
-            $table->string('start_date',32);
-            $table->string('end_date',32);
-            $table->string('approved_date',32);
-            $table->string('total_budget',32);
-            $table->string('donor_registration_no',64);
-
-                  $table->unsignedBigInteger('currency_id');
+            $table->string('start_date', 32);
+            $table->string('end_date', 32);
+            $table->string('approved_date', 32);
+            $table->string('total_budget', 32);
+            $table->string('donor_registration_no', 64);
+            $table->unsignedBigInteger('currency_id');
             $table->foreign('currency_id')->references('id')->on('currencies')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
-
-                        $table->unsignedBigInteger('donor_id');
+            $table->unsignedBigInteger('donor_id');
             $table->foreign('donor_id')->references('id')->on('donors')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
-
-                   $table->unsignedBigInteger('project_manager_id');
+            $table->unsignedBigInteger('project_manager_id');
             $table->foreign('project_manager_id')->references('id')->on('project_managers')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
-
-
-                
-                
-                 $table->unsignedBigInteger('country_id');
+            $table->unsignedBigInteger('country_id');
             $table->foreign('country_id')->references('id')->on('countries')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
-                
             $table->timestamps();
         });
     }

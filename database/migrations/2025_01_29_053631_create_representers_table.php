@@ -15,6 +15,10 @@ return new class extends Migration
             $table->id();
             $table->integer('type')->comment('Can be either ngo or project');
             $table->unsignedBigInteger('represented_id')->comment('if type is ngo this id refer to agreement id else project');
+            $table->foreignId('user_id')
+                ->constrained()
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
             $table->timestamps();
         });
     }

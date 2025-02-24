@@ -211,26 +211,20 @@ class FileController extends Controller
         $user_id = $user->id;
         $role = $user->role_id;
 
-
         $task = PendingTask::where('user_id', $user_id)
             ->where('user_type', $role)
             ->where('task_type', $task_type)
             ->where('task_id', $id)
             ->first();
         if (!$task) {
-
-            $newtask =  PendingTask::create([
+            $task =  PendingTask::create([
                 'user_id' => $user_id,
                 'user_type' => $role,
                 'task_type' => $task_type,
                 'task_id' => $id
 
             ]);
-
-            return $newtask->id;
         }
-
-
         return $task->id;
     }
 
@@ -302,14 +296,7 @@ class FileController extends Controller
         }
         $checklist = CheckList::find($request->checklist_id);
 
-
-
-
-
-        if ($checklist->check_list_type_id == CheckListTypeEnum::externel->value) {
-
-
-
+        if ($checklist->check_list_type_id == CheckListTypeEnum::ngoRegister->value) {
             $ngo = NgoTran::where('ngo_id', $request->ngo_id)->where('language_name', 'en')->value('name');
             $agreement_id = AgreementDocument::where('document_id', $request->document_id)->value('agreement_id');
             $newDirectory = storage_path() . "/app/private/ngos/{$ngo}/{$agreement_id}/{$request->checklist_id}/";
