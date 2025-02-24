@@ -358,7 +358,7 @@ class StoresNgoController extends Controller
 
         return null;
     }
-    protected function documentStore($request, $agreement_id, $ngo_id, $ngo_name)
+    protected function documentStore($request, $agreement_id, $ngo_id)
     {
         $user = $request->user();
         $user_id = $user->id;
