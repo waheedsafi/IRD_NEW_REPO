@@ -360,21 +360,14 @@ class StoresNgoController extends Controller
     }
     protected function documentStore($request, $agreement_id, $ngo_id)
     {
-        $user = $request->user();
-        $user_id = $user->id;
-        $role = $user->role_id;
-        $task_type = TaskTypeEnum::ngo_registeration;
 
 
-        $task = PendingTask::where('user_id', $user_id)
-            ->where('user_type', $role)
-            ->where('task_type', $task_type)
-            ->where('task_id', $ngo_id)
+        $task = PendingTask::where('pending_id', $request->pending_id)
             ->first();
 
 
         if (!$task) {
-            return response()->json(['error' => 'No pending task found'], 404);
+            return response()->json(['error' => __('app_translation.checklist_not_found')], 404);
         }
         // Get checklist IDs
 
@@ -425,66 +418,59 @@ class StoresNgoController extends Controller
 
     protected function representerDocumentStore($request, $agreement_id, $ngo_id)
     {
-        $user = $request->user();
-        $user_id = $user->id;
-        $role = $user->role_id;
-        $task_type = TaskTypeEnum::ngo_registeration;
 
 
-        $task = PendingTask::where('user_id', $user_id)
-            ->where('user_type', $role)
-            ->where('task_type', $task_type)
+
+        $task = PendingTask::where('id', $request->pending_id)
             ->first();
 
 
         if (!$task) {
-            return response()->json(['error' => 'No pending task found'], 404);
+            return response()->json(['error' => __('app_translation.checklist_not_found')], 404);
         }
         // Get checklist IDs
 
-        $documents = PendingTaskDocument::join('check_lists', 'check_lists.id', 'pending_task_documents.check_list_id')
-            ->select('size', 'path', 'acceptable_mimes', 'check_list_id', 'actual_name', 'extension')
+        $documents = PendingTaskDocument::select('size', 'path', 'acceptable_mimes', 'check_list_id', 'actual_name', 'extension')
             ->where('pending_task_id', $task->id)
-            ->get();
-
-        foreach ($documents as $checklist) {
-
-            $oldPath = storage_path("app/" . $checklist['path']); // Absolute path of temp file
-
-            $newDirectory = storage_path() . "/app/private/ngos/{$ngo_id}/{$agreement_id}/{$checklist['check_list_id']}/";
-
-            if (!file_exists($newDirectory)) {
-                mkdir($newDirectory, 0775, true);
-            }
-
-            $newPath = $newDirectory . basename($checklist['path']); // Keep original filename
-
-            $dbStorePath = "private/ngos/{$ngo_id}/{$agreement_id}/{$checklist['check_list_id']}/"
-                . basename($checklist['path']);
-            // Ensure the new directory exists
-
-            // Move the file
-            if (file_exists($oldPath)) {
-                rename($oldPath, $newPath);
-            } else {
-                return response()->json(['error' => __('app_translation.not_found') . $oldPath], 404);
-            }
+            ->first();
 
 
-            $document = Document::create([
-                'actual_name' => $checklist['actual_name'],
-                'size' => $checklist['size'],
-                'path' => $dbStorePath,
-                'type' => $checklist['extension'],
-                'check_list_id' => $checklist['check_list_id'],
-            ]);
 
-            // **Fix whitespace issue in keys**
-            AgreementDocument::create([
-                'document_id' => $document->id,
-                'agreement_id' => $agreement_id,
-            ]);
+        $oldPath = storage_path("app/" . $documents->path); // Absolute path of temp file
+
+        $newDirectory = storage_path() . "/app/private/ngos/{$ngo_id}/{$agreement_id}/{$documents->check_list_id}/";
+
+        if (!file_exists($newDirectory)) {
+            mkdir($newDirectory, 0775, true);
         }
+
+        $newPath = $newDirectory . basename($documents->path); // Keep original filename
+
+        $dbStorePath = "private/ngos/{$ngo_id}/{$agreement_id}/{$documents->check_list_id}/"
+            . basename($documents->path);
+        // Ensure the new directory exists
+
+        // Move the file
+        if (file_exists($oldPath)) {
+            rename($oldPath, $newPath);
+        } else {
+            return response()->json(['error' => __('app_translation.not_found') . $oldPath], 404);
+        }
+
+
+        $document = Document::create([
+            'actual_name' => $documents->actual_name,
+            'size' => $documents->size,
+            'path' => $dbStorePath,
+            'type' => $documents->extension,
+            'check_list_id' => $documents->check_list_id,
+        ]);
+
+        // **Fix whitespace issue in keys**
+        AgreementDocument::create([
+            'document_id' => $document->id,
+            'agreement_id' => $agreement_id,
+        ]);
     }
     protected function directorStore($validatedData, $ngo_id, $agreement_id)
     {

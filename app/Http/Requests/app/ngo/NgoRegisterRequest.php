@@ -39,7 +39,8 @@ class NgoRegisterRequest extends FormRequest
             'full_name_english' => 'required|string|max:128',
             'full_name_farsi' => 'required|string|max:128',
             'full_name_pashto' => 'required|string|max:128',
-            'representer' => 'required|array'
+            'pending_id' => 'required|integer'
+
 
 
 
