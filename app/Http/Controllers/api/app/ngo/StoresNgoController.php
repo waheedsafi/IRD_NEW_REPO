@@ -34,7 +34,6 @@ use App\Models\PendingTaskDocument;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
-use App\Enums\CheckList\CheckListEnum;
 use App\Enums\Type\RepresenterTypeEnum;
 use App\Http\Requests\app\ngo\NgoRegisterRequest;
 use App\Http\Requests\app\ngo\NgoInitStoreRequest;
