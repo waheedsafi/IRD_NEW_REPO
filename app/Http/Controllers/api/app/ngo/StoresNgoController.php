@@ -370,7 +370,7 @@ class StoresNgoController extends Controller
 
 
         if (!$task) {
-            return response()->json(['error' => 'No pending task found'], 404);
+            return response()->json(['error' => __('app_translation.checklist_not_found')], 404);
         }
         // Get checklist IDs
 
@@ -421,20 +421,15 @@ class StoresNgoController extends Controller
 
     protected function representerDocumentStore($request, $agreement_id, $ngo_id)
     {
-        $user = $request->user();
-        $user_id = $user->id;
-        $role = $user->role_id;
-        $task_type = TaskTypeEnum::ngo_registeration;
 
 
-        $task = PendingTask::where('user_id', $user_id)
-            ->where('user_type', $role)
-            ->where('task_type', $task_type)
+
+        $task = PendingTask::where('id', $request->pending_id)
             ->first();
 
 
         if (!$task) {
-            return response()->json(['error' => 'No pending task found'], 404);
+            return response()->json(['error' => __('app_translation.checklist_not_found')], 404);
         }
         // Get checklist IDs
 
