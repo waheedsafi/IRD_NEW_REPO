@@ -35,7 +35,6 @@ use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use App\Enums\CheckList\CheckListEnum;
-use App\Enums\Type\RepresnterTypeEnum;
 use App\Enums\Type\RepresenterTypeEnum;
 use App\Http\Requests\app\ngo\NgoRegisterRequest;
 use App\Http\Requests\app\ngo\NgoInitStoreRequest;
@@ -54,9 +53,21 @@ class StoresNgoController extends Controller
         $validatedData = $request->validated();
         $authUser = $request->user();
         $locale = App::getLocale();
+        // Create email
+        $email = Email::where('value', '=', $validatedData['email'])->first();
+        if ($email) {
+            return response()->json([
+                'message' => __('app_translation.email_exist'),
+            ], 400, [], JSON_UNESCAPED_UNICODE);
+        }
+        $contact = Contact::where('value', '=', $validatedData['contact'])->first();
+        if ($contact) {
+            return response()->json([
+                'message' => __('app_translation.contact_exist'),
+            ], 400, [], JSON_UNESCAPED_UNICODE);
+        }
         // Begin transaction
         DB::beginTransaction();
-        // Create email
         $email = Email::create(['value' => $validatedData['email']]);
         $contact = Contact::create(['value' => $validatedData['contact']]);
         // Create address
@@ -102,8 +113,6 @@ class StoresNgoController extends Controller
         // **Fix agreement creation**
         $agreement = Agreement::create([
             'ngo_id' => $newNgo->id,
-            'start_date' => Carbon::now()->toDateString(),
-            'end_date' => Carbon::now()->addYear()->toDateString(),
         ]);
         $agreement->agreement_no = "AG" . '-' . Carbon::now()->year . '-' . $agreement->id;
         $agreement->save();
@@ -159,14 +168,10 @@ class StoresNgoController extends Controller
 
     protected function storeRepresenter($request, $agreement_id)
     {
-
-        $representer =  Representer::create(
-            [
-                'type' => RepresenterTypeEnum::ngo,
-                'represented_id' => $agreement_id,
-            ]
-        );
-
+        $representer =  Representer::create([
+            'type' => RepresenterTypeEnum::ngo,
+            'represented_id' => $agreement_id,
+        ]);
         foreach (LanguageEnum::LANGUAGES as $code => $name) {
             RepresenterTran::create([
                 'representer_id' => $representer->id,
