@@ -112,6 +112,7 @@ class StoresNgoController extends Controller
         // **Fix agreement creation**
         $agreement = Agreement::create([
             'ngo_id' => $newNgo->id,
+            "agreement_no" => ""
         ]);
         $agreement->agreement_no = "AG" . '-' . Carbon::now()->year . '-' . $agreement->id;
         $agreement->save();
@@ -176,6 +177,7 @@ class StoresNgoController extends Controller
         $representer =  Representer::create([
             'type' => RepresenterTypeEnum::ngo,
             'represented_id' => $agreement_id,
+            'user_id' => $request->user()->id,
         ]);
         foreach (LanguageEnum::LANGUAGES as $code => $name) {
             RepresenterTran::create([
@@ -418,26 +420,19 @@ class StoresNgoController extends Controller
 
     protected function representerDocumentStore($request, $agreement_id, $ngo_id)
     {
-
-
-
         $task = PendingTask::where('id', $request->pending_id)
             ->first();
-
 
         if (!$task) {
             return response()->json(['error' => __('app_translation.checklist_not_found')], 404);
         }
         // Get checklist IDs
 
-        $documents = PendingTaskDocument::select('size', 'path', 'acceptable_mimes', 'check_list_id', 'actual_name', 'extension')
+        $documents = PendingTaskDocument::select('size', 'path', 'check_list_id', 'actual_name', 'extension')
             ->where('pending_task_id', $task->id)
             ->first();
 
-
-
         $oldPath = storage_path("app/" . $documents->path); // Absolute path of temp file
-
         $newDirectory = storage_path() . "/app/private/ngos/{$ngo_id}/{$agreement_id}/{$documents->check_list_id}/";
 
         if (!file_exists($newDirectory)) {
