@@ -12,6 +12,7 @@ use App\Models\Document;
 use App\Models\Ngo;
 use App\Models\NgoTran;
 use App\Models\PendingTask;
+use App\Models\PendingTaskContent;
 use App\Models\PendingTaskDocument;
 use Exception;
 use Illuminate\Http\Request;
@@ -65,7 +66,7 @@ class FileController extends Controller
 
         if ($save->isFinished()) {
             $task_type = TaskTypeEnum::ngo_registeration;
-            $ngo_id = $request->ngo_id;
+            $ngo_id = $request->ngo_id ?? '';
             return $this->saveFile($save->getFile(), $request, $ngo_id, $task_type);
         }
 
@@ -77,6 +78,7 @@ class FileController extends Controller
             "status" => true,
         ]);
     }
+
 
 
     public function uploadProjectFile(Request $request,)
@@ -211,20 +213,48 @@ class FileController extends Controller
         $user_id = $user->id;
         $role = $user->role_id;
 
-        $task = PendingTask::where('user_id', $user_id)
-            ->where('user_type', $role)
-            ->where('task_type', $task_type)
-            ->where('task_id', $id)
-            ->first();
-        if (!$task) {
+        $task = '';
+        if ($id == '') {
+
+            $task = PendingTask::where('user_id', $user_id)
+                ->where('user_type', $role)
+                ->where('task_type', $task_type)
+                ->first();
+
+            if ($task) {
+
+                PendingTaskDocument::where('pending_task_id', $task->id)->delete();
+                PendingTaskContent::where('pending_task_id', $task->id)->delete();
+
+                $task->delete();
+            }
+
+
             $task =  PendingTask::create([
                 'user_id' => $user_id,
                 'user_type' => $role,
                 'task_type' => $task_type,
-                'task_id' => $id
+
 
             ]);
+        } else {
+
+            $task = PendingTask::where('user_id', $user_id)
+                ->where('user_type', $role)
+                ->where('task_type', $task_type)
+                ->where('task_id', $id)
+                ->first();
+            if (!$task) {
+                $task =  PendingTask::create([
+                    'user_id' => $user_id,
+                    'user_type' => $role,
+                    'task_type' => $task_type,
+                    'task_id' => $id
+
+                ]);
+            }
         }
+
         return $task->id;
     }
 
