@@ -14,6 +14,7 @@ use App\Models\Document;
 use App\Models\Agreement;
 use App\Models\CheckList;
 use App\Models\NgoStatus;
+use App\Enums\CountryEnum;
 use App\Enums\LanguageEnum;
 use App\Models\AddressTran;
 use App\Models\PendingTask;
@@ -35,7 +36,6 @@ use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use App\Enums\CheckList\CheckListEnum;
-use App\Enums\CountryEnum;
 use App\Enums\Type\RepresenterTypeEnum;
 use App\Http\Requests\app\ngo\NgoRegisterRequest;
 use App\Http\Requests\app\ngo\NgoInitStoreRequest;
@@ -303,7 +303,6 @@ class StoresNgoController extends Controller
         $ngo_addres_fa->save();
         $ngo->save();
 
-        $agreement = Agreement::find($id, 'ngo_id');
         // Make prevous state to false
         NgoStatus::where('ngo_id', $id)->update(['is_active' => false]);
         NgoStatus::create([
@@ -343,7 +342,7 @@ class StoresNgoController extends Controller
     {
         // Get checklist IDs
         $checkListIds = CheckList::where('check_list_type_id', CheckListTypeEnum::ngoRegister)
-            ->whereNotIn('check_lists.id', $exclude)
+            ->whereNotIn('id', $exclude)
             ->pluck('id')
             ->toArray();
 
@@ -375,7 +374,7 @@ class StoresNgoController extends Controller
     }
     protected function documentStore($request, $agreement_id, $ngo_id)
     {
-        $task = PendingTask::where('pending_id', $request->pending_id)
+        $task = PendingTask::where('task_id', $request->pending_id)
             ->first();
         if (!$task) {
             return response()->json(['error' => __('app_translation.checklist_not_found')], 404);
