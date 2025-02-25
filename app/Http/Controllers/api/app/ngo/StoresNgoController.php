@@ -34,6 +34,8 @@ use App\Models\PendingTaskDocument;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use App\Enums\CheckList\CheckListEnum;
+use App\Enums\CountryEnum;
 use App\Enums\Type\RepresenterTypeEnum;
 use App\Http\Requests\app\ngo\NgoRegisterRequest;
 use App\Http\Requests\app\ngo\NgoInitStoreRequest;
@@ -202,13 +204,13 @@ class StoresNgoController extends Controller
         $validatedData =  $request->validated();
 
         $agreement = Agreement::where('ngo_id', $id)
-            ->latest('end_date') // Order by end_date descending
+            ->where('end_date', null) // Order by end_date descending
             ->first();           // Get the first record (most recent)
 
         // 1. If agreement exists do not allow process furtherly.
-        if ($agreement) {
+        if (!$agreement) {
             return response()->json([
-                'message' => __('app_translation.agreement_exists')
+                'message' => __('app_translation.agreement_not_exists')
             ], 409);
         }
 
@@ -231,8 +233,18 @@ class StoresNgoController extends Controller
                 'error' => __('app_translation.task_not_found')
             ], 404);
         }
+        // Do not follow these checklist Validate
+        $exclude = [
+            CheckListEnum::ngo_representor_letter->value,
+            CheckListEnum::ngo_register_form_en->value,
+            CheckListEnum::ngo_register_form_fa->value,
+            CheckListEnum::ngo_register_form_ps->value,
+        ];
+        if ($validatedData["country"]["id"] != CountryEnum::afghanistan->value) {
+            array_push($exclude, CheckListEnum::director_work_permit->value);
+        }
         // 4. CheckListEnum:: task exists
-        $errors = $this->validateCheckList($task);
+        $errors = $this->validateCheckList($task, $exclude);
         if ($errors) {
             return response()->json([
                 'message' => __('app_translation.checklist_not_found'),
@@ -291,17 +303,17 @@ class StoresNgoController extends Controller
         $ngo_addres_fa->save();
         $ngo->save();
 
-
-
         $agreement = Agreement::find($id, 'ngo_id');
         // Make prevous state to false
         NgoStatus::where('ngo_id', $id)->update(['is_active' => false]);
         NgoStatus::create([
             'ngo_id' => $id,
+            'user_id' => $request->user()->id,
             "is_active" => true,
             'status_type_id' => StatusTypeEnum::register_form_submited,
             'comment' => 'Register Form Complete',
         ]);
+
 
         $document =  $this->documentStore($request, $agreement->id, $id, $validatedData["name_english"]);
         if ($document) {
@@ -327,10 +339,11 @@ class StoresNgoController extends Controller
         );
     }
 
-    protected function validateCheckList($task)
+    protected function validateCheckList($task, $exclude)
     {
         // Get checklist IDs
         $checkListIds = CheckList::where('check_list_type_id', CheckListTypeEnum::ngoRegister)
+            ->whereNotIn('check_lists.id', $exclude)
             ->pluck('id')
             ->toArray();
 
@@ -362,17 +375,12 @@ class StoresNgoController extends Controller
     }
     protected function documentStore($request, $agreement_id, $ngo_id)
     {
-
-
         $task = PendingTask::where('pending_id', $request->pending_id)
             ->first();
-
-
         if (!$task) {
             return response()->json(['error' => __('app_translation.checklist_not_found')], 404);
         }
         // Get checklist IDs
-
         $documents = PendingTaskDocument::join('check_lists', 'check_lists.id', 'pending_task_documents.check_list_id')
             ->select('size', 'path', 'acceptable_mimes', 'check_list_id', 'actual_name', 'extension')
             ->where('pending_task_id', $task->id)
