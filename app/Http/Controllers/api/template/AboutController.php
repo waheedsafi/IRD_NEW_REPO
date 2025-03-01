@@ -424,10 +424,7 @@ class AboutController extends Controller
 
     public function sliderStore(Request $request)
     {
-
-
         $request->validate([
-
             'picture' => 'required|mimes:png,jpg',
         ]);
 

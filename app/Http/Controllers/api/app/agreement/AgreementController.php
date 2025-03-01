@@ -2,18 +2,35 @@
 
 namespace App\Http\Controllers\api\app\agreement;
 
-use App\Enums\CheckListTypeEnum;
-use App\Http\Controllers\Controller;
 use App\Models\Agreement;
-use App\Models\AgreementDocument;
 use App\Models\CheckList;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
+use App\Http\Controllers\Controller;
+use App\Repositories\ngo\NgoRepositoryInterface;
 
 class AgreementController extends Controller
 {
-    //
+    protected $ngoRepository;
 
+    public function __construct(
+        NgoRepositoryInterface $ngoRepository
+    ) {
+        $this->ngoRepository = $ngoRepository;
+    }
+    public function agreementDocuments(Request $request)
+    {
+        $ngo_id = $request->input('ngo_id');
+        $agreement_id = $request->input('agreement_id');
+
+        $locale = App::getLocale();
+        $query = $this->ngoRepository->ngo($ngo_id);
+        $documents = $this->ngoRepository->agreementDocuments($query, $agreement_id, $locale);
+
+        return response()->json([
+            'agreement_documents' => $documents,
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
     public function agreement(Request $request, $id)
     {
         $data =    Agreement::select('id', 'start_date', 'end_date')->where('ngo_id', $id)->get();

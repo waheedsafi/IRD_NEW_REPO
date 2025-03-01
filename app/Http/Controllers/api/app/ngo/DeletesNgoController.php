@@ -2,67 +2,70 @@
 
 namespace App\Http\Controllers\api\app\ngo;
 
+use App\Models\Ngo;
 use App\Models\PendingTask;
 use App\Traits\Ngo\NgoTrait;
 use Illuminate\Http\Request;
 use App\Enums\Type\TaskTypeEnum;
 use App\Models\PendingTaskContent;
+use App\Traits\Helper\HelperTrait;
 use App\Models\PendingTaskDocument;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
-use App\Models\Ngo;
 use App\Traits\Address\AddressTrait;
 use App\Repositories\ngo\NgoRepositoryInterface;
 use Illuminate\Foundation\Console\ViewMakeCommand;
+use App\Repositories\Task\PendingTaskRepositoryInterface;
 
 class DeletesNgoController extends Controller
 {
-    use AddressTrait, NgoTrait;
+    use AddressTrait, NgoTrait, HelperTrait;
     protected $ngoRepository;
+    protected $pendingTaskRepository;
 
-    public function __construct(NgoRepositoryInterface $ngoRepository)
-    {
+
+    public function __construct(
+        NgoRepositoryInterface $ngoRepository,
+        PendingTaskRepositoryInterface $pendingTaskRepository
+    ) {
         $this->ngoRepository = $ngoRepository;
+        $this->pendingTaskRepository = $pendingTaskRepository;
     }
 
-    public function destroyPersonalDetail(Request $request, $id)
+    public function deleteProfile($id)
     {
-        $locale = App::getLocale();
-        $user = $request->user();
-        $user_id = $user->id;
-        $role = $user->role_id;
-        $task_type = TaskTypeEnum::ngo_registeration;
-
-        // 1. Get PendingTask
-        $task = PendingTask::where('user_id', $user_id)
-            ->where('user_type', $role)
-            ->where('task_type', $task_type)
-            ->where('task_id', $id)
-            ->first(); // Fetch the first matching record
-
-        if (!$task) {
-            return response()->json([
-                "message" => __('app_translation.not_found'),
-            ], 404);
-        }
-
-        // 2. Delete related PendingTaskContent records
-        PendingTaskContent::where('pending_task_id', $task->id)->delete();
-        // 3. Delete related PendingTaskDocument
-        $pendingDocuments = PendingTaskDocument::where('pending_task_id', $task->id)->get();
-
-        // 2. Loop through each PendingTaskContent record
-        foreach ($pendingDocuments as $document) {
-            // Check if the file exists in storage
-            if ($this->tempFileExist($document->path)) {
-                $this->deleteTempFile($document->path);
+        $ngo = Ngo::find($id);
+        if ($ngo) {
+            $deletePath = storage_path('app/' . "{$ngo->profile}");
+            if (file_exists($deletePath) && $ngo->profile != null) {
+                unlink($deletePath);
             }
-            // 3. Delete the Document
-            $document->delete();
-        }
-        // Delete the task itself
-        $task->delete();
+            // 2. Update the profile
+            $ngo->profile = null;
+            $ngo->save();
+            return response()->json([
+                'message' => __('app_translation.profile_changed')
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+        } else
+            return response()->json([
+                'message' => __('app_translation.not_found'),
+            ], 404, [], JSON_UNESCAPED_UNICODE);
+    }
+    public function destroyPendingTask(Request $request, $id)
+    {
+        $request->validate([
+            'task_type' => "required"
+        ]);
+        $locale = App::getLocale();
+        $authUser = $request->user();
+        $task_type = $request->task_type;
 
+        $this->pendingTaskRepository->destroyPendingTask(
+            $authUser,
+            $task_type,
+            $id
+        );
+        // Get registered data
         $query = $this->ngoRepository->ngo();  // Start with the base query
         $this->ngoRepository->typeTransJoin($query, $locale)
             ->emailJoin($query)
@@ -107,25 +110,5 @@ class DeletesNgoController extends Controller
             "message" => __('app_translation.success'),
             'ngo' => $data,
         ], 200, [], JSON_UNESCAPED_UNICODE);
-    }
-
-    public function deleteProfile($id)
-    {
-        $ngo = Ngo::find($id);
-        if ($ngo) {
-            $deletePath = storage_path('app/' . "{$ngo->profile}");
-            if (file_exists($deletePath) && $ngo->profile != null) {
-                unlink($deletePath);
-            }
-            // 2. Update the profile
-            $ngo->profile = null;
-            $ngo->save();
-            return response()->json([
-                'message' => __('app_translation.profile_changed')
-            ], 200, [], JSON_UNESCAPED_UNICODE);
-        } else
-            return response()->json([
-                'message' => __('app_translation.not_found'),
-            ], 404, [], JSON_UNESCAPED_UNICODE);
     }
 }

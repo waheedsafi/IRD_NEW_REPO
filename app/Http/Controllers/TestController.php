@@ -26,6 +26,7 @@ use App\Models\CheckList;
 use App\Models\Translate;
 use App\Enums\LanguageEnum;
 use App\Models\AddressTran;
+use App\Models\PendingTask;
 use App\Models\NidTypeTrans;
 use Illuminate\Http\Request;
 use App\Enums\PermissionEnum;
@@ -45,9 +46,11 @@ use App\Models\PendingTaskDocument;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 use App\Traits\Address\AddressTrait;
-use function Laravel\Prompts\select;
 
+use function Laravel\Prompts\select;
 use App\Enums\CheckList\CheckListEnum;
+use App\Enums\Type\RepresenterTypeEnum;
+use App\Enums\Type\RepresentorTypeEnum;
 use App\Repositories\ngo\NgoRepositoryInterface;
 use App\Repositories\User\UserRepositoryInterface;
 
@@ -67,13 +70,44 @@ class TestController extends Controller
     public function index(Request $request)
     {
         $locale = App::getLocale();
+        $id = 1;
+        $checklist_id = CheckListEnum::ngo_representor_letter->value;
+        return $representor = DB::table('representers as r')
+            ->where('r.id', $id)
+            ->join('representer_trans as rt', function ($join) use ($locale) {
+                $join->on('r.id', '=', 'rt.representer_id')
+                    ->where('rt.language_name', $locale);
+            })
+            ->join('agreement_documents as ad', 'ad.agreement_id', '=', 'r.represented_id')
+            ->join('documents as d', function ($join) use ($checklist_id) {
+                $join->on('d.id', '=', 'ad.document_id')
+                    ->where('d.check_list_id', $checklist_id);
+            })
+            ->select(
+                'r.id',
+                'r.is_active',
+                'r.created_at',
+                'rt.full_name',
+                'd.actual_name',
+                'd.size',
+                'd.path',
+                'd.id as document_id'
+            )
+            ->get();
+
+
 
         $exclude = [
             CheckListEnum::ngo_representor_letter->value,
             CheckListEnum::ngo_register_form_en->value,
             CheckListEnum::ngo_register_form_fa->value,
             CheckListEnum::ngo_register_form_ps->value,
+            CheckListEnum::director_work_permit->value
         ];
+        return PendingTaskDocument::join('check_lists', 'check_lists.id', 'pending_task_documents.check_list_id')
+            ->select('size', 'path', 'acceptable_mimes', 'check_list_id', 'actual_name', 'extension')
+            ->where('pending_task_id', 3)
+            ->get();
         return $documents = PendingTaskDocument::join('check_lists', 'check_lists.id', 'pending_task_documents.check_list_id')
             ->select('size', 'path', 'acceptable_mimes', 'check_list_id', 'actual_name', 'extension')
             ->where('pending_task_id', 3)

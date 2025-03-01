@@ -28,7 +28,6 @@ return [
     'cover_pic_not_found' => 'تصویر جلد یافت نشد.',
     "employee_not_found" => "کارمند پیدا نشد",
     "checklist_not_found" => "چک لیست پیدا نشد.",
-    "checklist_not_found" => "چک لیست پیدا نشد.",
     "director_not_found" => "رئیس پیدا نشد",
     "address_not_found" => "آدرس پیدا نشد.",
     "ngo_not_found" => "موسسه یافت نشد.",
@@ -40,5 +39,6 @@ return [
     "unauthorized_role_sub_per" => "شما مجاز به اختصاص این مجوز فرعی نیستید.",
     "job_not_found" => "شغل پیدا نشد",
     "checklist_type_not_found" => "نوع چک لیست یافت نشد",
-    "ngo_status_not_found" => "NGO Status Not Found"
+    "ngo_status_not_found" => "NGO Status Not Found",
+    "task_not_found" => "وظیفه یافت نشد"
 ];

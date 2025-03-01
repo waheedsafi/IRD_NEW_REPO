@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Requests\app\ngo\director;
+namespace App\Http\Requests\app\director;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateDirectorRequest extends FormRequest
+class StoreDirectorRequest extends FormRequest
 {
     /**
      * Prepare the data for validation.
@@ -53,6 +53,8 @@ class UpdateDirectorRequest extends FormRequest
             'name_pashto' => 'required|string|max:128',
             'name_farsi' => 'required|string|max:128',
             'gender.id' => 'required|exists:genders,id',
+            'email' => 'required|email|unique:emails,value',
+            'contact' => 'required|unique:contacts,value',
             'nid' => 'required|string|max:50',
             'identity_type.id' => 'required|exists:nid_types,id',
             'nationality.id' => 'required|exists:countries,id',

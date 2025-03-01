@@ -53,7 +53,7 @@ enum SubPermissionEnum: int
         71 => "director",
         72 => "manager",
         73 => "office",
-        74 => "slider",
+        74 => "pic",
         75 => "technical_sup"
     ];
 }

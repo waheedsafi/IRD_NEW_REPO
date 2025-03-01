@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\api\app\director;
 
+use App\Models\Ngo;
 use App\Models\Email;
 use App\Models\Address;
 use App\Models\Contact;
@@ -12,13 +13,11 @@ use App\Models\DirectorTran;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Traits\Address\AddressTrait;
 use App\Traits\Director\DirectorTrait;
-use App\Http\Requests\app\ngo\director\StoreDirectorRequest;
-use App\Http\Requests\app\ngo\director\UpdateDirectorRequest;
-use App\Models\Ngo;
+use App\Http\Requests\app\director\StoreDirectorRequest;
+use App\Http\Requests\app\director\UpdateDirectorRequest;
 
 class DirectorController extends Controller
 {

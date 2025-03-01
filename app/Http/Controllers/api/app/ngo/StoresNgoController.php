@@ -30,19 +30,21 @@ use App\Enums\Type\TaskTypeEnum;
 use App\Models\AgreementDirector;
 use App\Models\AgreementDocument;
 use App\Enums\Type\StatusTypeEnum;
+use App\Traits\Helper\HelperTrait;
 use Illuminate\Support\Facades\DB;
 use App\Models\PendingTaskDocument;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use App\Enums\CheckList\CheckListEnum;
-use App\Enums\Type\RepresenterTypeEnum;
+use App\Enums\Type\RepresentorTypeEnum;
 use App\Http\Requests\app\ngo\NgoRegisterRequest;
 use App\Http\Requests\app\ngo\NgoInitStoreRequest;
 use App\Repositories\Task\PendingTaskRepositoryInterface;
 
 class StoresNgoController extends Controller
 {
+    use HelperTrait;
     protected $pendingTaskRepository;
 
     public function __construct(PendingTaskRepositoryInterface $pendingTaskRepository)
@@ -176,20 +178,19 @@ class StoresNgoController extends Controller
 
     protected function storeRepresenter($request, $agreement_id, $ngo_id)
     {
-        $representer =  Representer::create([
-            'type' => RepresenterTypeEnum::ngo,
+        $representer = Representer::create([
+            'type' => RepresentorTypeEnum::ngo,
             'represented_id' => $agreement_id,
             'user_id' => $request->user()->id,
+            'is_active' => true,
         ]);
         foreach (LanguageEnum::LANGUAGES as $code => $name) {
             RepresenterTran::create([
                 'representer_id' => $representer->id,
                 'language_name' =>  $code,
-                'full_name' => $request->representer_name_ . $name,
-                'is_active' => true,
+                'full_name' => $request["representer_name_" . $name],
             ]);
         }
-
 
         $document =  $this->representerDocumentStore($request, $agreement_id, $ngo_id);
         if ($document) {
@@ -201,13 +202,13 @@ class StoresNgoController extends Controller
     {
         // return $request;
         $id = $request->ngo_id;
-        $validatedData =  $request->validated();
+        $validatedData = $request->validated();
 
         $agreement = Agreement::where('ngo_id', $id)
             ->where('end_date', null) // Order by end_date descending
             ->first();           // Get the first record (most recent)
 
-        // 1. If agreement exists do not allow process furtherly.
+        // 1. If agreement does not exists no further process.
         if (!$agreement) {
             return response()->json([
                 'message' => __('app_translation.agreement_not_exists')
@@ -230,8 +231,9 @@ class StoresNgoController extends Controller
         );
         if (!$task) {
             return response()->json([
-                'error' => __('app_translation.task_not_found')
-            ], 404);
+                'message' => __('app_translation.task_not_found'),
+                '$request->pending_id' => $request->pending_id
+            ], 404, [], JSON_UNESCAPED_UNICODE);
         }
         // Do not follow these checklist Validate
         $exclude = [
@@ -240,7 +242,8 @@ class StoresNgoController extends Controller
             CheckListEnum::ngo_register_form_fa->value,
             CheckListEnum::ngo_register_form_ps->value,
         ];
-        if ($validatedData["country"]["id"] != CountryEnum::afghanistan->value) {
+        // If Directory Nationality is abroad ask for Work Permit
+        if ($validatedData["nationality"]["id"] == CountryEnum::afghanistan->value) {
             array_push($exclude, CheckListEnum::director_work_permit->value);
         }
         // 4. CheckListEnum:: task exists
@@ -314,13 +317,13 @@ class StoresNgoController extends Controller
         ]);
 
 
-        $document =  $this->documentStore($request, $agreement->id, $id, $validatedData["name_english"]);
+        $document =  $this->documentStore($agreement->id, $id, $task->id);
         if ($document) {
             return $document;
         }
         $this->directorStore($validatedData, $id, $agreement->id);
 
-        $this->pendingTaskRepository->deletePendingTask(
+        $this->pendingTaskRepository->destroyPendingTask(
             $request->user(),
             TaskTypeEnum::ngo_registeration,
             $id
@@ -372,42 +375,36 @@ class StoresNgoController extends Controller
 
         return null;
     }
-    protected function documentStore($request, $agreement_id, $ngo_id)
+    protected function documentStore($agreement_id, $ngo_id, $pending_task_id)
     {
-        $task = PendingTask::where('task_id', $request->pending_id)
-            ->first();
-        if (!$task) {
-            return response()->json(['error' => __('app_translation.checklist_not_found')], 404);
-        }
         // Get checklist IDs
         $documents = PendingTaskDocument::join('check_lists', 'check_lists.id', 'pending_task_documents.check_list_id')
+            ->where('pending_task_id', $pending_task_id)
             ->select('size', 'path', 'acceptable_mimes', 'check_list_id', 'actual_name', 'extension')
-            ->where('pending_task_id', $task->id)
             ->get();
 
         foreach ($documents as $checklist) {
 
-            $oldPath = storage_path("app/" . $checklist['path']); // Absolute path of temp file
+            $baseName = basename($checklist['path']);
+            $oldPath = $this->getTempFullPath() . $baseName; // Absolute path of temp file
 
             $newDirectory = storage_path() . "/app/private/ngos/{$ngo_id}/{$agreement_id}/{$checklist['check_list_id']}/";
 
-            if (!file_exists($newDirectory)) {
+            if (!is_dir($newDirectory)) {
                 mkdir($newDirectory, 0775, true);
             }
-
-            $newPath = $newDirectory . basename($checklist['path']); // Keep original filename
-
+            $newPath = $newDirectory . $baseName; // Keep original filename
             $dbStorePath = "private/ngos/{$ngo_id}/{$agreement_id}/{$checklist['check_list_id']}/"
-                . basename($checklist['path']);
-            // Ensure the new directory exists
-
+                . $baseName;
             // Move the file
             if (file_exists($oldPath)) {
                 rename($oldPath, $newPath);
             } else {
-                return response()->json(['error' => __('app_translation.not_found') . $oldPath], 404);
+                return response()->json([
+                    'error' => __('app_translation.file_not_found'),
+                    "file" => $checklist['actual_name']
+                ], 404);
             }
-
 
             $document = Document::create([
                 'actual_name' => $checklist['actual_name'],

@@ -40,5 +40,6 @@ return [
     "unauthorized_role_sub_per" => "You are not authorized, to assign this sub permission.",
     "job_not_found" => "Job Not Found",
     "checklist_type_not_found" => "CheckList Type Not Found",
-    "ngo_status_not_found" => "NGO Status Not Found"
+    "ngo_status_not_found" => "NGO Status Not Found",
+    "task_not_found" => "Task Not Found"
 ];

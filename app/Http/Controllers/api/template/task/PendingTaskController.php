@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\api\template\task;
 
 use Illuminate\Http\Request;
-use App\Enums\Type\TaskTypeEnum;
+use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
 use App\Repositories\Task\PendingTaskRepositoryInterface;
 
@@ -15,17 +15,23 @@ class PendingTaskController extends Controller
     {
         $this->pendingTaskRepository = $pendingTaskRepository;
     }
-    public function storeNgoRegisterTask(Request $request, $id)
+    public function storeWithContent(Request $request, $id)
     {
         $request->validate([
             'contents' => 'required|string',
             'step' => 'required|string',
+            'task_type' => 'required|string',
         ]);
 
-        $this->pendingTaskRepository->storeTask(
-            $request->user(),
-            TaskTypeEnum::ngo_registeration,
-            $id,
+        $authUser = $request->user();
+        $task = $this->pendingTaskRepository->storeTask(
+            $authUser,
+            $request->task_type,
+            $id
+        );
+
+        $this->pendingTaskRepository->storeTaskContent(
+            $task,
             $request->step,
             $request->contents
         );
