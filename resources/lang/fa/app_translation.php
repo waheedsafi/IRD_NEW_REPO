@@ -39,6 +39,8 @@ return [
     "unauthorized_role_sub_per" => "شما مجاز به اختصاص این مجوز فرعی نیستید.",
     "job_not_found" => "شغل پیدا نشد",
     "checklist_type_not_found" => "نوع چک لیست یافت نشد",
-    "ngo_status_not_found" => "NGO Status Not Found",
-    "task_not_found" => "وظیفه یافت نشد"
+    "ngo_status_not_found" => "حالت موسسه یافت نشد",
+    "task_not_found" => "تسک یافت نشد",
+    "representor_add_error" => "توافق نامه یافت نشد، ابتدا باید ثبت نام را تمدید کنید.",
+    "representor_not_found" => "نماینده یافت نشد",
 ];

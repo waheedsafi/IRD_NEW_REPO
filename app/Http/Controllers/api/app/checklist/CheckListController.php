@@ -363,4 +363,20 @@ class CheckListController extends Controller
             JSON_UNESCAPED_UNICODE
         );
     }
+    public function commonChecklist($id)
+    {
+        $checklist = CheckList::where('id', $id)
+            ->select(
+                'id',
+                'acceptable_extensions',
+                'acceptable_mimes',
+                'file_size',
+            )->first();
+        return response()->json(
+            $checklist,
+            200,
+            [],
+            JSON_UNESCAPED_UNICODE
+        );
+    }
 }

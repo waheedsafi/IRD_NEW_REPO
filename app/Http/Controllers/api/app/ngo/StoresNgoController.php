@@ -36,6 +36,7 @@ use App\Models\PendingTaskDocument;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use App\Traits\File\PendingFileTrait;
 use App\Enums\CheckList\CheckListEnum;
 use App\Enums\Type\RepresentorTypeEnum;
 use App\Http\Requests\app\ngo\NgoRegisterRequest;
@@ -44,7 +45,7 @@ use App\Repositories\Task\PendingTaskRepositoryInterface;
 
 class StoresNgoController extends Controller
 {
-    use HelperTrait;
+    use HelperTrait, PendingFileTrait;
     protected $pendingTaskRepository;
 
     public function __construct(PendingTaskRepositoryInterface $pendingTaskRepository)
@@ -121,12 +122,31 @@ class StoresNgoController extends Controller
         $agreement->agreement_no = "AG" . '-' . Carbon::now()->year . '-' . $agreement->id;
         $agreement->save();
 
-        $storerepresenterDoc = $this->storeRepresenter($request, $agreement->id, $newNgo->id);
-        // * Translations
-        if ($storerepresenterDoc) {
-            return response()->json([
-                'message' => __('app_translation.checklist_not_found'),
-
+        $result =  $this->singleChecklistDBDocStore(
+            $request->pending_id,
+            $agreement->id,
+            $newNgo->id
+        );
+        if ($result['success'] == false) {
+            return $result['error'];
+        }
+        AgreementDocument::create([
+            'document_id' => $result['document']->id,
+            'agreement_id' => $agreement->id,
+        ]);
+        $representer = Representer::create([
+            'user_id' => $request->user()->id,
+            'is_active' => true,
+            "document_id" => $result['document']->id,
+            "ngo_id" => $newNgo->id,
+        ]);
+        $agreement->representer_id = $representer->id;
+        $agreement->save();
+        foreach (LanguageEnum::LANGUAGES as $code => $name) {
+            RepresenterTran::create([
+                'representer_id' => $representer->id,
+                'language_name' =>  $code,
+                'full_name' => $request["full_name_{$name}"],
             ]);
         }
         foreach (LanguageEnum::LANGUAGES as $code => $name) {
@@ -176,27 +196,6 @@ class StoresNgoController extends Controller
         );
     }
 
-    protected function storeRepresenter($request, $agreement_id, $ngo_id)
-    {
-        $representer = Representer::create([
-            'type' => RepresentorTypeEnum::ngo,
-            'represented_id' => $agreement_id,
-            'user_id' => $request->user()->id,
-            'is_active' => true,
-        ]);
-        foreach (LanguageEnum::LANGUAGES as $code => $name) {
-            RepresenterTran::create([
-                'representer_id' => $representer->id,
-                'language_name' =>  $code,
-                'full_name' => $request["representer_name_" . $name],
-            ]);
-        }
-
-        $document =  $this->representerDocumentStore($request, $agreement_id, $ngo_id);
-        if ($document) {
-            return $document;
-        }
-    }
 
     public function registerFormCompleted(NgoInitStoreRequest $request)
     {
@@ -421,56 +420,6 @@ class StoresNgoController extends Controller
             ]);
         }
     }
-
-    protected function representerDocumentStore($request, $agreement_id, $ngo_id)
-    {
-        $task = PendingTask::where('id', $request->pending_id)
-            ->first();
-
-        if (!$task) {
-            return response()->json(['error' => __('app_translation.checklist_not_found')], 404);
-        }
-        // Get checklist IDs
-
-        $documents = PendingTaskDocument::select('size', 'path', 'check_list_id', 'actual_name', 'extension')
-            ->where('pending_task_id', $task->id)
-            ->first();
-
-        $oldPath = storage_path("app/" . $documents->path); // Absolute path of temp file
-        $newDirectory = storage_path() . "/app/private/ngos/{$ngo_id}/{$agreement_id}/{$documents->check_list_id}/";
-
-        if (!file_exists($newDirectory)) {
-            mkdir($newDirectory, 0775, true);
-        }
-
-        $newPath = $newDirectory . basename($documents->path); // Keep original filename
-
-        $dbStorePath = "private/ngos/{$ngo_id}/{$agreement_id}/{$documents->check_list_id}/"
-            . basename($documents->path);
-        // Ensure the new directory exists
-
-        // Move the file
-        if (file_exists($oldPath)) {
-            rename($oldPath, $newPath);
-        } else {
-            return response()->json(['error' => __('app_translation.not_found') . $oldPath], 404);
-        }
-
-
-        $document = Document::create([
-            'actual_name' => $documents->actual_name,
-            'size' => $documents->size,
-            'path' => $dbStorePath,
-            'type' => $documents->extension,
-            'check_list_id' => $documents->check_list_id,
-        ]);
-
-        // **Fix whitespace issue in keys**
-        AgreementDocument::create([
-            'document_id' => $document->id,
-            'agreement_id' => $agreement_id,
-        ]);
-    }
     protected function directorStore($validatedData, $ngo_id, $agreement_id)
     {
         $email = Email::create(['value' => $validatedData['director_email']]);
@@ -513,7 +462,6 @@ class StoresNgoController extends Controller
             'director_id' => $director->id
         ]);
     }
-
     public function ngoPermissions($ngo_id)
     {
         NgoPermission::create([

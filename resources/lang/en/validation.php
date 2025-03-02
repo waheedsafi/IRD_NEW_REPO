@@ -39,5 +39,9 @@ return [
         "surname_english" => "Surname in English",
         "surname_farsi" => "Surname in Farsi",
         "surname_pashto" => "Surname in Pashto",
+        "repre_name_english" => "Representative name in English",
+        "repre_name_farsi" => "Representative name in Farsi",
+        "repre_name_pashto" => "Representative name in Pashto",
+        "letter_of_intro" => "Letter of introduction"
     ],
 ];

@@ -40,5 +40,9 @@ return [
         "surname_english" => "نام خانوادگی به انگلیسی",
         "surname_farsi" => "نام خانوادگی به فارسی",
         "surname_pashto" => "نام خانوادگی به پشتو",
+        "repre_name_english" => "نام نماینده به انگلیسی",
+        "repre_name_farsi" => "نام نماینده به فارسی",
+        "repre_name_pashto" => "نام نماینده به پشتو",
+        "letter_of_intro" => "مکتوب معرفی"
     ],
 ];

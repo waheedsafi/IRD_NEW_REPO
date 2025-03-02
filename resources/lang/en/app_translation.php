@@ -41,5 +41,7 @@ return [
     "job_not_found" => "Job Not Found",
     "checklist_type_not_found" => "CheckList Type Not Found",
     "ngo_status_not_found" => "NGO Status Not Found",
-    "task_not_found" => "Task Not Found"
+    "task_not_found" => "Task Not Found",
+    "representor_add_error" => "Agreement Not Found, You must extend the registration first.",
+    "representor_not_found" => "Representor Not Found",
 ];

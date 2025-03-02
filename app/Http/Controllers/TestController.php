@@ -70,8 +70,64 @@ class TestController extends Controller
     public function index(Request $request)
     {
         $locale = App::getLocale();
-        $id = 1;
+        $id = 3;
         $checklist_id = CheckListEnum::ngo_representor_letter->value;
+        $representor = DB::table('representers as r')
+            ->where('r.id', $id)
+            ->join('documents as d', 'd.id', 'r.document_id')
+            ->join('check_lists as cl', 'cl.id', 'd.check_list_id')
+            ->joinSub(function ($query) {
+                $query->from('representer_trans as rt')
+                    ->select(
+                        'representer_id',
+                        DB::raw("MAX(CASE WHEN language_name = 'fa' THEN full_name END) as repre_name_farsi"),
+                        DB::raw("MAX(CASE WHEN language_name = 'en' THEN full_name END) as repre_name_english"),
+                        DB::raw("MAX(CASE WHEN language_name = 'ps' THEN full_name END) as repre_name_pashto")
+                    )
+                    ->groupBy('representer_id');
+            }, 'rt', 'rt.representer_id', '=', 'r.id')
+            ->select(
+                'r.id',
+                'r.is_active',
+                'rt.repre_name_farsi',
+                'rt.repre_name_english',
+                'rt.repre_name_pashto',
+                'd.id as document_id',
+                'd.actual_name',
+                'd.path',
+                'd.type',
+                'd.size',
+                'cl.id as check_list_id',
+                'cl.acceptable_mimes',
+                'cl.acceptable_extensions',
+                'cl.file_size'
+            )
+            ->first();
+
+        return [
+            'id' => $representor->id,
+            'is_active' => (bool) $representor->is_active,
+            'repre_name_farsi' => $representor->repre_name_farsi,
+            'repre_name_english' => $representor->repre_name_english,
+            'repre_name_pashto' => $representor->repre_name_pashto,
+            'letter_of_intro' => [
+                "path" => $representor->path,
+                "document_id" => $representor->document_id,
+                "size" => $representor->size,
+                "type" => $representor->type,
+                "name" => $representor->actual_name,
+                "checklist_id" => $representor->check_list_id,
+            ],
+            'checklist' => [
+                "id" => $representor->check_list_id,
+                "acceptable_mimes" => $representor->acceptable_mimes,
+                "acceptable_extensions" => $representor->acceptable_extensions,
+                "file_size" => $representor->file_size,
+            ],
+        ];
+
+
+
         return $representor = DB::table('representers as r')
             ->where('r.id', $id)
             ->join('representer_trans as rt', function ($join) use ($locale) {

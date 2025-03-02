@@ -13,13 +13,19 @@ return new class extends Migration
     {
         Schema::create('representers', function (Blueprint $table) {
             $table->id();
-            $table->integer('type')->comment('Can be either ngo or project');
-            $table->unsignedBigInteger('represented_id')->comment('if type is ngo this id refer to agreement id else project');
             $table->foreignId('user_id')
                 ->constrained()
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
+            $table->unsignedBigInteger('ngo_id');
+            $table->foreign('ngo_id')->references('id')->on('ngos')
+                ->onUpdate('cascade')
+                ->onDelete('no action');
             $table->boolean('is_active')->default(false);
+            $table->unsignedBigInteger('document_id')->nullable();
+            $table->foreign('document_id')->references('id')->on('documents')
+                ->onUpdate('cascade')
+                ->onDelete('no action');
             $table->timestamps();
         });
     }
