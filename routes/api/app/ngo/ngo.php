@@ -4,7 +4,6 @@
 use App\Enums\PermissionEnum;
 use App\Enums\SubPermissionEnum;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\api\app\file\FileController;
 use App\Http\Controllers\api\app\ngo\ViewsNgoController;
 use App\Http\Controllers\api\app\ngo\EditesNgoController;
 use App\Http\Controllers\api\app\ngo\StoresNgoController;

@@ -52,7 +52,7 @@ class UserRepository implements UserRepositoryInterface
             $permission->add = (bool) $permission->add;
             $permission->visible = (bool) $permission->visible;
             if ($subPermissions->isNotEmpty()) {
-                $permission->sub = $subPermissions->map(function ($sub) {
+                $permission->sub = $subPermissions->sortBy('sub_permission_id')->map(function ($sub) {
                     return [
                         'id' => $sub->sub_permission_id,
                         'add' => (bool) $sub->sub_add,
@@ -60,7 +60,7 @@ class UserRepository implements UserRepositoryInterface
                         'edit' => (bool) $sub->sub_edit,
                         'view' => (bool) $sub->sub_view,
                     ];
-                });
+                })->values();
             } else {
                 $permission->sub = [];
             }
