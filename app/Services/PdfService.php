@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Request;
 class PdfService
 {
 
-      use PdfGeneratorTrait, AddressTrait;
+    use PdfGeneratorTrait, AddressTrait;
     /**
      * Generate PDF from a view
      * 

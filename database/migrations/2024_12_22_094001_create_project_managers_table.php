@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('project_managers', function (Blueprint $table) {
             $table->id();
-                       $table->unsignedBigInteger('email_id');
+            $table->unsignedBigInteger('email_id');
             $table->foreign('email_id')->references('id')->on('emails')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
 
-                  $table->unsignedBigInteger('contact_id');
+            $table->unsignedBigInteger('contact_id');
             $table->foreign('contact_id')->references('id')->on('contacts')
                 ->onUpdate('cascade')
                 ->onDelete('no action');

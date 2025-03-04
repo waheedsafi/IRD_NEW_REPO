@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-    use App\Models\Contact;
+use App\Models\Contact;
 use App\Models\Translate;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -35,7 +35,7 @@ abstract class Controller
     public function storeDocument(Request $request, $access = 'private', $folder, $docName = 'document')
     {
         // 1. If storage not exist create it.
-            $path = storage_path() . "/app/{$access}/documents/{$folder}/";
+        $path = storage_path() . "/app/{$access}/documents/{$folder}/";
         // Checks directory exist if not will be created.
         !is_dir($path) && mkdir($path, 0777, true);
 

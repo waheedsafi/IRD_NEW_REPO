@@ -10,10 +10,9 @@ class NgoType extends Model
     use HasFactory;
     protected $guarded = [];
 
- // In NgoType model
-public function ngoTypeTrans()
-{
-    return $this->hasMany(NgoTypeTrans::class, 'ngo_type_id'); // Adjust this according to your schema
-}
-
+    // In NgoType model
+    public function ngoTypeTrans()
+    {
+        return $this->hasMany(NgoTypeTrans::class, 'ngo_type_id'); // Adjust this according to your schema
+    }
 }

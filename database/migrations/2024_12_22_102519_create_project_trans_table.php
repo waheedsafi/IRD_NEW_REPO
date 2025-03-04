@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreign('project_id')->references('id')->on('projects')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
-          $table->string('language_name');
+            $table->string('language_name');
             $table->foreign('language_name')->references('name')->on('languages')->onUpdate('cascade')
                 ->onDelete('cascade');
             $table->string('preamble');
@@ -32,8 +32,8 @@ return new class extends Migration
             $table->string('operational_plan');
             $table->string('mission');
             $table->string('vission');
-                
-                
+
+
             $table->timestamps();
         });
     }

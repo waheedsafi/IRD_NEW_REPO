@@ -9,5 +9,4 @@ class PendingTask extends Model
     //
 
     protected $guarded = [];
-
 }

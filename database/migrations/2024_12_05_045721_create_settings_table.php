@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('value');
-              $table->unsignedBigInteger('user_id')->nullable(); // ID of the user who performed the action
+            $table->unsignedBigInteger('user_id')->nullable(); // ID of the user who performed the action
             $table->foreign('user_id')->references('id')->on('users')
                 ->onUpdate('cascade')
                 ->onDelete('no action');

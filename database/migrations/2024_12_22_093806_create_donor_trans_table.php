@@ -13,15 +13,15 @@ return new class extends Migration
     {
         Schema::create('donor_trans', function (Blueprint $table) {
             $table->id();
-                $table->unsignedBigInteger('donor_id');
+            $table->unsignedBigInteger('donor_id');
             $table->foreign('donor_id')->references('id')->on('donors')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
 
-                $table->string('language_name');
+            $table->string('language_name');
             $table->foreign('language_name')->references('name')->on('languages')->onUpdate('cascade')
                 ->onDelete('cascade');
-                $table->string('name',64);
+            $table->string('name', 64);
             $table->timestamps();
         });
     }

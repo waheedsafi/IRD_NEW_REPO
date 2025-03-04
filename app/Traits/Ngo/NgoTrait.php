@@ -4,8 +4,6 @@ namespace App\Traits\Ngo;
 
 use App\Models\NgoTran;
 
-
-
 trait NgoTrait
 {
   public function ngoNameTrans($ngo_id)
