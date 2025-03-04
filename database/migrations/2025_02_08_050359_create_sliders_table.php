@@ -14,8 +14,14 @@ return new class extends Migration
         Schema::create('sliders', function (Blueprint $table) {
             $table->id();
             $table->string('path');
-            $table->string('name')->nullable();
+            $table->string('name');
+            $table->string('extension');
             $table->boolean('is_active');
+            $table->string('size', 128);
+            $table->foreignId('user_id')
+                ->constrained()
+                ->onUpdate('cascade')
+                ->onDelete('no action');
             $table->timestamps();
         });
     }
