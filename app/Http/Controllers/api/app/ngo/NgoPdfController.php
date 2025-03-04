@@ -71,15 +71,18 @@ class NgoPdfController extends Controller
             $mpdf->SetProtection(['print']);
 
             // Store the PDF temporarily
+
             $fileName = "{$data['ngo_name']}_registration_{$lang}.pdf";
-            $filePath = storage_path("app/public/{$fileName}");
+            $filePath = storage_path("app/private/temp/{$fileName}");
+
+            // return $filePath;
             $mpdf->Output($filePath, 'F'); // Save to file
 
             $pdfFiles[] = $filePath;
         }
 
         // Create ZIP file
-        $zipFile = storage_path('app/public/documents.zip');
+        $zipFile = storage_path('app/private/temp/documents.zip');
         $zip = new ZipArchive();
 
         if ($zip->open($zipFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
@@ -163,6 +166,7 @@ class NgoPdfController extends Controller
             'mission' => $ngo->ngoTrans[0]->mission ?? null,
             'vission' => $ngo->ngoTrans[0]->vision ?? null,
             'ird_director' => $ird_dir_name,
+            // 'represetetor' =>
 
 
 
