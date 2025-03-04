@@ -4,7 +4,7 @@ namespace App\Enums;
 
 enum SubPermissionEnum: int
 {
-        // User
+    // User
     case user_information = 3;
     case user_password = 4;
     case user_permission = 5;
