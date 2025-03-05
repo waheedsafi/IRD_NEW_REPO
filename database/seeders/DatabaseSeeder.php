@@ -16,6 +16,7 @@ use App\Enums\SettingEnum;
 use App\Models\StatusType;
 use App\Enums\PriorityEnum;
 use App\Enums\TimeUnitEnum;
+use App\Enums\Type\NgoTypeEnum;
 use App\Models\RequestType;
 use App\Models\NgoTypeTrans;
 use App\Models\NidTypeTrans;
@@ -85,7 +86,9 @@ class DatabaseSeeder extends Seeder
     }
     public function ngoTypes()
     {
-        $international = NgoType::factory()->create([]);
+        $international = NgoType::factory()->create([
+            'id' => NgoTypeEnum::International,
+        ]);
         NgoTypeTrans::factory()->create([
             "value" => "بین المللی",
             "language_name" => "fa",
@@ -102,7 +105,10 @@ class DatabaseSeeder extends Seeder
             "ngo_type_id" => $international->id
         ]);
 
-        $intergovernmental = NgoType::factory()->create([]);
+        $intergovernmental = NgoType::factory()->create([
+            'id' => NgoTypeEnum::Intergovernmental,
+
+        ]);
         NgoTypeTrans::factory()->create([
             "value" => "بین الدولتی",
             "language_name" => "fa",
@@ -120,7 +126,10 @@ class DatabaseSeeder extends Seeder
             "ngo_type_id" => $intergovernmental->id
         ]);
 
-        $domestic = NgoType::factory()->create([]);
+        $domestic = NgoType::factory()->create([
+            'id' => NgoTypeEnum::Domestic,
+
+        ]);
         NgoTypeTrans::factory()->create([
             "value" => "داخلی",
             "language_name" => "fa",

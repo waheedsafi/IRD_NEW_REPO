@@ -2,6 +2,10 @@
 
 namespace App\Repositories\Task;
 
+use App\Enums\CheckList\CheckListEnum;
+use App\Models\Agreement;
+use App\Models\AgreementDocument;
+use App\Models\Document;
 use Exception;
 use App\Models\PendingTask;
 use Illuminate\Http\Request;
@@ -9,6 +13,7 @@ use Illuminate\Http\UploadedFile;
 use App\Models\PendingTaskContent;
 use App\Traits\Helper\HelperTrait;
 use App\Models\PendingTaskDocument;
+
 
 class PendingTaskRepository implements PendingTaskRepositoryInterface
 {
@@ -166,5 +171,43 @@ class PendingTaskRepository implements PendingTaskRepositoryInterface
             $task->delete();
         }
         return true;
+    }
+
+    public function storeNgoRegisterationDocument($request, UploadedFile $file, $check_list_id)
+    {
+
+        $fileActualName = $file->getClientOriginalName();
+        $fileName = $this->createChunkUploadFilename($file);
+        $fileSize = $file->getSize();
+        $mimetype = $file->getMimeType();
+        $agreement_id = Agreement::select('id')->where('ngo_id', $request->ngo_id)
+            ->where('start_data', '')->where('end_date', '')->first();
+        $finalPath = $this->getCustomeNgoFileFullPath($request->ngo_id, $agreement_id->id, $check_list_id,);
+        $storePath = $this->getCustomeNgoFilePath($request->ngo_id, $agreement_id->id, $check_list_id, $fileName);
+        $file->move($finalPath, $fileName);
+
+
+        $document = Document::create([
+            'actual_name' => $fileActualName,
+            'size' => $fileSize,
+            'path' => $storePath,
+            'type' => $mimetype,
+            'check_list_id' => $check_list_id,
+        ]);
+
+        // **Fix whitespace issue in keys**
+        AgreementDocument::create([
+            'document_id' => $document->id,
+            'agreement_id' => $agreement_id,
+        ]);
+
+        $data = [
+
+            "name" => $fileActualName,
+            "size" => $fileSize,
+            "extension" => $mimetype,
+            "path" => $storePath,
+        ];
+        return response()->json($data, 200);
     }
 }

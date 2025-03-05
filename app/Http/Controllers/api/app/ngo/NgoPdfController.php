@@ -73,7 +73,7 @@ class NgoPdfController extends Controller
             // Store the PDF temporarily
 
             $fileName = "{$data['ngo_name']}_registration_{$lang}.pdf";
-            $filePath = storage_path("app/private/temp/{$fileName}");
+            $filePath = storage_path("app/private/{$fileName}");
 
             // return $filePath;
             $mpdf->Output($filePath, 'F'); // Save to file
@@ -82,7 +82,7 @@ class NgoPdfController extends Controller
         }
 
         // Create ZIP file
-        $zipFile = storage_path('app/private/temp/documents.zip');
+        $zipFile = storage_path('app/private/documents.zip');
         $zip = new ZipArchive();
 
         if ($zip->open($zipFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {

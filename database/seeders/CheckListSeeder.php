@@ -222,6 +222,7 @@ class CheckListSeeder extends Seeder
         ]);
         // 5.
         $checklist = CheckList::create([
+            'id' => CheckListEnum::ngo_register_form_en,
             'check_list_type_id' => CheckListTypeEnum::ngoRegister,
             'acceptable_extensions' => "pdf,jpeg,jpg,png",
             'acceptable_mimes' => ".pdf,.jpeg,.jpg,.png",
@@ -246,6 +247,7 @@ class CheckListSeeder extends Seeder
         ]);
         // 6.
         $checklist = CheckList::create([
+            'id' => CheckListEnum::ngo_register_form_ps,
             'check_list_type_id' => CheckListTypeEnum::ngoRegister,
             'acceptable_extensions' => "pdf,jpeg,jpg,png",
             'acceptable_mimes' => ".pdf,.jpeg,.jpg,.png",
@@ -265,11 +267,12 @@ class CheckListSeeder extends Seeder
         ]);
         CheckListTrans::create([
             'check_list_id' => $checklist->id,
-            'value' => "لاسلیک شوی د نوم لیکنې فورمه (فارسي)",
+            'value' => "لاسلیک شوی د نوم لیکنې فورمه (پشتو)",
             'language_name' => LanguageEnum::pashto,
         ]);
         // 7.
         $checklist = CheckList::create([
+            'id' => CheckListEnum::ngo_register_form_fa,
             'check_list_type_id' => CheckListTypeEnum::ngoRegister,
             'acceptable_extensions' => "pdf,jpeg,jpg,png",
             'acceptable_mimes' => ".pdf,.jpeg,.jpg,.png",
@@ -289,7 +292,7 @@ class CheckListSeeder extends Seeder
         ]);
         CheckListTrans::create([
             'check_list_id' => $checklist->id,
-            'value' => "لاسلیک شوی د نوم لیکنې فورمه (پښتو)",
+            'value' => "لاسلیک شوی د نوم لیکنې فورمه (فارسی)",
             'language_name' => LanguageEnum::pashto,
         ]);
     }
