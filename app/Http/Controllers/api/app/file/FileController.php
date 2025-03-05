@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\api\app\file;
 
+use App\Enums\CheckList\CheckListEnum;
 use App\Models\CheckList;
 use Illuminate\Http\Request;
 use App\Traits\Helper\HelperTrait;
 use App\Http\Controllers\Controller;
+use App\Models\Agreement;
 use Illuminate\Support\Facades\Validator;
 use Pion\Laravel\ChunkUpload\Receiver\FileReceiver;
 use Pion\Laravel\ChunkUpload\Handler\HandlerFactory;
@@ -122,6 +124,53 @@ class FileController extends Controller
                 $check_list_id,
                 null
             );
+        }
+
+        // If not finished, send current progress.
+        $handler = $save->handler();
+
+        return response()->json([
+            "done" => $handler->getPercentageDone(),
+            "status" => true,
+        ]);
+    }
+
+    public function registerationFormUpload(Request $request)
+    {
+        $receiver = new FileReceiver("file", $request, HandlerFactory::classFromRequest($request));
+
+        if (!$receiver->isUploaded()) {
+            throw new UploadMissingFileException();
+        }
+
+        $save = $receiver->receive();
+
+        if ($save->isFinished()) {
+
+            $language = $request->input('language', 'ps'); // Default to 'ps' if no language is provided
+            switch ($language) {
+                case 'en':
+                    $check_list_id = CheckListEnum::ngo_register_form_en;
+                    break;
+                case 'fa':
+                    $check_list_id = CheckListEnum::ngo_register_form_fa;
+                    break;
+                default:
+                    $check_list_id = CheckListEnum::ngo_register_form_ps;
+                    break;
+            }
+
+            // Merge checklist_id into the request
+            $request->merge(['checklist_id' => $check_list_id]);
+            $file = $save->getFile();
+
+            // 1. Validate checklist
+            $validationResult = $this->checkListCheck($request);
+            if ($validationResult !== true) {
+                $filePath = $file->getRealPath();
+                unlink($filePath);
+                return $validationResult; // Return validation errors
+            }
         }
 
         // If not finished, send current progress.

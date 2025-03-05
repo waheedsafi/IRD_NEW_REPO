@@ -84,4 +84,5 @@ interface PendingTaskRepositoryInterface
     public function pendingTaskDocumentQuery($pending_task_id);
     public function fileStore(UploadedFile $file, Request $request, $task_type, $check_list_id, $task_type_id);
     public function storePendingDocument($pending_id, $check_list_id, $name, $path, $size, $extension);
+    public function storeNgoRegisterationDocument($request, UploadedFile $file, $check_list_id);
 }

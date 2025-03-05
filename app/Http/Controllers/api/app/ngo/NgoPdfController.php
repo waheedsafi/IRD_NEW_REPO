@@ -86,7 +86,7 @@ class NgoPdfController extends Controller
         }
 
         // Create ZIP file
-        $zipFile = storage_path('app/private/temp/documents.zip');
+        $zipFile = storage_path('app/private/documents.zip');
         $zip = new ZipArchive();
 
         if ($zip->open($zipFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {

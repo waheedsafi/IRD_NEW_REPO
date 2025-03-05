@@ -11,4 +11,5 @@ use App\Http\Controllers\api\app\file\FileController;
 Route::prefix('v1')->middleware(['api.key', "doubleAuthorized:" . 'user:api,ngo:api'])->group(function () {
   Route::post('checklist/file/upload', [FileController::class, 'checklistUploadFile'])->withoutMiddleware('throttle');
   Route::post('single/checklist/file/upload', [FileController::class, 'singleChecklistFileUpload'])->withoutMiddleware('throttle');
+  Route::post('ngo/registeration/form/file/upload', [FileController::class, 'registerationFormUpload'])->withoutMiddleware('throttle');
 });
