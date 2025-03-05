@@ -6,9 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class StaffTran extends Model
 {
-    //
-
-
     protected $guarded = [];
-
 }

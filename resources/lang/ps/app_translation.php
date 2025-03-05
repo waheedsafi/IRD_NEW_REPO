@@ -16,5 +16,4 @@ return [
     'not_found' => 'Record Not Found.',
     'destination_type_not_found' => 'Destination type Not Found.',
     "agreement_exists" => "قرارداد شتون لری",
-
 ];

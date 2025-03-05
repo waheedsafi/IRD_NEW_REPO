@@ -22,10 +22,10 @@ class News extends Model
         return $this->belongsTo(Priority::class, 'priority_id');
     }
 
-  public function newsDocument()
-{
-    return $this->hasOne(NewsDocument::class, 'news_id');
-}
+    public function newsDocument()
+    {
+        return $this->hasOne(NewsDocument::class, 'news_id');
+    }
 
     public function newsTran()
     {

@@ -10,7 +10,8 @@ class Director extends Model
 
 
 
-    public function directorTrans(){
+    public function directorTrans()
+    {
         return $this->hasMany(DirectorTran::class);
     }
 }

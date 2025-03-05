@@ -8,10 +8,8 @@ use Illuminate\Support\Facades\App;
 class Staff extends Model
 {
     protected $guarded = [];
-
-
-
-    public function staffTran(){
+    public function staffTran()
+    {
         return $this->hasMany(StaffTran::class);
     }
 }

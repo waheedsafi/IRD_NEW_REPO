@@ -23,12 +23,12 @@ class AboutUpdateRequest extends FormRequest
     {
         return [
             //
-            'id' =>'required|integer',
-             'address_englis' =>"required|string",
-            'address_pashto' =>"required|string",
-            'address_farsi' =>"required|string",
-            'contact' =>"required|string",
-            'email' =>"required|email",
+            'id' => 'required|integer',
+            'address_englis' => "required|string",
+            'address_pashto' => "required|string",
+            'address_farsi' => "required|string",
+            'contact' => "required|string",
+            'email' => "required|email",
         ];
     }
 }

@@ -73,7 +73,11 @@ class NgoPdfController extends Controller
             // Store the PDF temporarily
 
             $fileName = "{$data['ngo_name']}_registration_{$lang}.pdf";
-            $filePath = storage_path("app/private/{$fileName}");
+            $outputPath = storage_path("app/private/temp/");
+            if (!is_dir($outputPath)) {
+                mkdir($outputPath, 0755, true);
+            }
+            $filePath = $outputPath . $fileName;
 
             // return $filePath;
             $mpdf->Output($filePath, 'F'); // Save to file

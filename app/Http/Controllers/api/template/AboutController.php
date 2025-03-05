@@ -9,17 +9,22 @@ use App\Models\StaffTran;
 use App\Enums\LanguageEnum;
 use Illuminate\Http\Request;
 use App\Models\OfficeInformation;
+use App\Traits\Helper\HelperTrait;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
+use Pion\Laravel\ChunkUpload\Receiver\FileReceiver;
+use Pion\Laravel\ChunkUpload\Handler\HandlerFactory;
 use App\Http\Requests\template\office\StaffStoreRequest;
 use App\Http\Requests\template\office\OfficeStoreRequest;
 use App\Http\Requests\template\office\StaffUpdateRequest;
 use App\Http\Requests\template\office\OfficeUpdateRequest;
+use Pion\Laravel\ChunkUpload\Exceptions\UploadMissingFileException;
 
 
 class AboutController extends Controller
 {
+    use HelperTrait;
     public function about()
     {
         $manager = $this->manager();
@@ -220,7 +225,7 @@ class AboutController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    public function destroy($id)
+    public function staffDestroy($id)
     {
         $staff = Staff::find($id);
         if ($staff) {
@@ -422,50 +427,91 @@ class AboutController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    public function sliderStore(Request $request)
+    public function sliderFileUpload(Request $request)
     {
-        $request->validate([
-            'picture' => 'required|mimes:png,jpg',
-        ]);
+        $receiver = new FileReceiver("file", $request, HandlerFactory::classFromRequest($request));
 
-        $document = $this->storeDocument($request, "public", "slider", 'picture');
+        if (!$receiver->isUploaded()) {
+            throw new UploadMissingFileException();
+        }
 
-        Slider::create([
-            "is_active" => 1,
-            "path" => $document['path'],
-            "name" => 'slider',
+        $save = $receiver->receive();
+
+        if ($save->isFinished()) {
+            $file = $save->getFile();
+
+            $fileName = $this->createChunkUploadFilename($file);
+            $fileActualName = $file->getClientOriginalName();
+            $fileSize = $file->getSize();
+            $mimetype = $file->getMimeType();
+            $authUser = $request->user();
+
+            $directory = storage_path() . "/app/public/slider/";
+
+            if (!is_dir($directory)) {
+                mkdir($directory, 0775, true);
+            }
+            $file->move($directory, $fileName);
+            $dbStorePath = "public/slider/" . $fileName;
+            // 1. Store in database
+            $slider = Slider::create([
+                "name" => $fileActualName,
+                "path" => $dbStorePath,
+                "extension" => $mimetype,
+                "is_active" => true,
+                "user_id" => $authUser->id,
+                "size" => $fileSize
+            ]);
+            return response()->json([
+                "id" => $slider->id,
+                "name" => $slider->name,
+                "path" => $slider->path,
+                "is_active" => $slider->is_active,
+                "saved_by" => $authUser->username,
+                "size" => $slider->size,
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        // If not finished, send current progress.
+        $handler = $save->handler();
+
+        return response()->json([
+            "done" => $handler->getPercentageDone(),
+            "status" => true,
         ]);
-        return response()->json(
-            [
-                'message' => __('app_translation.success'),
-                'slider' => [
-                    "picture" => $document['path'],
-                ]
-            ],
-            200,
-            [],
-            JSON_UNESCAPED_UNICODE
-        );
     }
 
     public function sliders()
     {
-
-        $sliders =    Slider::select('id', 'path', 'is_active')->get();
-
-        return response()->json([
-            "slider" => $sliders,
-        ], 200, [], JSON_UNESCAPED_UNICODE);
+        $sliders =  Slider::join('users as u', 'u.id', 'sliders.user_id')
+            ->select(
+                'sliders.id',
+                'sliders.name',
+                'sliders.path',
+                'sliders.is_active',
+                'u.username as saved_by',
+                'sliders.size'
+            )
+            ->orderBy("sliders.id", "desc")
+            ->get();
+        return response()->json($sliders, 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function publicSliders()
     {
-
-        $sliders =    Slider::select('id', 'path')->where('is_active', 1)->get();
-
-        return response()->json([
-            "slider" => $sliders,
-        ], 200, [], JSON_UNESCAPED_UNICODE);
+        $sliders =  Slider::where('is_active', true)
+            ->join('users as u', 'u.id', 'sliders.user_id')
+            ->select(
+                'sliders.id',
+                'sliders.name',
+                'sliders.path',
+                'sliders.is_active',
+                'u.username as saved_by',
+                'sliders.size'
+            )
+            ->orderBy("sliders.id", "desc")
+            ->get();
+        return response()->json($sliders, 200, [], JSON_UNESCAPED_UNICODE);
     }
     public function changeStatusSlider(Request $request)
     {
@@ -482,5 +528,29 @@ class AboutController extends Controller
             'message' => __('app_translation.update'),
             'slider' => $slider
         ]);
+    }
+    public function sliderDestroy($id)
+    {
+        $slider = Slider::find($id);
+        if ($slider) {
+            // Begin transaction
+            DB::beginTransaction();
+            // Delete documents
+            $path = storage_path('app/' . $slider->path);
+
+            if (file_exists($path)) {
+                unlink($path);
+            }
+            $slider->delete();
+
+            // Commit transaction
+            DB::commit();
+            return response()->json([
+                'message' => __('app_translation.success'),
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+        } else
+            return response()->json([
+                'message' => __('app_translation.failed'),
+            ], 400, [], JSON_UNESCAPED_UNICODE);
     }
 }

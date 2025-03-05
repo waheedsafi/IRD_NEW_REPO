@@ -132,7 +132,7 @@
     <img src="{{ storage_path('app/public/images/moph.png') }}" class="moph-logo" alt="">
     <img src="{{ storage_path('app/public/images/header.png') }}" class="header-logo" alt="">
 
-    
+
 
     <div class="header-text-cont">
 
