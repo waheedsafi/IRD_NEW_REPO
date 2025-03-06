@@ -256,6 +256,7 @@ class ViewsNgoController extends Controller
         ];
         // 2. Check NGO agreement expiration
         $agreement = Agreement::where('ngo_id', $ngo_id)
+            ->where('end_date', '!=', null)
             ->latest('end_date')
             ->select('end_date')
             ->first();

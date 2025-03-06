@@ -14,9 +14,5 @@ Route::prefix('v1')->middleware(['api.key', "doubleAuthorized:" . 'user:api,ngo:
   Route::get('/ngo/agreement-documents', [AgreementController::class, 'agreementDocuments'])->middleware(["userHasSubViewPermission:" . PermissionEnum::ngo->value . "," . SubPermissionEnum::ngo_agreement->value]);
   Route::get('/ngo/agreement/documents/{agreement_id}', [AgreementController::class, 'agreementDocument'])->middleware(["userHasSubViewPermission:" . PermissionEnum::ngo->value . "," . SubPermissionEnum::ngo_agreement->value]);
   Route::get('/ngo/missing/register/signed/form/{ngo_id}', [AgreementController::class, 'missingRegisterSignedForm'])->middleware(["userHasSubViewPermission:" . PermissionEnum::ngo->value . "," . SubPermissionEnum::ngo_agreement->value]);
-});
-
-Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
-  // this route use for store new information for extend the ngo
   Route::post('/ngo/agreement/extend', [ExtendNgoController::class, 'extendNgoAgreement']);
 });

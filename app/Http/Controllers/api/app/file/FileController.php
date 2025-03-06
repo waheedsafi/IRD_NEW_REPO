@@ -2,13 +2,20 @@
 
 namespace App\Http\Controllers\api\app\file;
 
+use Carbon\Carbon;
 use App\Models\Ngo;
+use App\Models\User;
+use App\Models\Approval;
 use App\Models\Document;
 use App\Models\Agreement;
 use App\Models\CheckList;
+use App\Enums\NotifierEnum;
+use App\Models\Notification;
 use Illuminate\Http\Request;
+use App\Enums\PermissionEnum;
 use App\Models\AgreementDocument;
 use App\Traits\Helper\HelperTrait;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Enums\CheckList\CheckListEnum;
 use Illuminate\Support\Facades\Validator;
@@ -189,6 +196,20 @@ class FileController extends Controller
                     JSON_UNESCAPED_UNICODE
                 );
             }
+            $result = $this->ngoRepository->missingRegisterSignedForm($ngo_id);
+            // Begin transaction
+            DB::beginTransaction();
+            if (count($result) == 0) {
+                return response()->json(
+                    [
+                        'message' => __('app_translation.failed')
+                    ],
+                    200,
+                    [],
+                    JSON_UNESCAPED_UNICODE
+                );
+            }
+
 
             // Merge checklist_id into the request
             $request->merge(['checklist_id' => $check_list_id]);
@@ -221,18 +242,39 @@ class FileController extends Controller
                 'check_list_id' => $check_list_id,
             ]);
 
-            // **Fix whitespace issue in keys**
             AgreementDocument::create([
                 'document_id' => $document->id,
                 'agreement_id' => $agreement->id,
             ]);
 
             // 5. Check submittion is completed
-            $result = $this->ngoRepository->missingRegisterSignedForm($ngo_id);
-            if (count($result) == 0) {
+            if (count($result) == 1) {
                 // 6. Create a approval
+                Approval::create([
+                    "request_comment" => "",
+                    "request_date" => Carbon::now(),
+                    "requester_id" => $ngo_id,
+                    "requester_type " => Ngo::class,
+                    "notifier_type_id" => NotifierEnum::ngo_submitted_register_form->value,
+                ]);
                 // 7. Create a notification
+                $authUsers = DB::table("users as u")
+                    ->join("user_permissions as up", function ($join) {
+                        $join->on("up.user_id", '=', 'u.id')
+                            ->where('up.permission', PermissionEnum::approval->value);
+                    })
+                    ->select('up.user_id')
+                    ->get();
+                foreach ($authUsers as $user) {
+                    Notification::create([
+                        "userable_id" => $user->user_id,
+                        "userable_type" => User::class,
+                        "notifier_type_id" => NotifierEnum::ngo_submitted_register_form->value,
+                        "message" => ""
+                    ]);
+                }
             }
+            DB::commit();
 
             return response()->json(
                 [

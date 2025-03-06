@@ -47,6 +47,7 @@ class UserController extends Controller
 
         // Start building the query
         $query = DB::table('users as u')
+            ->where('u.role_id', '!=', RoleEnum::debugger->value)
             ->leftJoin('contacts as c', 'c.id', '=', 'u.contact_id')
             ->join('emails as e', 'e.id', '=', 'u.email_id')
             ->join('roles as r', 'r.id', '=', 'u.role_id')

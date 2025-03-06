@@ -70,6 +70,18 @@ class TestController extends Controller
     public function index(Request $request)
     {
         $locale = App::getLocale();
+
+        $authUser =  DB::table("users as u")
+            ->join("user_permissions as up", function ($join) {
+                $join->on("up.user_id", '=', 'u.id')
+                    ->where('up.permission', PermissionEnum::approval->value);
+            })
+            ->select('up.user_id')
+            ->get();
+
+        foreach ($authUser as $user) {
+            return dd($user->user_id);
+        }
         $ngo_id = 8;
         $ids = [
             CheckListEnum::ngo_register_form_en->value,
