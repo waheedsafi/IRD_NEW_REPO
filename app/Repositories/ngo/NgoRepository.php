@@ -6,6 +6,7 @@ use App\Models\Document;
 use App\Traits\Ngo\NgoTrait;
 use Illuminate\Support\Facades\DB;
 use App\Traits\Address\AddressTrait;
+use App\Enums\CheckList\CheckListEnum;
 
 class NgoRepository implements NgoRepositoryInterface
 {
@@ -155,6 +156,43 @@ class NgoRepository implements NgoRepositoryInterface
             'ns.is_active',
             'ns.created_at',
         )->get();
+    }
+    public function missingRegisterSignedForm($ngo_id)
+    {
+        $ids = [
+            CheckListEnum::ngo_register_form_en->value,
+            CheckListEnum::ngo_register_form_fa->value,
+            CheckListEnum::ngo_register_form_ps->value
+        ];
+        $languageCodes = [
+            CheckListEnum::ngo_register_form_en->value => "english",
+            CheckListEnum::ngo_register_form_fa->value => "farsi",
+            CheckListEnum::ngo_register_form_ps->value => "pashto"
+        ];
+
+        // Initialize an array to hold the results
+        $result = [];
+
+        // Iterate over the checklist_ids and check if they exist in the table
+        foreach ($ids as $id) {
+            // Check if the checklist_id exists in the table
+            $exists = DB::table('agreements as a')
+                ->where('a.ngo_id', $ngo_id)
+                ->where("a.start_date", null)
+                ->join('agreement_documents as ad', "ad.agreement_id", '=', "a.id")
+                ->join('documents as d', function ($join) use ($id) {
+                    $join->on('d.id', "=", "ad.document_id")
+                        ->where('d.check_list_id', $id);
+                })
+                ->exists();
+
+            // If the ID doesn't exist, return the corresponding language code
+            if (!$exists) {
+                $result[] = $languageCodes[$id];
+            }
+        }
+
+        return $result;
     }
     // Joins
     public function ngo($id = null)

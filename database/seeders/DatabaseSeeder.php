@@ -74,6 +74,7 @@ class DatabaseSeeder extends Seeder
         $this->call(JobAndUserSeeder::class);
         $this->call(CheckListSeeder::class);
         $this->call(UserPermissionSeeder::class);
+        $this->call(NotifierSeeder::class);
 
         $this->ngoTypes();
         $this->statusType();
@@ -81,7 +82,6 @@ class DatabaseSeeder extends Seeder
         $this->newsTypes();
         $this->priorityTypes();
         $this->nidTypes();
-        $this->requestTypes();
         $this->staffTypes();
     }
     public function ngoTypes()
@@ -456,37 +456,6 @@ class DatabaseSeeder extends Seeder
             'name_fa' => 'زن',
             'name_ps' => 'ښځینه'
         ]);
-    }
-    public function requestTypes()
-    {
-        $delete = RequestType::factory()->create([
-            "name" => "Delete",
-            "description" => "Cases which relates to delete operation.",
-        ]);
-        $this->Translate("حذف", "fa", $delete->id, RequestType::class);
-        $this->Translate("لرې کول", "ps", $delete->id, RequestType::class);
-
-        $edit = RequestType::factory()->create([
-            "name" => "Edit",
-            "description" => "Cases which relates to edit operation.",
-        ]);
-        $this->Translate("ویرایش", "fa", $edit->id, RequestType::class);
-        $this->Translate("سمون", "ps", $edit->id, RequestType::class);
-
-        $view = RequestType::factory()->create([
-            "name" => "View",
-            "description" => "Cases which relates to view operation.",
-        ]);
-        $this->Translate("مشاهده", "fa", $view->id, RequestType::class);
-        $this->Translate("لید", "ps", $view->id, RequestType::class);
-
-
-        $unlock = RequestType::factory()->create([
-            "name" => "Unlock",
-            "description" => "Cases which relates to unlock operation.",
-        ]);
-        $this->Translate("باز کردن قفل", "fa", $unlock->id, RequestType::class);
-        $this->Translate("خلاصول", "ps", $unlock->id, RequestType::class);
     }
     public function languages(): void
     {

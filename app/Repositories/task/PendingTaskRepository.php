@@ -2,7 +2,6 @@
 
 namespace App\Repositories\Task;
 
-use App\Enums\CheckList\CheckListEnum;
 use App\Models\Agreement;
 use App\Models\AgreementDocument;
 use App\Models\Document;
@@ -182,8 +181,8 @@ class PendingTaskRepository implements PendingTaskRepositoryInterface
         $mimetype = $file->getMimeType();
         $agreement_id = Agreement::select('id')->where('ngo_id', $request->ngo_id)
             ->where('start_data', '')->where('end_date', '')->first();
-        $finalPath = $this->getCustomeNgoFileFullPath($request->ngo_id, $agreement_id->id, $check_list_id,);
-        $storePath = $this->getCustomeNgoFilePath($request->ngo_id, $agreement_id->id, $check_list_id, $fileName);
+        $finalPath = $this->ngoRegisterFolder($request->ngo_id, $agreement_id->id, $check_list_id,);
+        $storePath = $this->ngoRegisterDBPath($request->ngo_id, $agreement_id->id, $check_list_id, $fileName);
         $file->move($finalPath, $fileName);
 
 

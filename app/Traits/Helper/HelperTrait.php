@@ -29,14 +29,12 @@ trait HelperTrait
     {
         return unlink(storage_path() . "/app/{$filePath}");
     }
-
-    public function getCustomeNgoFileFullPath($ngo_id, $agreement_id, $check_list_id)
+    public function ngoRegisterFolder($ngo_id, $agreement_id, $check_list_id)
     {
-        return storage_path() . "/app/private/ngos/{$ngo_id}/{$agreement_id}/{$check_list_id}/";
+        return storage_path() . "/app/private/ngos/{$ngo_id}/register/{$agreement_id}/{$check_list_id}/";
     }
-
-    public function getCustomeNgoFilePath($ngo_id, $agreement_id, $check_list_id, $fileName)
+    public function ngoRegisterDBPath($ngo_id, $agreement_id, $check_list_id, $fileName)
     {
-        return "/app/private/ngos/{$ngo_id}/{$agreement_id}/{$check_list_id}/{$fileName}";
+        return "private/ngos/{$ngo_id}/register/{$agreement_id}/{$check_list_id}/" . $fileName;
     }
 }

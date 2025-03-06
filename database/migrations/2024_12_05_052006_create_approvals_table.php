@@ -22,15 +22,15 @@ return new class extends Migration
             $table->string('requester_type')->comment("The Requester Model class name");
             $table->unsignedBigInteger('responder_id')->comment("Person ID who responds the request")->nullable();
             $table->string('responder_type')->comment("The responder Model class name")->nullable();
-            $table->unsignedBigInteger('request_type_id');
-            $table->foreign('request_type_id')->references('id')->on('request_types')
+            $table->unsignedBigInteger('notifier_type_id');
+            $table->foreign('notifier_type_id')->references('id')->on('notifier_types')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
             $table->index(
                 [
                     'requester_id',
                     'requester_type',
-                    'request_type_id',
+                    'notifier_type_id',
                 ],
                 'approvable_approve_idx'
             );

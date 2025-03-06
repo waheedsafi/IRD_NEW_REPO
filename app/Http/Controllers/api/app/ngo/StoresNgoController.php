@@ -383,18 +383,16 @@ class StoresNgoController extends Controller
             ->get();
 
         foreach ($documents as $checklist) {
-
             $baseName = basename($checklist['path']);
             $oldPath = $this->getTempFullPath() . $baseName; // Absolute path of temp file
 
-            $newDirectory = storage_path() . "/app/private/ngos/{$ngo_id}/{$agreement_id}/{$checklist['check_list_id']}/";
+            $newDirectory = $this->ngoRegisterFolder($ngo_id, $agreement_id, $checklist['check_list_id']);
 
             if (!is_dir($newDirectory)) {
                 mkdir($newDirectory, 0775, true);
             }
             $newPath = $newDirectory . $baseName; // Keep original filename
-            $dbStorePath = "private/ngos/{$ngo_id}/{$agreement_id}/{$checklist['check_list_id']}/"
-                . $baseName;
+            $dbStorePath = $this->ngoRegisterDBPath($ngo_id, $agreement_id, $checklist['check_list_id'], $baseName);
             // Move the file
             if (file_exists($oldPath)) {
                 rename($oldPath, $newPath);

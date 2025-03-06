@@ -74,6 +74,10 @@ class RolePermissionSeeder extends Seeder
             "permission" => "management/about"
         ]);
         $this->rolePermissionSubAbout($rolePer->id);
+        RolePermission::factory()->create([
+            "role" => RoleEnum::super,
+            "permission" => "approval"
+        ]);
     }
     public function adminPermissions()
     {
@@ -117,6 +121,10 @@ class RolePermissionSeeder extends Seeder
             "permission" => "management/about"
         ]);
         $this->rolePermissionSubAbout($rolePer->id);
+        RolePermission::factory()->create([
+            "role" => RoleEnum::admin,
+            "permission" => "approval"
+        ]);
     }
     public function userPermissions()
     {
@@ -157,6 +165,10 @@ class RolePermissionSeeder extends Seeder
             "permission" => "management/about"
         ]);
         $this->rolePermissionSubAbout($rolePer->id);
+        RolePermission::factory()->create([
+            "role" => RoleEnum::user,
+            "permission" => "approval"
+        ]);
     }
     public function debuggerPermissions()
     {

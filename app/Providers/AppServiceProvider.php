@@ -7,10 +7,14 @@ use Illuminate\Support\ServiceProvider;
 use App\Repositories\User\UserRepository;
 use App\Repositories\ngo\NgoRepositoryInterface;
 use App\Repositories\Task\PendingTaskRepository;
+use App\Repositories\Approval\ApprovalRepository;
 use App\Repositories\User\UserRepositoryInterface;
 use App\Repositories\Permission\PermissionRepository;
+use App\Repositories\Notification\NotificationRepository;
 use App\Repositories\Task\PendingTaskRepositoryInterface;
+use App\Repositories\Approval\ApprovalRepositoryInterface;
 use App\Repositories\Permission\PermissionRepositoryInterface;
+use App\Repositories\Notification\NotificationRepositoryInterface;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +27,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(PermissionRepositoryInterface::class, PermissionRepository::class);
         $this->app->bind(PendingTaskRepositoryInterface::class, PendingTaskRepository::class);
+        $this->app->bind(NotificationRepositoryInterface::class, NotificationRepository::class);
+        $this->app->bind(ApprovalRepositoryInterface::class, ApprovalRepository::class);
     }
 
     /**

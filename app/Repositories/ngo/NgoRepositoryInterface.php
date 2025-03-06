@@ -153,4 +153,10 @@ interface NgoRepositoryInterface
      * @return \App\Repositories\ngo\NgoRepositoryInterface|\Illuminate\Database\Query\Builder
      */
     public function statuses($ngo_id, $locale);
+    /**
+     * Retrieve MIssin Register forms languages.
+     * @param string $ngo_id
+     * @return array
+     */
+    public function missingRegisterSignedForm($ngo_id);
 }

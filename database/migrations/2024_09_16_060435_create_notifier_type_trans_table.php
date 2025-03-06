@@ -11,18 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('notifications', function (Blueprint $table) {
+        Schema::create('notifier_type_trans', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('userable_id');
-            $table->string('userable_type');
+            $table->string('value', 128);
             $table->unsignedBigInteger('notifier_type_id');
             $table->foreign('notifier_type_id')->references('id')->on('notifier_types')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
-            $table->boolean("read_status")->default(false);
-            $table->string("message");
-            $table->index(['notifier_type_id', "userable_id", 'userable_type']);
+            $table->string('language_name');
+            $table->foreign('language_name')->references('name')->on('languages')
+                ->onUpdate('cascade')
+                ->onDelete('no action');
             $table->timestamps();
+            $table->index(["language_name", "notifier_type_id"]);
         });
     }
 
@@ -31,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('notifications');
+        Schema::dropIfExists('notifier_type_trans');
     }
 };

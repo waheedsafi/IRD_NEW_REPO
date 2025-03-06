@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers\api\app\file;
 
-use App\Enums\CheckList\CheckListEnum;
+use App\Models\Ngo;
+use App\Models\Document;
+use App\Models\Agreement;
 use App\Models\CheckList;
 use Illuminate\Http\Request;
+use App\Models\AgreementDocument;
 use App\Traits\Helper\HelperTrait;
 use App\Http\Controllers\Controller;
-use App\Models\Agreement;
+use App\Enums\CheckList\CheckListEnum;
 use Illuminate\Support\Facades\Validator;
+use App\Repositories\ngo\NgoRepositoryInterface;
 use Pion\Laravel\ChunkUpload\Receiver\FileReceiver;
 use Pion\Laravel\ChunkUpload\Handler\HandlerFactory;
 use App\Repositories\Task\PendingTaskRepositoryInterface;
@@ -18,10 +22,14 @@ class FileController extends Controller
 {
     use HelperTrait;
     protected $pendingTaskRepository;
+    protected $ngoRepository;
 
-    public function __construct(PendingTaskRepositoryInterface $pendingTaskRepository)
-    {
+    public function __construct(
+        PendingTaskRepositoryInterface $pendingTaskRepository,
+        NgoRepositoryInterface $ngoRepository
+    ) {
         $this->pendingTaskRepository = $pendingTaskRepository;
+        $this->ngoRepository = $ngoRepository;
     }
     public function checklistUploadFile(Request $request)
     {
@@ -135,42 +143,105 @@ class FileController extends Controller
         ]);
     }
 
-    public function registerationFormUpload(Request $request)
+    public function registerSignedFormUpload(Request $request)
     {
         $receiver = new FileReceiver("file", $request, HandlerFactory::classFromRequest($request));
-
         if (!$receiver->isUploaded()) {
             throw new UploadMissingFileException();
         }
 
         $save = $receiver->receive();
-
         if ($save->isFinished()) {
+            $check_list_id = null;
+            $type = $request->input('type'); // Default to 'ps' if no language is provided
+            $ngo_id = $request->input('ngo_id');
+            // 1. Validatation
+            $ngo = Ngo::find($ngo_id);
+            if (!$ngo) {
+                return response()->json([
+                    'message' => __('app_translation.ngo_not_found'),
+                ], 200, [], JSON_UNESCAPED_UNICODE);
+            }
+            $agreement = Agreement::where('ngo_id', $ngo_id)
+                ->where('end_date', null) // Order by end_date descending
+                ->first();           // Get the first record (most recent)
 
-            $language = $request->input('language', 'ps'); // Default to 'ps' if no language is provided
-            switch ($language) {
-                case 'en':
-                    $check_list_id = CheckListEnum::ngo_register_form_en;
-                    break;
-                case 'fa':
-                    $check_list_id = CheckListEnum::ngo_register_form_fa;
-                    break;
-                default:
-                    $check_list_id = CheckListEnum::ngo_register_form_ps;
-                    break;
+            // 1. If agreement does not exists no further process.
+            if (!$agreement) {
+                return response()->json([
+                    'message' => __('app_translation.agreement_not_exists')
+                ], 409);
+            }
+
+            if ($type == "english") {
+                $check_list_id = CheckListEnum::ngo_register_form_en->value;
+            } else if ($type == "farsi") {
+                $check_list_id = CheckListEnum::ngo_register_form_fa->value;
+            } else if ($type == "pashto") {
+                $check_list_id = CheckListEnum::ngo_register_form_ps->value;
+            } else {
+                return response()->json(
+                    [
+                        'message' => __('app_translation.failed')
+                    ],
+                    200,
+                    [],
+                    JSON_UNESCAPED_UNICODE
+                );
             }
 
             // Merge checklist_id into the request
             $request->merge(['checklist_id' => $check_list_id]);
             $file = $save->getFile();
-
-            // 1. Validate checklist
             $validationResult = $this->checkListCheck($request);
-            if ($validationResult !== true) {
+            if (!$validationResult) {
                 $filePath = $file->getRealPath();
                 unlink($filePath);
                 return $validationResult; // Return validation errors
             }
+            // 2. Get file information
+            $fileActualName = $file->getClientOriginalName();
+            $fileName = $this->createChunkUploadFilename($file);
+            $fileSize = $file->getSize();
+            $mimetype = $file->getMimeType();
+            // 3. Get director
+            $directory = $this->ngoRegisterFolder($ngo_id, $agreement->id, $check_list_id);
+            $dbStorePath = $this->ngoRegisterDBPath($ngo_id, $agreement->id, $check_list_id, $fileName);
+            if (!is_dir($directory)) {
+                mkdir($directory, 0775, true);
+            }
+            $file->move($directory, $fileName);
+
+            // 4. Store files in database
+            $document = Document::create([
+                'actual_name' => $fileActualName,
+                'size' => $fileSize,
+                'path' => $dbStorePath,
+                'type' => $mimetype,
+                'check_list_id' => $check_list_id,
+            ]);
+
+            // **Fix whitespace issue in keys**
+            AgreementDocument::create([
+                'document_id' => $document->id,
+                'agreement_id' => $agreement->id,
+            ]);
+
+            // 5. Check submittion is completed
+            $result = $this->ngoRepository->missingRegisterSignedForm($ngo_id);
+            if (count($result) == 0) {
+                // 6. Create a approval
+                // 7. Create a notification
+            }
+
+            return response()->json(
+                [
+                    'message' => __('app_translation.success')
+                ],
+                200,
+                [],
+                JSON_UNESCAPED_UNICODE
+            );
         }
 
         // If not finished, send current progress.

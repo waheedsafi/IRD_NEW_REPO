@@ -24,6 +24,7 @@ class PermissionSeeder extends Seeder
         $donor = 'public/icons/donor.svg';
         $management = 'public/icons/management.svg';
         $managementNews = 'public/icons/management-news.svg';
+        $approval = 'public/icons/approval.svg';
 
         Permission::factory()->create([
             "name" => "dashboard",
@@ -79,6 +80,11 @@ class PermissionSeeder extends Seeder
             "name" => "settings",
             "icon" => $settings,
             "priority" => 10,
+        ]);
+        Permission::factory()->create([
+            "name" => "approval",
+            "icon" => $approval,
+            "priority" => 11,
         ]);
     }
 }

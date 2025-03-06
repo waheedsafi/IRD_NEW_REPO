@@ -115,6 +115,14 @@ class UserPermissionSeeder extends Seeder
             "user_id" => RoleEnum::super->value,
             "permission" => "audit"
         ]);
+        UserPermission::factory()->create([
+            "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
+            "user_id" => RoleEnum::super->value,
+            "permission" => "approval"
+        ]);
     }
     public function adminPermissions()
     {
@@ -197,6 +205,14 @@ class UserPermissionSeeder extends Seeder
             "user_id" => RoleEnum::admin->value,
             "permission" => "reports"
         ]);
+        UserPermission::factory()->create([
+            "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
+            "user_id" => RoleEnum::admin->value,
+            "permission" => "approval"
+        ]);
     }
     public function userPermissions()
     {
@@ -259,6 +275,14 @@ class UserPermissionSeeder extends Seeder
             "permission" => "settings"
         ]);
         $this->addSettingSubPermissions($userPermission);
+        UserPermission::factory()->create([
+            "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
+            "user_id" => RoleEnum::user->value,
+            "permission" => "approval"
+        ]);
     }
     public function debuggerPermissions()
     {
@@ -288,7 +312,6 @@ class UserPermissionSeeder extends Seeder
         ]);
         $this->addSettingSubPermissions($userPermission);
     }
-
     public function addUserSubPermissions($userPermission)
     {
         foreach (SubPermissionEnum::USERS as $id => $role) {
