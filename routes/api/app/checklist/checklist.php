@@ -16,6 +16,7 @@ Route::prefix('v1')->middleware(['api.key', "doubleAuthorized:" . 'user:api,ngo:
   Route::get('ngo/register/abroad/director-checklist', [CheckListController::class, 'ngoRegisterAbroadDirector']);
   Route::get('ngo-checklist/{id}', [CheckListController::class, 'checklist']);
   Route::get('ngo/common-checklist/{id}', [CheckListController::class, 'commonChecklist']);
+  Route::get('ngo/register/signed/form/checklist', [CheckListController::class, 'missingRegisterSignedForm']);
 });
 
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {

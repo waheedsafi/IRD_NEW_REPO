@@ -80,7 +80,7 @@ class ViewsNgoController extends Controller
         $perPage = $request->input('per_page', 10); // Number of records per page
         $page = $request->input('page', 1); // Current page
         $locale = App::getLocale();
-        $includedIds  = [StatusTypeEnum::active->value, StatusTypeEnum::active->value];
+        $includedIds  = [StatusTypeEnum::registered->value, StatusTypeEnum::registered->value];
 
         $query = $this->ngoRepository->ngo();  // Start with the base query
         $this->ngoRepository->transJoin($query, $locale)
@@ -276,9 +276,9 @@ class ViewsNgoController extends Controller
          COUNT(*) AS count,
             (SELECT COUNT(*) FROM ngos WHERE DATE(created_at) = CURDATE()) AS todayCount,
             (SELECT COUNT(*) FROM ngos n JOIN ngo_statuses ns ON n.id = ns.ngo_id WHERE ns.status_type_id = ?) AS activeCount,
-         (SELECT COUNT(*) FROM ngos n JOIN ngo_statuses ns ON n.id = ns.ngo_id WHERE ns.status_type_id = ?) AS unRegisteredCount
+         (SELECT COUNT(*) FROM ngos n JOIN ngo_statuses ns ON n.id = ns.ngo_id WHERE ns.status_type_id = ? AND ns.status_type_id != ? ) AS unRegisteredCount
         FROM ngos
-            ", [StatusTypeEnum::active->value, StatusTypeEnum::unregistered->value]);
+            ", [StatusTypeEnum::registered->value, StatusTypeEnum::registered->value, StatusTypeEnum::blocked->value]);
         return response()->json([
             'counts' => [
                 "count" => $statistics[0]->count,
@@ -310,7 +310,6 @@ class ViewsNgoController extends Controller
 
         if ($searchColumn && $searchValue) {
             $allowedColumns = [
-                'id' => 'n.id',
                 'registration_no' => 'n.registration_no',
                 'name' => 'nt.name',
                 'type' => 'ntt.value',
@@ -329,7 +328,6 @@ class ViewsNgoController extends Controller
         $sort = $request->input('filters.sort'); // Sorting column
         $order = $request->input('filters.order', 'asc'); // Sorting order (default 
         $allowedColumns = [
-            'id' => 'n.id',
             'name' => 'nt.name',
             'type' => 'ntt.value',
             'contact' => 'c.value',

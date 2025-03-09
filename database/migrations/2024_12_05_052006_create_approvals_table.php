@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('approvals', function (Blueprint $table) {
             $table->id();
             $table->string("request_comment")->nullable();
-            $table->string("request_date");
+            $table->string("request_date")->useCurrent();
             $table->string("respond_comment")->nullable();
             $table->string("respond_date")->nullable();
             $table->boolean("approved")->default(false);
@@ -26,14 +26,7 @@ return new class extends Migration
             $table->foreign('notifier_type_id')->references('id')->on('notifier_types')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
-            $table->index(
-                [
-                    'requester_id',
-                    'requester_type',
-                    'notifier_type_id',
-                ],
-                'approvable_approve_idx'
-            );
+            $table->index(['notifier_type_id']);
             $table->timestamps();
         });
     }

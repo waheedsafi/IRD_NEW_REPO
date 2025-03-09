@@ -357,8 +357,8 @@ class AboutController extends Controller
             'message' => __('app_translation.success'),
             'office' => [
                 "id" => $office->id,
-                "name_english" => $validateData['name_english'],
-                "name_pashto" => $validateData['name_pashto'],
+                "name_english" => $validateData['address_english'],
+                "name_pashto" => $validateData['address_pashto'],
                 "address_farsi" => $validateData['address_farsi'],
                 "contact" => $validateData['contact'],
                 "email" => $validateData['email'],

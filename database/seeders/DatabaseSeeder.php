@@ -75,6 +75,7 @@ class DatabaseSeeder extends Seeder
         $this->call(CheckListSeeder::class);
         $this->call(UserPermissionSeeder::class);
         $this->call(NotifierSeeder::class);
+        $this->call(AboutSeeder::class);
 
         $this->ngoTypes();
         $this->statusType();
@@ -276,26 +277,91 @@ class DatabaseSeeder extends Seeder
     }
     public function statusType()
     {
-        $statustype = StatusType::factory()->create([
-            'id' => StatusTypeEnum::active,
+        $statustype =  StatusType::factory()->create([
+            'id' => StatusTypeEnum::register_form_not_completed,
         ]);
-
         DB::table('status_type_trans')->insert([
             'status_type_id' => $statustype->id,
             'language_name' => 'en',
-            'name' => 'Active'
-
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'ps',
-            'name' => 'فعال'
+            'name' => 'Register form not completed'
 
         ]);
         DB::table('status_type_trans')->insert([
             'status_type_id' => $statustype->id,
             'language_name' => 'fa',
-            'name' => 'فعال'
+            'name' => 'فرم ثبت نام تکمیل نشده است'
+
+        ]);
+        DB::table('status_type_trans')->insert([
+            'status_type_id' => $statustype->id,
+            'language_name' => 'ps',
+            'name' => 'د نوم لیکنې فورمه نه ده بشپړه شوې'
+
+        ]);
+
+        $statustype =  StatusType::factory()->create([
+            'id' => StatusTypeEnum::register_form_completed,
+        ]);
+        DB::table('status_type_trans')->insert([
+            'status_type_id' => $statustype->id,
+            'language_name' => 'en',
+            'name' => 'Register Form completed'
+
+        ]);
+        DB::table('status_type_trans')->insert([
+            'status_type_id' => $statustype->id,
+            'language_name' => 'fa',
+            'name' => 'فرم ثبت نام تکمیل شد'
+
+        ]);
+        DB::table('status_type_trans')->insert([
+            'status_type_id' => $statustype->id,
+            'language_name' => 'ps',
+            'name' => 'د نوم لیکنې فورمه بشپړه شوه'
+
+        ]);
+
+        $statustype =  StatusType::factory()->create([
+            'id' => StatusTypeEnum::signed_register_form_submitted,
+        ]);
+        DB::table('status_type_trans')->insert([
+            'status_type_id' => $statustype->id,
+            'language_name' => 'en',
+            'name' => 'Signed register form submitted'
+
+        ]);
+        DB::table('status_type_trans')->insert([
+            'status_type_id' => $statustype->id,
+            'language_name' => 'fa',
+            'name' => 'فرم ثبت نام امضا شده ارسال شد'
+
+        ]);
+        DB::table('status_type_trans')->insert([
+            'status_type_id' => $statustype->id,
+            'language_name' => 'ps',
+            'name' => 'لاسلیک شوی د نوم لیکنې فورمه وسپارل شوه'
+
+        ]);
+
+        $statustype = StatusType::factory()->create([
+            'id' => StatusTypeEnum::registered,
+        ]);
+        DB::table('status_type_trans')->insert([
+            'status_type_id' => $statustype->id,
+            'language_name' => 'en',
+            'name' => 'Registered'
+
+        ]);
+        DB::table('status_type_trans')->insert([
+            'status_type_id' => $statustype->id,
+            'language_name' => 'fa',
+            'name' => 'ثبت شده'
+
+        ]);
+        DB::table('status_type_trans')->insert([
+            'status_type_id' => $statustype->id,
+            'language_name' => 'ps',
+            'name' => 'ثبت شوی'
 
         ]);
 
@@ -318,92 +384,6 @@ class DatabaseSeeder extends Seeder
             'status_type_id' => $statustype->id,
             'language_name' => 'ps',
             'name' => 'بند'
-
-        ]);
-        $statustype =  StatusType::factory()->create([
-            'id' => StatusTypeEnum::not_logged_in,
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'en',
-            'name' => 'Not Logged In'
-
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'fa',
-            'name' => 'وارد نشده است'
-
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'ps',
-            'name' => 'داخل شوی نه دی'
-
-        ]);
-
-        $statustype =  StatusType::factory()->create([
-            'id' => StatusTypeEnum::unregistered,
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'en',
-            'name' => 'Unregistered'
-
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'fa',
-            'name' => 'ثبت نشده'
-
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'ps',
-            'name' => 'ثبت شوی نه دی'
-
-        ]);
-
-        $statustype =  StatusType::factory()->create([
-            'id' => StatusTypeEnum::in_progress,
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'en',
-            'name' => 'In Progress'
-
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'fa',
-            'name' => 'در جریان'
-
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'ps',
-            'name' => 'د جریان په حال کی'
-
-        ]);
-        $statustype =  StatusType::factory()->create([
-            'id' => StatusTypeEnum::register_form_submited,
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'en',
-            'name' => 'Register Form Submited'
-
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'fa',
-            'name' => 'فورم تکمیل شد'
-
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'ps',
-            'name' => 'فورم تکمیل شوی'
 
         ]);
     }
