@@ -4,6 +4,7 @@ namespace App\Http\Controllers\api\app\ngo;
 
 use Carbon\Carbon;
 use App\Models\Ngo;
+use App\Models\User;
 use App\Models\Email;
 use App\Enums\RoleEnum;
 use App\Models\Address;
@@ -16,10 +17,12 @@ use App\Models\CheckList;
 use App\Models\NgoStatus;
 use App\Enums\CountryEnum;
 use App\Enums\LanguageEnum;
+use App\Enums\NotifierEnum;
 use App\Models\AddressTran;
 use App\Models\PendingTask;
 use App\Models\Representer;
 use App\Models\DirectorTran;
+use Illuminate\Http\Request;
 use App\Enums\PermissionEnum;
 use App\Models\NgoPermission;
 use App\Models\CheckListTrans;
@@ -38,19 +41,33 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use App\Traits\File\PendingFileTrait;
 use App\Enums\CheckList\CheckListEnum;
+use App\Enums\SettingEnum;
 use App\Enums\Type\RepresentorTypeEnum;
 use App\Http\Requests\app\ngo\NgoRegisterRequest;
 use App\Http\Requests\app\ngo\NgoInitStoreRequest;
 use App\Repositories\Task\PendingTaskRepositoryInterface;
+use App\Http\Requests\app\ngo\StoreSignedRegisterFormRequest;
+use App\Models\ApprovalDocument;
+use App\Models\Setting;
+use App\Repositories\Approval\ApprovalRepositoryInterface;
+use App\Repositories\Notification\NotificationRepositoryInterface;
+use Database\Factories\ApprovalFactory;
 
 class StoresNgoController extends Controller
 {
     use HelperTrait, PendingFileTrait;
     protected $pendingTaskRepository;
+    protected $notificationRepository;
+    protected $approvalRepository;
 
-    public function __construct(PendingTaskRepositoryInterface $pendingTaskRepository)
-    {
+    public function __construct(
+        PendingTaskRepositoryInterface $pendingTaskRepository,
+        NotificationRepositoryInterface $notificationRepository,
+        ApprovalRepositoryInterface $approvalRepository
+    ) {
         $this->pendingTaskRepository = $pendingTaskRepository;
+        $this->notificationRepository = $notificationRepository;
+        $this->approvalRepository = $approvalRepository;
     }
     public function store(NgoRegisterRequest $request)
     {
@@ -110,7 +127,7 @@ class StoresNgoController extends Controller
             "ngo_id" => $newNgo->id,
             "user_id" => $authUser->id,
             "is_active" => true,
-            "status_type_id" => StatusTypeEnum::not_logged_in->value,
+            "status_type_id" => StatusTypeEnum::register_form_not_completed->value,
             "comment" => "Newly Created"
         ]);
 
@@ -169,7 +186,7 @@ class StoresNgoController extends Controller
         // If everything goes well, commit the transaction
         DB::commit();
 
-        $status = StatusTypeTran::where('status_type_id', StatusTypeEnum::not_logged_in->value)
+        $status = StatusTypeTran::where('status_type_id', StatusTypeEnum::register_form_not_completed->value)
             ->where('language_name', $locale)
             ->select('name')->first();
         return response()->json(
@@ -180,7 +197,7 @@ class StoresNgoController extends Controller
                     "profile" => $newNgo->profile,
                     "abbr" => $newNgo->abbr,
                     "registration_no" => $newNgo->registration_no,
-                    "status_id" => StatusTypeEnum::not_logged_in->value,
+                    "status_id" => StatusTypeEnum::register_form_not_completed->value,
                     "status" => $status->name,
                     "type_id" => $validatedData['ngo_type_id'],
                     "establishment_date" => null,
@@ -195,7 +212,6 @@ class StoresNgoController extends Controller
             JSON_UNESCAPED_UNICODE
         );
     }
-
 
     public function registerFormCompleted(NgoInitStoreRequest $request)
     {
@@ -234,7 +250,6 @@ class StoresNgoController extends Controller
                 '$request->pending_id' => $request->pending_id
             ], 404, [], JSON_UNESCAPED_UNICODE);
         }
-        // Do not follow these checklist Validate
         $exclude = [
             CheckListEnum::ngo_representor_letter->value,
             CheckListEnum::ngo_register_form_en->value,
@@ -246,7 +261,12 @@ class StoresNgoController extends Controller
             array_push($exclude, CheckListEnum::director_work_permit->value);
         }
         // 4. CheckListEnum:: task exists
-        $errors = $this->validateCheckList($task, $exclude);
+        // Get checklist IDs
+        $checkListIds = CheckList::where('check_list_type_id', CheckListTypeEnum::ngoRegister)
+            ->whereNotIn('id', $exclude)
+            ->pluck('id')
+            ->toArray();
+        $errors = $this->validateCheckList($task, $checkListIds);
         if ($errors) {
             return response()->json([
                 'message' => __('app_translation.checklist_not_found'),
@@ -311,7 +331,7 @@ class StoresNgoController extends Controller
             'ngo_id' => $id,
             'user_id' => $request->user()->id,
             "is_active" => true,
-            'status_type_id' => StatusTypeEnum::register_form_submited,
+            'status_type_id' => StatusTypeEnum::register_form_completed,
             'comment' => 'Register Form Complete',
         ]);
 
@@ -340,14 +360,157 @@ class StoresNgoController extends Controller
         );
     }
 
-    protected function validateCheckList($task, $exclude)
+    public function StoreSignedRegisterForm(StoreSignedRegisterFormRequest $request)
     {
+        $request->validated();
+        $ngo_id = $request->ngo_id;
+
+        // 1. Validate date
+        $expirationDate = Setting::where('id', SettingEnum::registeration_expire_time->value)
+            ->select('id', 'value as days')
+            ->first();
+        if (!$expirationDate) {
+            return response()->json(
+                [
+                    'message' => __('app_translation.setting_record_not_found'),
+                ],
+                404,
+                [],
+                JSON_UNESCAPED_UNICODE
+            );
+        } else {
+            $start_date = Carbon::parse($request->start_date);
+            $end_date = Carbon::parse($request->end_date);
+            $gapInDays = ceil($start_date->diffInDays($end_date));
+            if ($gapInDays < $expirationDate->days) {
+                return response()->json(
+                    [
+                        'message' => __('app_translation.date_is_smaller') . " " . ($expirationDate->days / 365) . ' ' . __('app_translation.year') . ' => ' . $gapInDays,
+                    ],
+                    500,
+                    [],
+                    JSON_UNESCAPED_UNICODE
+                );
+            } else if ($gapInDays > $expirationDate->days) {
+                return response()->json(
+                    [
+                        'message' => __('app_translation.date_is_bigger') . " " . ($expirationDate->days / 365) . ' ' . __('app_translation.year') . ' => ' . $gapInDays,
+                    ],
+                    500,
+                    [],
+                    JSON_UNESCAPED_UNICODE
+                );
+            }
+        }
+
+        $agreement = Agreement::where('ngo_id', $ngo_id)
+            ->where('end_date', null) // Order by end_date descending
+            ->first();           // Get the first record (most recent)
+        if (!$agreement) {
+            return response()->json(
+                [
+                    'message' => __('app_translation.doc_already_submitted'),
+                ],
+                500,
+                [],
+                JSON_UNESCAPED_UNICODE
+            );
+        }
+
+        // 2. CheckListEnum:: NGO exist
+        $ngo = Ngo::find($ngo_id);
+        if (!$ngo) {
+            return response()->json([
+                'message' => __('app_translation.ngo_not_found'),
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        // 3. Ensure task exists before proceeding
+        $task = $this->pendingTaskRepository->pendingTaskExist(
+            $request->user(),
+            TaskTypeEnum::ngo_registeration,
+            $ngo_id
+        );
+        if (!$task) {
+            return response()->json([
+                'message' => __('app_translation.task_not_found'),
+                'pending_id' => $request->pending_id
+            ], 404, [], JSON_UNESCAPED_UNICODE);
+        }
+        $includes = [
+            CheckListEnum::ngo_register_form_en->value,
+            CheckListEnum::ngo_register_form_fa->value,
+            CheckListEnum::ngo_register_form_ps->value
+        ];
+        // 4. CheckListEnum:: task exists
         // Get checklist IDs
         $checkListIds = CheckList::where('check_list_type_id', CheckListTypeEnum::ngoRegister)
-            ->whereNotIn('id', $exclude)
+            ->whereIn('id', $includes)
             ->pluck('id')
             ->toArray();
+        $errors = $this->validateCheckList($task, $checkListIds);
+        if ($errors) {
+            return response()->json([
+                'message' => __('app_translation.checklist_not_found'),
+                'errors' => $errors // Reset keys for cleaner JSON output
+            ], 404);
+        }
 
+        DB::beginTransaction();
+        $approval = $this->approvalRepository->storeApproval(
+            $ngo_id,
+            Ngo::class,
+            NotifierEnum::ngo_submitted_register_form->value,
+            ""
+        );
+        $document = $this->documentStore($agreement->id, $ngo_id, $task->id, function ($document) use ($approval) {
+            $this->approvalRepository->storeApprovalDocument(
+                $approval->id,
+                $document->id,
+                Document::class
+            );
+        });
+        if ($document) {
+            return $document;
+        }
+
+        $this->pendingTaskRepository->destroyPendingTask(
+            $request->user(),
+            TaskTypeEnum::ngo_registeration,
+            $ngo_id
+        );
+
+        // 7. Create a notification
+        $this->notificationRepository->SendNotification($request, [
+            "userable_type" => User::class,
+            "notifier_type_id" => NotifierEnum::ngo_submitted_register_form->value,
+            "message" => ""
+        ]);
+        $agreement->start_date = $request->start_date;
+        $agreement->end_date = $request->end_date;
+        $agreement->save();
+        // Update ngo status
+        NgoStatus::where('ngo_id', $ngo_id)->update(['is_active' => false]);
+        NgoStatus::create([
+            'ngo_id' => $ngo_id,
+            'user_id' => $request->user()->id,
+            "is_active" => true,
+            'status_type_id' => StatusTypeEnum::signed_register_form_submitted,
+            'comment' => 'Signed Register Form Submitted',
+        ]);
+        DB::commit();
+        return response()->json(
+            [
+                'message' => __('app_translation.success'),
+            ],
+            200,
+            [],
+            JSON_UNESCAPED_UNICODE
+        );
+    }
+
+    protected function validateCheckList($task, $checkListIds)
+    {
         // Get checklist IDs from documents
         $documentCheckListIds = $this->pendingTaskRepository->pendingTaskDocumentQuery(
             $task->id
@@ -374,7 +537,7 @@ class StoresNgoController extends Controller
 
         return null;
     }
-    protected function documentStore($agreement_id, $ngo_id, $pending_task_id)
+    protected function documentStore($agreement_id, $ngo_id, $pending_task_id, ?callable $callback = null)
     {
         // Get checklist IDs
         $documents = PendingTaskDocument::join('check_lists', 'check_lists.id', 'pending_task_documents.check_list_id')
@@ -416,6 +579,9 @@ class StoresNgoController extends Controller
                 'document_id' => $document->id,
                 'agreement_id' => $agreement_id,
             ]);
+            if ($callback) {
+                $callback($document);
+            }
         }
     }
     protected function directorStore($validatedData, $ngo_id, $agreement_id)

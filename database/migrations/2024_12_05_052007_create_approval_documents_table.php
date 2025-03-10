@@ -11,15 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('approval_contents', function (Blueprint $table) {
+        Schema::create('approval_documents', function (Blueprint $table) {
             $table->id();
-            $table->string("file_path");
-            $table->unsignedBigInteger("approveable_it")->comment("Primary of table on which");
-            $table->unsignedBigInteger("approval_id");
+            $table->unsignedBigInteger('documentable_id');
+            $table->string('documentable_type');
+            $table->unsignedBigInteger('approval_id');
             $table->foreign('approval_id')->references('id')->on('approvals')
                 ->onUpdate('cascade')
-                ->onDelete('no action');
+                ->onDelete('cascade');
             $table->timestamps();
+            $table->index(['approval_id']);
         });
     }
 
@@ -28,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('approval_contents');
+        Schema::dropIfExists('approval_documents');
     }
 };

@@ -60,41 +60,13 @@ class AgreementController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    public function registrationNotUploadList(Request $request)
+    public function missingRegisterSignedForm($ngo_id)
     {
-        // Fetch the agreement_id for the given ngo_id
-        $agreement = Agreement::select('id')
-            ->where('ngo_id', $request->ngo_id)
-            ->where('start_date', null)
-            ->where('end_date', null)
-            ->first();
-
-        if (!$agreement) {
-            return response()->json(['error' => 'Agreement not found'], 404);
-        }
-
-        // Check the existence of documents for the given checklist IDs (en, fa, ps) in one query
-        $checkListIds = [
-            CheckListEnum::ngo_register_form_en->value,
-            CheckListEnum::ngo_register_form_fa->value,
-            CheckListEnum::ngo_register_form_ps->value,
-        ];
-
-        $documents = Document::join('agreement_documents', 'documents.id', '=', 'agreement_documents.document_id')
-            ->where('agreement_documents.agreement_id', $agreement->id)
-            ->whereIn('documents.check_list_id', $checkListIds)
-            ->pluck('documents.check_list_id'); // Get only the check_list_id
-
-        // Convert the Collection to an array
-        $documentsArray = $documents->toArray();
-
-        // Check for the existence of each document
-        $registrationStatus = [
-            'registration_en' => in_array(CheckListEnum::ngo_register_form_en->value, $documentsArray),
-            'registration_fa' => in_array(CheckListEnum::ngo_register_form_fa->value, $documentsArray),
-            'registration_ps' => in_array(CheckListEnum::ngo_register_form_ps->value, $documentsArray),
-        ];
-
-        return $registrationStatus;
+        return response()->json(
+            $this->missingRegisterSignedForm($ngo_id),
+            200,
+            [],
+            JSON_UNESCAPED_UNICODE
+        );
     }
 }

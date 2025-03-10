@@ -48,9 +48,12 @@ use Illuminate\Support\Facades\Log;
 use App\Traits\Address\AddressTrait;
 
 use function Laravel\Prompts\select;
+use Illuminate\Support\Facades\Http;
 use App\Enums\CheckList\CheckListEnum;
+use App\Enums\Type\ApprovalTypeEnum;
 use App\Enums\Type\RepresenterTypeEnum;
 use App\Enums\Type\RepresentorTypeEnum;
+use App\Models\Approval;
 use App\Repositories\ngo\NgoRepositoryInterface;
 use App\Repositories\User\UserRepositoryInterface;
 
@@ -67,9 +70,126 @@ class TestController extends Controller
         $this->userRepository = $userRepository;
     }
     use AddressTrait;
-    public function index(Request $request)
+
+    public function format($approvals)
+    {
+        return $approvals->groupBy('id')->map(function ($group) {
+            $docs = $group->filter(function ($item) {
+                return $item->approval_document_id !== null;
+            });
+
+            $approval = $group->first();
+
+            $approval->approved = (bool) $approval->approved;
+            if ($docs->isNotEmpty()) {
+                $docs->documents = $docs->map(function ($doc) {
+                    return [
+                        'id' => $doc->approval_document_id,
+                        'documentable_id' => $doc->documentable_id,
+                        'documentable_type' => $doc->documentable_type,
+                    ];
+                });
+            } else {
+                $approval->documents = [];
+            }
+            unset($approval->approval_document_id);
+
+            return $approval;
+        })->values();
+    }
+    public function index()
     {
         $locale = App::getLocale();
+
+        return $approvals = DB::table('approvals as a')
+            ->where("a.requester_type", Ngo::class)
+            ->where("a.approval_type_id", ApprovalTypeEnum::pending->value)
+            ->join('approval_type_trans as att', function ($join) use ($locale) {
+                $join->on('att.approval_type_id', '=', 'a.approval_type_id')
+                    ->where('att.language_name', $locale);
+            })
+            ->join('ngo_trans as nt', function ($join) use ($locale) {
+                $join->on('nt.ngo_id', '=', 'a.requester_id')
+                    ->where('nt.language_name', $locale);
+            })
+            ->join('notifier_type_trans as ntt', function ($join) use ($locale) {
+                $join->on('ntt.notifier_type_id', '=', 'a.notifier_type_id')
+                    ->where('ntt.language_name', $locale);
+            })
+            ->select(
+                'a.id as approval_id',
+                'a.request_comment',
+                'a.request_date',
+                'a.respond_date',
+                'a.approval_type_id',
+                'att.value as approval_type',
+                'a.requester_id',
+                'a.responder_id',
+                'a.responder_type',
+                'a.notifier_type_id',
+                'ntt.value as notifier_type',
+                'nt.name',
+                DB::raw('(
+                    SELECT COUNT(*)
+                    FROM approval_documents as ad_count
+                    WHERE ad_count.approval_id = a.id
+                ) as approval_documents_count')
+            )
+            ->get();
+
+
+        // $approvals = DB::table('approvals as a')
+        //     ->join('approval_documents as ad', 'ad.approval_id', '=', 'a.id')
+        //     ->select(
+        //         "a.id",
+        //         "a.request_comment",
+        //         "a.request_date",
+        //         "a.respond_date",
+        //         "a.approved",
+        //         "a.requester_id",
+        //         "a.requester_type",
+        //         "a.responder_id",
+        //         "a.responder_type",
+        //         "a.notifier_type_id",
+        //         "ad.id as approval_document_id",
+        //         "ad.documentable_id",
+        //         "ad.documentable_type",
+        //     )->get();
+
+        return $approvals;
+
+        $includes = [
+            CheckListEnum::ngo_register_form_en->value,
+            CheckListEnum::ngo_register_form_fa->value,
+            CheckListEnum::ngo_register_form_ps->value
+        ];
+        return DB::table('check_lists as cl')
+            ->where('cl.active', true)
+            ->where('cl.check_list_type_id', CheckListTypeEnum::ngoRegister->value)
+            ->whereIn('cl.id', $includes)
+            ->join('check_list_trans as clt', 'clt.check_list_id', '=', 'cl.id')
+            ->where('clt.language_name', $locale)
+            ->select(
+                'clt.value as name',
+                'cl.id',
+                'cl.acceptable_mimes',
+                'cl.acceptable_extensions',
+                'cl.description'
+            )
+            ->orderBy('cl.id')
+            ->get();
+
+        $authUser =  DB::table("users as u")
+            ->join("user_permissions as up", function ($join) {
+                $join->on("up.user_id", '=', 'u.id')
+                    ->where('up.permission', PermissionEnum::approval->value);
+            })
+            ->select('up.user_id')
+            ->get();
+
+        foreach ($authUser as $user) {
+            return dd($user->user_id);
+        }
         $ngo_id = 8;
         $ids = [
             CheckListEnum::ngo_register_form_en->value,

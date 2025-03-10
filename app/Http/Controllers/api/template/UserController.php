@@ -47,6 +47,7 @@ class UserController extends Controller
 
         // Start building the query
         $query = DB::table('users as u')
+            ->where('u.role_id', '!=', RoleEnum::debugger->value)
             ->leftJoin('contacts as c', 'c.id', '=', 'u.contact_id')
             ->join('emails as e', 'e.id', '=', 'u.email_id')
             ->join('roles as r', 'r.id', '=', 'u.role_id')
@@ -136,7 +137,7 @@ class UserController extends Controller
                     "profile" => $user->profile,
                     "status" => $user->status == 1,
                     "grant" => $user->grant_permission == 1,
-                    "role" => $user->role_name,
+                    "role" => ['id' => $user->role_id, 'name' => $user->role_name],
                     'contact' => $user->contact,
                     "destination" => ["id" => $user->destination_id, "name" => $user->destination],
                     "job" => ["id" => $user->job_id, "name" => $user->job],
@@ -187,6 +188,7 @@ class UserController extends Controller
                 ], 400, [], JSON_UNESCAPED_UNICODE);
             }
         }
+        DB::beginTransaction();
         // Add email and contact
         $email = Email::create([
             "value" => $request->email
@@ -227,6 +229,7 @@ class UserController extends Controller
                 'message' => __('app_translation.per_not_found'),
             ], 404, [], JSON_UNESCAPED_UNICODE);
         }
+        DB::commit();
         $newUser->load('job', 'destination'); // Adjust according to your relationships
         return response()->json([
             'user' => [
@@ -237,7 +240,7 @@ class UserController extends Controller
                 "status" => $newUser->status,
                 "destination" => $this->getTranslationWithNameColumn($newUser->destination, Destination::class),
                 "job" => $this->getTranslationWithNameColumn($newUser->job, ModelJob::class),
-                "createdAt" => $newUser->created_at,
+                "created_at" => $newUser->created_at,
             ],
             'message' => __('app_translation.success'),
         ], 200, [], JSON_UNESCAPED_UNICODE);
@@ -246,6 +249,7 @@ class UserController extends Controller
     {
         $request->validated();
         // 1. User is passed from middleware
+        DB::beginTransaction();
         $user = $request->get('validatedUser');
         if ($user) {
             // 2. Check email
@@ -277,6 +281,7 @@ class UserController extends Controller
             $user->grant_permission = $request->grant === "true" ? true : false;
             $user->save();
 
+            DB::commit();
             return response()->json([
                 'message' => __('app_translation.success'),
             ], 200, [], JSON_UNESCAPED_UNICODE);
@@ -287,6 +292,7 @@ class UserController extends Controller
     }
     public function destroy($id)
     {
+        DB::beginTransaction();
         $user = User::find($id);
         if ($user->role_id == RoleEnum::super->value) {
             return response()->json([
@@ -299,6 +305,7 @@ class UserController extends Controller
             // 2. Delete user contact
             Contact::where('id', '=', $user->contact_id)->delete();
             $user->delete();
+            DB::commit();
             return response()->json([
                 'message' => __('app_translation.success'),
             ], 200, [], JSON_UNESCAPED_UNICODE);
@@ -341,6 +348,7 @@ class UserController extends Controller
         $request->validated();
         $user = $request->get('validatedUser');
         $authUser = $request->user();
+        DB::beginTransaction();
         if ($authUser->role_id == RoleEnum::super->value) {
             $user->password = Hash::make($request->new_password);
             $user->save();
@@ -357,6 +365,7 @@ class UserController extends Controller
                 $user->save();
             }
         }
+        DB::commit();
         return response()->json([
             'message' => __('app_translation.success'),
         ], 200, [], JSON_UNESCAPED_UNICODE);

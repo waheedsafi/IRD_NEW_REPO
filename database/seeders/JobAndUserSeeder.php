@@ -19,7 +19,7 @@ class JobAndUserSeeder extends Seeder
      */
     public function run(): void
     {
-        $job =  ModelJob::factory()->create([]);
+        $job = ModelJob::factory()->create([]);
         ModelJobTrans::factory()->create([
             "value" => "Administrator",
             "model_job_id" => $job->id,

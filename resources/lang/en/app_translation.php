@@ -44,4 +44,9 @@ return [
     "task_not_found" => "Task Not Found",
     "representor_add_error" => "Agreement Not Found, You must extend the registration first.",
     "representor_not_found" => "Representor Not Found",
+    "doc_already_submitted" => "Documents Already submitted",
+    "setting_record_not_found" => "Setting record not found.",
+    "date_is_smaller" => "The date subceed than",
+    "date_is_bigger" => "The date exceed than",
+    "year" => "year"
 ];

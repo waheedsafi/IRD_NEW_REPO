@@ -115,7 +115,7 @@ class UserPermissionSeeder extends Seeder
             "user_id" => RoleEnum::super->value,
             "permission" => "audit"
         ]);
-        UserPermission::factory()->create([
+        $userPermission = UserPermission::factory()->create([
             "view" => true,
             "edit" => true,
             "delete" => true,
@@ -123,6 +123,7 @@ class UserPermissionSeeder extends Seeder
             "user_id" => RoleEnum::super->value,
             "permission" => "approval"
         ]);
+        $this->addApprovalSubPermissions($userPermission);
     }
     public function adminPermissions()
     {
@@ -205,7 +206,7 @@ class UserPermissionSeeder extends Seeder
             "user_id" => RoleEnum::admin->value,
             "permission" => "reports"
         ]);
-        UserPermission::factory()->create([
+        $userPermission = UserPermission::factory()->create([
             "view" => true,
             "edit" => true,
             "delete" => true,
@@ -213,6 +214,7 @@ class UserPermissionSeeder extends Seeder
             "user_id" => RoleEnum::admin->value,
             "permission" => "approval"
         ]);
+        $this->addApprovalSubPermissions($userPermission);
     }
     public function userPermissions()
     {
@@ -275,7 +277,7 @@ class UserPermissionSeeder extends Seeder
             "permission" => "settings"
         ]);
         $this->addSettingSubPermissions($userPermission);
-        UserPermission::factory()->create([
+        $userPermission = UserPermission::factory()->create([
             "view" => true,
             "edit" => true,
             "delete" => true,
@@ -283,6 +285,7 @@ class UserPermissionSeeder extends Seeder
             "user_id" => RoleEnum::user->value,
             "permission" => "approval"
         ]);
+        $this->addApprovalSubPermissions($userPermission);
     }
     public function debuggerPermissions()
     {
@@ -354,6 +357,19 @@ class UserPermissionSeeder extends Seeder
     public function addAboutSubPermissions($userPermission)
     {
         foreach (SubPermissionEnum::ABOUT as $id => $role) {
+            UserPermissionSub::factory()->create([
+                "edit" => true,
+                "delete" => true,
+                "add" => true,
+                "view" => true,
+                "user_permission_id" => $userPermission->id,
+                "sub_permission_id" => $id,
+            ]);
+        }
+    }
+    public function addApprovalSubPermissions($userPermission)
+    {
+        foreach (SubPermissionEnum::APPROVALS as $id => $role) {
             UserPermissionSub::factory()->create([
                 "edit" => true,
                 "delete" => true,

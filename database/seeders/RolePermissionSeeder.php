@@ -74,10 +74,11 @@ class RolePermissionSeeder extends Seeder
             "permission" => "management/about"
         ]);
         $this->rolePermissionSubAbout($rolePer->id);
-        RolePermission::factory()->create([
+        $rolePer = RolePermission::factory()->create([
             "role" => RoleEnum::super,
             "permission" => "approval"
         ]);
+        $this->rolePermissionSubApproval($rolePer->id);
     }
     public function adminPermissions()
     {
@@ -121,10 +122,11 @@ class RolePermissionSeeder extends Seeder
             "permission" => "management/about"
         ]);
         $this->rolePermissionSubAbout($rolePer->id);
-        RolePermission::factory()->create([
+        $rolePer = RolePermission::factory()->create([
             "role" => RoleEnum::admin,
             "permission" => "approval"
         ]);
+        $this->rolePermissionSubApproval($rolePer->id);
     }
     public function userPermissions()
     {
@@ -165,10 +167,11 @@ class RolePermissionSeeder extends Seeder
             "permission" => "management/about"
         ]);
         $this->rolePermissionSubAbout($rolePer->id);
-        RolePermission::factory()->create([
+        $rolePer = RolePermission::factory()->create([
             "role" => RoleEnum::user,
             "permission" => "approval"
         ]);
+        $this->rolePermissionSubApproval($rolePer->id);
     }
     public function debuggerPermissions()
     {
@@ -259,6 +262,15 @@ class RolePermissionSeeder extends Seeder
     public function rolePermissionSubAbout($role_permission_id)
     {
         foreach (SubPermissionEnum::ABOUT as $id => $role) {
+            RolePermissionSub::factory()->create([
+                "role_permission_id" => $role_permission_id,
+                "sub_permission_id" => $id
+            ]);
+        }
+    }
+    public function rolePermissionSubApproval($role_permission_id)
+    {
+        foreach (SubPermissionEnum::APPROVALS as $id => $role) {
             RolePermissionSub::factory()->create([
                 "role_permission_id" => $role_permission_id,
                 "sub_permission_id" => $id

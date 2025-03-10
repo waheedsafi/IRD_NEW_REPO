@@ -2,4 +2,13 @@
 
 namespace App\Repositories\Notification;
 
-class NotificationRepository implements NotificationRepositoryInterface {}
+use App\Jobs\SendNotificationJob;
+
+class NotificationRepository implements NotificationRepositoryInterface
+{
+    public function SendNotification($request, $record)
+    {
+        $token = $request->bearerToken();
+        // SendNotificationJob::dispatch($token, $record);
+    }
+}

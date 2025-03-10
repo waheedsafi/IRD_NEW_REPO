@@ -2,7 +2,6 @@
 <?php
 
 use App\Enums\PermissionEnum;
-use App\Enums\SubPermissionEnum;
 use App\Http\Controllers\api\template\UserController;
 use Illuminate\Support\Facades\Route;
 

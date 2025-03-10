@@ -43,4 +43,8 @@ return [
     "task_not_found" => "تسک یافت نشد",
     "representor_add_error" => "توافق نامه یافت نشد، ابتدا باید ثبت نام را تمدید کنید.",
     "representor_not_found" => "نماینده یافت نشد",
+    "doc_already_submitted" => "اسناد قبلاً ارسال شده است",
+    "date_is_smaller" => "تاریخ کمتر از",
+    "date_is_bigger" => "تاریخ بیشتر از",
+    "year" => "سال است"
 ];

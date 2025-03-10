@@ -14,10 +14,9 @@ return new class extends Migration
         Schema::create('approvals', function (Blueprint $table) {
             $table->id();
             $table->string("request_comment")->nullable();
-            $table->string("request_date");
+            $table->timestamp('request_date')->useCurrent();
             $table->string("respond_comment")->nullable();
             $table->string("respond_date")->nullable();
-            $table->boolean("approved")->default(false);
             $table->unsignedBigInteger('requester_id')->comment("Person ID who sends the request");
             $table->string('requester_type')->comment("The Requester Model class name");
             $table->unsignedBigInteger('responder_id')->comment("Person ID who responds the request")->nullable();
@@ -26,14 +25,11 @@ return new class extends Migration
             $table->foreign('notifier_type_id')->references('id')->on('notifier_types')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
-            $table->index(
-                [
-                    'requester_id',
-                    'requester_type',
-                    'notifier_type_id',
-                ],
-                'approvable_approve_idx'
-            );
+            $table->unsignedBigInteger('approval_type_id');
+            $table->foreign('approval_type_id')->references('id')->on('approval_types')
+                ->onUpdate('cascade')
+                ->onDelete('no action');
+            $table->index(['notifier_type_id', 'approval_type_id']);
             $table->timestamps();
         });
     }

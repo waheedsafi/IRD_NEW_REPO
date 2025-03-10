@@ -18,7 +18,6 @@ class CheckListController extends Controller
 {
     public function ngoRegister()
     {
-        $locale = App::getLocale();
         $exclude = [
             CheckListEnum::director_work_permit->value,
             CheckListEnum::ngo_representor_letter->value,
@@ -26,51 +25,20 @@ class CheckListController extends Controller
             CheckListEnum::ngo_register_form_fa->value,
             CheckListEnum::ngo_register_form_ps->value,
         ];
-        $tr = DB::table('check_lists as cl')
-            ->where('cl.active', true)
-            ->where('cl.check_list_type_id', CheckListTypeEnum::ngoRegister->value)
-            ->whereNotIn('cl.id',  $exclude)
-            ->join('check_list_trans as clt', 'clt.check_list_id', '=', 'cl.id')
-            ->where('clt.language_name', $locale)
-            ->select(
-                'clt.value as name',
-                'cl.id',
-                'cl.acceptable_mimes',
-                'cl.acceptable_extensions',
-                'cl.description'
-            )
-            ->orderBy('cl.id')
-            ->get();
         return response()->json([
-            'checklist' => $tr
+            'checklist' => $this->getChecklistsWithExclude($exclude)
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
     public function ngoRegisterAbroadDirector()
     {
-        $locale = App::getLocale();
         $exclude = [
             CheckListEnum::ngo_representor_letter->value,
             CheckListEnum::ngo_register_form_en->value,
             CheckListEnum::ngo_register_form_fa->value,
             CheckListEnum::ngo_register_form_ps->value,
         ];
-        $tr = DB::table('check_lists as cl')
-            ->where('cl.check_list_type_id', CheckListTypeEnum::ngoRegister->value)
-            ->where('cl.active', true)
-            ->whereNotIn('cl.id', $exclude)
-            ->join('check_list_trans as clt', 'clt.check_list_id', '=', 'cl.id')
-            ->where('clt.language_name', $locale)
-            ->select(
-                'clt.value as name',
-                'cl.id',
-                'cl.acceptable_mimes',
-                'cl.acceptable_extensions',
-                'cl.description'
-            )
-            ->orderBy('cl.id')
-            ->get();
         return response()->json([
-            'checklist' => $tr
+            'checklist' => $this->getChecklistsWithExclude($exclude)
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
     public function projectRegister()
@@ -378,5 +346,54 @@ class CheckListController extends Controller
             [],
             JSON_UNESCAPED_UNICODE
         );
+    }
+    public function missingRegisterSignedForm()
+    {
+        $includes = [
+            CheckListEnum::ngo_register_form_en->value,
+            CheckListEnum::ngo_register_form_fa->value,
+            CheckListEnum::ngo_register_form_ps->value
+        ];
+        return response()->json([
+            'checklist' => $this->getChecklistsWithInclude($includes)
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+    public function getChecklistsWithExclude($exclude)
+    {
+        $locale = App::getLocale();
+        return DB::table('check_lists as cl')
+            ->where('cl.active', true)
+            ->where('cl.check_list_type_id', CheckListTypeEnum::ngoRegister->value)
+            ->whereNotIn('cl.id', $exclude)
+            ->join('check_list_trans as clt', 'clt.check_list_id', '=', 'cl.id')
+            ->where('clt.language_name', $locale)
+            ->select(
+                'clt.value as name',
+                'cl.id',
+                'cl.acceptable_mimes',
+                'cl.acceptable_extensions',
+                'cl.description'
+            )
+            ->orderBy('cl.id')
+            ->get();
+    }
+    public function getChecklistsWithInclude($include)
+    {
+        $locale = App::getLocale();
+        return DB::table('check_lists as cl')
+            ->where('cl.active', true)
+            ->where('cl.check_list_type_id', CheckListTypeEnum::ngoRegister->value)
+            ->whereIn('cl.id', $include)
+            ->join('check_list_trans as clt', 'clt.check_list_id', '=', 'cl.id')
+            ->where('clt.language_name', $locale)
+            ->select(
+                'clt.value as name',
+                'cl.id',
+                'cl.acceptable_mimes',
+                'cl.acceptable_extensions',
+                'cl.description'
+            )
+            ->orderBy('cl.id')
+            ->get();
     }
 }

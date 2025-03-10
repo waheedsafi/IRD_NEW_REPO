@@ -89,8 +89,8 @@ class NgoAuthController extends Controller
                 ], 403, [], JSON_UNESCAPED_UNICODE);
             }
             // Check If Ngo logged in for first time change to un_registered
-            else if ($ngoStatus->status_type_id  == StatusTypeEnum::not_logged_in->value) {
-                $ngoStatus->status_type_id = StatusTypeEnum::unregistered->value;
+            else if (!$ngoStatus->is_logged_in) {
+                $ngoStatus->is_logged_in = true;
                 $ngoStatus->save();
             }
 

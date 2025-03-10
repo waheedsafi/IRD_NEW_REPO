@@ -45,6 +45,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('profile')->nullable();
             $table->boolean('is_editable')->default(true);
+            $table->boolean('is_logged_in')->default(false);
             $table->foreignId('user_id')
                 ->constrained()
                 ->onUpdate('cascade')

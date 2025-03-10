@@ -183,7 +183,7 @@ class EditesNgoController extends Controller
         // Deactivate previous status
         $status =  NgoStatus::where('ngo_id', $validatedData['ngo_id'])->where('is_active', 1)->value('status_type_id');
 
-        if ($status === StatusTypeEnum::active->value || $status === StatusTypeEnum::blocked->value) {
+        if ($status === StatusTypeEnum::registered->value || $status === StatusTypeEnum::blocked->value) {
             $newStatus = NgoStatus::create([
                 'status_type_id' => $validatedData['status_type_id'],
                 'ngo_id' => $validatedData['ngo_id'],

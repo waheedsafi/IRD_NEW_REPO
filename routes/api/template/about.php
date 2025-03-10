@@ -1,7 +1,6 @@
 
 <?php
 
-use App\Enums\PermissionEnum;
 use App\Http\Controllers\api\template\AboutController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,8 +16,6 @@ Route::prefix('v1')->group(function () {
   Route::get('/public/sliders', [AboutController::class, 'publicSliders']);
 });
 Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
-
-
   Route::get('/staff/director', [AboutController::class, "director"]);
   Route::get('/staff/manager', [AboutController::class, "manager"]);
   Route::get('/staff/technicalSupports', [AboutController::class, "technicalSupports"]);
