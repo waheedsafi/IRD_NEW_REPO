@@ -84,6 +84,7 @@ class DatabaseSeeder extends Seeder
         $this->nidTypes();
         $this->staffTypes();
         $this->call(AboutSeeder::class);
+        $this->call(ApprovalSeeder::class);
     }
     public function ngoTypes()
     {

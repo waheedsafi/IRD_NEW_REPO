@@ -5,6 +5,15 @@ namespace App\Repositories\Approval;
 interface ApprovalRepositoryInterface
 {
     /**
+     * Return list Approvals by notifier_type and requester_type.
+     * 
+     *
+     * @param string approval_type_id
+     * @param string requester_type
+     * @return @var \Illuminate\Support\Collection<int, \stdClass|null> $approvals
+     */
+    public function getByNotifierTypeAndRequesterType($approval_type_id, $requester_type);
+    /**
      * Creates a approval.
      * 
      *

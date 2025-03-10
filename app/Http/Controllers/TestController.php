@@ -50,6 +50,7 @@ use App\Traits\Address\AddressTrait;
 use function Laravel\Prompts\select;
 use Illuminate\Support\Facades\Http;
 use App\Enums\CheckList\CheckListEnum;
+use App\Enums\Type\ApprovalTypeEnum;
 use App\Enums\Type\RepresenterTypeEnum;
 use App\Enums\Type\RepresentorTypeEnum;
 use App\Models\Approval;
@@ -96,61 +97,67 @@ class TestController extends Controller
             return $approval;
         })->values();
     }
-    public function index(Request $request)
+    public function index()
     {
+        $locale = App::getLocale();
 
         return $approvals = DB::table('approvals as a')
             ->where("a.requester_type", Ngo::class)
-            ->join('approval_documents as ad', 'ad.approval_id', '=', 'a.id')
+            ->where("a.approval_type_id", ApprovalTypeEnum::pending->value)
+            ->join('approval_type_trans as att', function ($join) use ($locale) {
+                $join->on('att.approval_type_id', '=', 'a.approval_type_id')
+                    ->where('att.language_name', $locale);
+            })
+            ->join('ngo_trans as nt', function ($join) use ($locale) {
+                $join->on('nt.ngo_id', '=', 'a.requester_id')
+                    ->where('nt.language_name', $locale);
+            })
+            ->join('notifier_type_trans as ntt', function ($join) use ($locale) {
+                $join->on('ntt.notifier_type_id', '=', 'a.notifier_type_id')
+                    ->where('ntt.language_name', $locale);
+            })
             ->select(
                 'a.id as approval_id',
                 'a.request_comment',
                 'a.request_date',
                 'a.respond_date',
-                'a.approved',
+                'a.approval_type_id',
+                'att.value as approval_type',
                 'a.requester_id',
-                'a.requester_type',
                 'a.responder_id',
                 'a.responder_type',
                 'a.notifier_type_id',
-                DB::raw('COUNT(ad.id) as approval_documents_count') // Count the related approval documents
-            )
-            ->groupBy(
-                'a.id',
-                'a.request_comment',
-                'a.request_date',
-                'a.respond_date',
-                'a.approved',
-                'a.requester_id',
-                'a.requester_type',
-                'a.responder_id',
-                'a.responder_type',
-                'a.notifier_type_id'
+                'ntt.value as notifier_type',
+                'nt.name',
+                DB::raw('(
+                    SELECT COUNT(*)
+                    FROM approval_documents as ad_count
+                    WHERE ad_count.approval_id = a.id
+                ) as approval_documents_count')
             )
             ->get();
 
 
-        $approvals = DB::table('approvals as a')
-            ->join('approval_documents as ad', 'ad.approval_id', '=', 'a.id')
-            ->select(
-                "a.id",
-                "a.request_comment",
-                "a.request_date",
-                "a.respond_date",
-                "a.approved",
-                "a.requester_id",
-                "a.requester_type",
-                "a.responder_id",
-                "a.responder_type",
-                "a.notifier_type_id",
-                "ad.id as approval_document_id",
-                "ad.documentable_id",
-                "ad.documentable_type",
-            )->get();
+        // $approvals = DB::table('approvals as a')
+        //     ->join('approval_documents as ad', 'ad.approval_id', '=', 'a.id')
+        //     ->select(
+        //         "a.id",
+        //         "a.request_comment",
+        //         "a.request_date",
+        //         "a.respond_date",
+        //         "a.approved",
+        //         "a.requester_id",
+        //         "a.requester_type",
+        //         "a.responder_id",
+        //         "a.responder_type",
+        //         "a.notifier_type_id",
+        //         "ad.id as approval_document_id",
+        //         "ad.documentable_id",
+        //         "ad.documentable_type",
+        //     )->get();
 
         return $approvals;
 
-        $locale = App::getLocale();
         $includes = [
             CheckListEnum::ngo_register_form_en->value,
             CheckListEnum::ngo_register_form_fa->value,
