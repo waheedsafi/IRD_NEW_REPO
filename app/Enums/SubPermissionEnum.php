@@ -5,9 +5,9 @@ namespace App\Enums;
 enum SubPermissionEnum: int
 {
     // User
-    case user_information = 3;
-    case user_password = 4;
-    case user_permission = 5;
+    case user_information = 1;
+    case user_password = 2;
+    case user_permission = 3;
     public const USERS = [
         1 => "account_information",
         2 => "update_account_password",
@@ -27,6 +27,15 @@ enum SubPermissionEnum: int
         24 => "checklist",
         25 => "news_type",
         26 => "priority",
+    ];
+        // Approval
+    case pending_approval = 31;
+    case approved_approval = 32;
+    case rejected_approval = 33;
+    public const APPROVALS = [
+        31 => "pending",
+        32 => "approved",
+        33 => "rejected"
     ];
         // NGO
     case ngo_information = 52;

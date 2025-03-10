@@ -12,14 +12,12 @@ class RoleController extends Controller
 {
     public function roles()
     {
-        try {
-            $excludedIds = [RoleEnum::super->value, RoleEnum::debugger->value];
-            return response()->json(Role::whereNotIn('id', $excludedIds)->select("name", 'id', 'created_at as createdAt')->get());
-        } catch (Exception $err) {
-            Log::info('User login error =>' . $err->getMessage());
-            return response()->json([
-                'message' => __('app_translation.server_error')
-            ], 500, [], JSON_UNESCAPED_UNICODE);
-        }
+        $excludedIds = [
+            RoleEnum::super->value,
+            RoleEnum::debugger->value,
+            RoleEnum::donor->value,
+            RoleEnum::ngo->value,
+        ];
+        return response()->json(Role::whereNotIn('id', $excludedIds)->select("name", 'id', 'created_at as createdAt')->get());
     }
 }

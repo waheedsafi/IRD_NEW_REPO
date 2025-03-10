@@ -98,8 +98,10 @@ class TestController extends Controller
     }
     public function index(Request $request)
     {
+
         return $approvals = DB::table('approvals as a')
-            ->leftJoin('approval_documents as ad', 'ad.approval_id', '=', 'a.id')
+            ->where("a.requester_type", Ngo::class)
+            ->join('approval_documents as ad', 'ad.approval_id', '=', 'a.id')
             ->select(
                 'a.id as approval_id',
                 'a.request_comment',

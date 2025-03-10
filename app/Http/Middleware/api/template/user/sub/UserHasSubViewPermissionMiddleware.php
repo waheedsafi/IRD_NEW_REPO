@@ -26,7 +26,7 @@ class UserHasSubViewPermissionMiddleware
                 ->join("user_permission_subs as ups", function ($join) use ($subPermission) {
                     return $join->on('ups.user_permission_id', '=', 'up.id')
                         ->where('ups.sub_permission_id', $subPermission)
-                        ->where('ups.edit', true);
+                        ->where('ups.view', true);
                 })->select("ups.id")->first();
 
             if ($permission) {
