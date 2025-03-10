@@ -33,9 +33,9 @@ enum SubPermissionEnum: int
     case approved_approval = 32;
     case rejected_approval = 33;
     public const APPROVALS = [
-        31 => "pending",
-        32 => "approved",
-        33 => "rejected"
+        31 => "user",
+        32 => "ngo",
+        33 => "donor"
     ];
         // NGO
     case ngo_information = 52;
