@@ -101,9 +101,19 @@ class TestController extends Controller
     {
         $locale = App::getLocale();
 
-        return $approvals = DB::table('approvals as a')
+        $approval_id = 1;
+        $approval =  DB::table('approvals as a')
+            ->where('a.id', $approval_id)->first();
+        if (!$approval) {
+            return response()->json([
+                'message' => __('app_translation.approval_not_found'),
+            ], 404, [], JSON_UNESCAPED_UNICODE);
+        }
+        if ($approval->requester_type == Ngo::class) {
+        }
+        $approval = DB::table('approvals as a')
             ->where("a.requester_type", Ngo::class)
-            ->where("a.approval_type_id", ApprovalTypeEnum::pending->value)
+            ->where("a.approval_type_id", $approval->approval_type_id)
             ->join('approval_type_trans as att', function ($join) use ($locale) {
                 $join->on('att.approval_type_id', '=', 'a.approval_type_id')
                     ->where('att.language_name', $locale);
@@ -117,46 +127,18 @@ class TestController extends Controller
                     ->where('ntt.language_name', $locale);
             })
             ->select(
-                'a.id as approval_id',
-                'a.request_comment',
-                'a.request_date',
-                'a.respond_date',
-                'a.approval_type_id',
-                'att.value as approval_type',
                 'a.requester_id',
+                'nt.name as requester_name',
+                'a.id',
+                'a.request_date',
                 'a.responder_id',
                 'a.responder_type',
                 'a.notifier_type_id',
                 'ntt.value as notifier_type',
-                'nt.name',
-                DB::raw('(
-                    SELECT COUNT(*)
-                    FROM approval_documents as ad_count
-                    WHERE ad_count.approval_id = a.id
-                ) as approval_documents_count')
             )
-            ->get();
+            ->first();
 
-
-        // $approvals = DB::table('approvals as a')
-        //     ->join('approval_documents as ad', 'ad.approval_id', '=', 'a.id')
-        //     ->select(
-        //         "a.id",
-        //         "a.request_comment",
-        //         "a.request_date",
-        //         "a.respond_date",
-        //         "a.approved",
-        //         "a.requester_id",
-        //         "a.requester_type",
-        //         "a.responder_id",
-        //         "a.responder_type",
-        //         "a.notifier_type_id",
-        //         "ad.id as approval_document_id",
-        //         "ad.documentable_id",
-        //         "ad.documentable_type",
-        //     )->get();
-
-        return $approvals;
+        return $approval;
 
         $includes = [
             CheckListEnum::ngo_register_form_en->value,

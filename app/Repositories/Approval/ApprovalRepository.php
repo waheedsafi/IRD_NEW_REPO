@@ -45,8 +45,7 @@ class ApprovalRepository implements ApprovalRepositoryInterface
                     FROM approval_documents as ad_count
                     WHERE ad_count.approval_id = a.id
                 ) as document_count')
-            )
-            ->get();
+            );
     }
     public function storeApproval($requester_id, $requester_type, $notifier_type_id, $request_comment)
     {

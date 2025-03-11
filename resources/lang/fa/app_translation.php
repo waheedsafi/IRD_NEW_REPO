@@ -46,5 +46,6 @@ return [
     "doc_already_submitted" => "اسناد قبلاً ارسال شده است",
     "date_is_smaller" => "تاریخ کمتر از",
     "date_is_bigger" => "تاریخ بیشتر از",
-    "year" => "سال است"
+    "year" => "سال است",
+    "approval_not_found" => "تأیید یافت نشد"
 ];

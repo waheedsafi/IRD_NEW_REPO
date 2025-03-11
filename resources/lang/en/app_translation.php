@@ -48,5 +48,6 @@ return [
     "setting_record_not_found" => "Setting record not found.",
     "date_is_smaller" => "The date subceed than",
     "date_is_bigger" => "The date exceed than",
-    "year" => "year"
+    "year" => "year",
+    "approval_not_found" => "Approval not found"
 ];
