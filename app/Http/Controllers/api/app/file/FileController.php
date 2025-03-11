@@ -2,30 +2,24 @@
 
 namespace App\Http\Controllers\api\app\file;
 
-<<<<<<< HEAD
-use App\Enums\CheckList\CheckListEnum;
-=======
 use Carbon\Carbon;
 use App\Models\Ngo;
 use App\Models\User;
 use App\Models\Approval;
 use App\Models\Document;
 use App\Models\Agreement;
->>>>>>> 101bd87e85bd3802f8490406c8747d1128404462
 use App\Models\CheckList;
 use App\Enums\NotifierEnum;
 use App\Models\Notification;
 use Illuminate\Http\Request;
-<<<<<<< HEAD
-=======
 use App\Enums\PermissionEnum;
 use App\Models\AgreementDocument;
->>>>>>> 101bd87e85bd3802f8490406c8747d1128404462
 use App\Traits\Helper\HelperTrait;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use App\Models\Agreement;
+use App\Enums\CheckList\CheckListEnum;
 use Illuminate\Support\Facades\Validator;
+use App\Repositories\ngo\NgoRepositoryInterface;
 use Pion\Laravel\ChunkUpload\Receiver\FileReceiver;
 use Pion\Laravel\ChunkUpload\Handler\HandlerFactory;
 use App\Repositories\Task\PendingTaskRepositoryInterface;
@@ -35,10 +29,14 @@ class FileController extends Controller
 {
     use HelperTrait;
     protected $pendingTaskRepository;
+    protected $ngoRepository;
 
-    public function __construct(PendingTaskRepositoryInterface $pendingTaskRepository)
-    {
+    public function __construct(
+        PendingTaskRepositoryInterface $pendingTaskRepository,
+        NgoRepositoryInterface $ngoRepository
+    ) {
         $this->pendingTaskRepository = $pendingTaskRepository;
+        $this->ngoRepository = $ngoRepository;
     }
     public function checklistUploadFile(Request $request)
     {
@@ -91,16 +89,13 @@ class FileController extends Controller
                 'message' => __('app_translation.checklist_not_found'),
             ], 404, [], JSON_UNESCAPED_UNICODE);
         }
-
         $rules = [
             "file" => [
                 "required",
-                // "mimes:{$checklist->acceptable_extensions}",
-                "mimetypes:application/pdf",
+                "mimes:{$checklist->acceptable_extensions}",
                 "max:{$checklist->file_size}",
             ],
         ];
-
 
         $validator = Validator::make($request->all(), $rules);
 
@@ -155,51 +150,6 @@ class FileController extends Controller
         ]);
     }
 
-<<<<<<< HEAD
-    public function registerationFormUpload(Request $request)
-    {
-        $receiver = new FileReceiver("file", $request, HandlerFactory::classFromRequest($request));
-
-        if (!$receiver->isUploaded()) {
-            throw new UploadMissingFileException();
-        }
-
-        $save = $receiver->receive();
-
-        if ($save->isFinished()) {
-
-            $language = $request->input('language', 'ps'); // Default to 'ps' if no language is provided
-            switch ($language) {
-                case 'en':
-                    $check_list_id = CheckListEnum::ngo_register_form_en;
-                    break;
-                case 'fa':
-                    $check_list_id = CheckListEnum::ngo_register_form_fa;
-                    break;
-                default:
-                    $check_list_id = CheckListEnum::ngo_register_form_ps;
-                    break;
-            }
-
-            // Merge checklist_id into the request
-            $request->merge(['checklist_id' => $check_list_id]);
-            $file = $save->getFile();
-
-            // 1. Validate checklist
-            $validationResult = $this->checkListCheck($request);
-            if ($validationResult !== true) {
-                $filePath = $file->getRealPath();
-                unlink($filePath);
-                return $validationResult; // Return validation errors
-            }
-
-            return $this->pendingTaskRepository->storeNgoRegisterationDocument(
-                $request,
-                $file,
-                $check_list_id
-            );
-        }
-=======
     // public function registerSignedFormUpload(Request $request)
     // {
     //     $receiver = new FileReceiver("file", $request, HandlerFactory::classFromRequest($request));
@@ -315,7 +265,6 @@ class FileController extends Controller
     //             ]);
     //         }
     //         DB::commit();
->>>>>>> 101bd87e85bd3802f8490406c8747d1128404462
 
     //         return response()->json(
     //             [
