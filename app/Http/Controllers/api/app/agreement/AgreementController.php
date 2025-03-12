@@ -2,14 +2,12 @@
 
 namespace App\Http\Controllers\api\app\agreement;
 
-use App\Enums\CheckList\CheckListEnum;
 use App\Models\Agreement;
 use App\Models\CheckList;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
 use App\Repositories\ngo\NgoRepositoryInterface;
-use App\Models\Document;
 
 class AgreementController extends Controller
 {
@@ -58,15 +56,5 @@ class AgreementController extends Controller
         return response()->json([
             'document' => $tr
         ], 200, [], JSON_UNESCAPED_UNICODE);
-    }
-
-    public function missingRegisterSignedForm($ngo_id)
-    {
-        return response()->json(
-            $this->missingRegisterSignedForm($ngo_id),
-            200,
-            [],
-            JSON_UNESCAPED_UNICODE
-        );
     }
 }

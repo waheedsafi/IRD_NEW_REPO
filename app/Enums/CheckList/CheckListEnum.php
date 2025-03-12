@@ -4,7 +4,7 @@ namespace App\Enums\CheckList;
 
 enum CheckListEnum: int
 {
-    case NgoDirectorNid = 1;
+    case director_nid = 1;
         // case NgoDirectorProfile = 2;
     case director_work_permit = 3;
     case ngo_representor_letter = 4;
