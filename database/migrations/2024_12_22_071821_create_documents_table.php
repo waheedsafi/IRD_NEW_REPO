@@ -21,8 +21,6 @@ return new class extends Migration
             $table->foreign('check_list_id')->references('id')->on('check_lists')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
-
-
             $table->timestamps();
         });
     }

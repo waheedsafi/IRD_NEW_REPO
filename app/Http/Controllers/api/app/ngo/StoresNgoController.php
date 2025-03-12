@@ -22,7 +22,6 @@ use App\Models\AddressTran;
 use App\Models\PendingTask;
 use App\Models\Representer;
 use App\Models\DirectorTran;
-use Illuminate\Http\Request;
 use App\Enums\PermissionEnum;
 use App\Models\NgoPermission;
 use App\Models\CheckListTrans;
@@ -42,12 +41,10 @@ use Illuminate\Support\Facades\Hash;
 use App\Traits\File\PendingFileTrait;
 use App\Enums\CheckList\CheckListEnum;
 use App\Enums\SettingEnum;
-use App\Enums\Type\RepresentorTypeEnum;
 use App\Http\Requests\app\ngo\NgoRegisterRequest;
 use App\Http\Requests\app\ngo\NgoInitStoreRequest;
 use App\Repositories\Task\PendingTaskRepositoryInterface;
 use App\Http\Requests\app\ngo\StoreSignedRegisterFormRequest;
-use App\Models\ApprovalDocument;
 use App\Models\Setting;
 use App\Repositories\Approval\ApprovalRepositoryInterface;
 use App\Repositories\Notification\NotificationRepositoryInterface;
@@ -335,8 +332,20 @@ class StoresNgoController extends Controller
             'comment' => 'Register Form Complete',
         ]);
 
+        $document =  $this->documentStore($agreement->id, $id, $task->id, function ($documentData) {
+            $document = Document::create([
+                'actual_name' => $documentData['actual_name'],
+                'size' => $documentData['size'],
+                'path' => $documentData['path'],
+                'type' => $documentData['type'],
+                'check_list_id' => $documentData['check_list_id'],
+            ]);
 
-        $document =  $this->documentStore($agreement->id, $id, $task->id);
+            AgreementDocument::create([
+                'document_id' => $document->id,
+                'agreement_id' => $documentData['agreement_id'],
+            ]);
+        });
         if ($document) {
             return $document;
         }
@@ -461,13 +470,12 @@ class StoresNgoController extends Controller
             $ngo_id,
             Ngo::class,
             NotifierEnum::ngo_submitted_register_form->value,
-            ""
+            $request->request_comment
         );
-        $document = $this->documentStore($agreement->id, $ngo_id, $task->id, function ($document) use ($approval) {
+        $document = $this->documentStore($agreement->id, $ngo_id, $task->id, function ($documentData) use ($approval) {
             $this->approvalRepository->storeApprovalDocument(
                 $approval->id,
-                $document->id,
-                Document::class
+                $documentData
             );
         });
         if ($document) {
@@ -495,7 +503,7 @@ class StoresNgoController extends Controller
             'ngo_id' => $ngo_id,
             'user_id' => $request->user()->id,
             "is_active" => true,
-            'status_type_id' => StatusTypeEnum::signed_register_form_submitted,
+            'status_type_id' => StatusTypeEnum::signed_register_form_submitted->value,
             'comment' => 'Signed Register Form Submitted',
         ]);
         DB::commit();
@@ -537,7 +545,7 @@ class StoresNgoController extends Controller
 
         return null;
     }
-    protected function documentStore($agreement_id, $ngo_id, $pending_task_id, ?callable $callback = null)
+    protected function documentStore($agreement_id, $ngo_id, $pending_task_id, ?callable $callback)
     {
         // Get checklist IDs
         $documents = PendingTaskDocument::join('check_lists', 'check_lists.id', 'pending_task_documents.check_list_id')
@@ -566,21 +574,16 @@ class StoresNgoController extends Controller
                 ], 404);
             }
 
-            $document = Document::create([
+            $documentData = [
                 'actual_name' => $checklist['actual_name'],
                 'size' => $checklist['size'],
                 'path' => $dbStorePath,
                 'type' => $checklist['extension'],
                 'check_list_id' => $checklist['check_list_id'],
-            ]);
-
-            // **Fix whitespace issue in keys**
-            AgreementDocument::create([
-                'document_id' => $document->id,
-                'agreement_id' => $agreement_id,
-            ]);
+                'agreement_id' => $agreement_id
+            ];
             if ($callback) {
-                $callback($document);
+                $callback($documentData);
             }
         }
     }

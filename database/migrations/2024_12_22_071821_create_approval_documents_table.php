@@ -13,14 +13,20 @@ return new class extends Migration
     {
         Schema::create('approval_documents', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('documentable_id');
-            $table->string('documentable_type');
+            $table->string('actual_name', 64);
+            $table->string('size', 128);
+            $table->string('path');
+            $table->string('type', 32);
+            $table->unsignedBigInteger('check_list_id');
+            $table->foreign('check_list_id')->references('id')->on('check_lists')
+                ->onUpdate('cascade')
+                ->onDelete('no action');
             $table->unsignedBigInteger('approval_id');
             $table->foreign('approval_id')->references('id')->on('approvals')
                 ->onUpdate('cascade')
-                ->onDelete('cascade');
+                ->onDelete('no action');
             $table->timestamps();
-            $table->index(['approval_id']);
+            $table->index(['approval_id', 'check_list_id']);
         });
     }
 
