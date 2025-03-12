@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\api\app\agreement;
 
-use App\Models\Document;
+use App\Enums\CheckList\CheckListEnum;
 use App\Models\Agreement;
 use App\Models\CheckList;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
 use App\Repositories\ngo\NgoRepositoryInterface;
+use App\Models\Document;
 
 class AgreementController extends Controller
 {
@@ -32,7 +33,7 @@ class AgreementController extends Controller
             'agreement_documents' => $documents,
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
-    public function agreement($id)
+    public function agreement(Request $request, $id)
     {
         $data = Agreement::select('id', 'start_date', 'end_date')->where('ngo_id', $id)->get();
         return response()->json([
@@ -41,7 +42,7 @@ class AgreementController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    public function agreementDocument($id)
+    public function agreementDocument(Request $request, $id)
     {
 
         $locale = App::getLocale();
@@ -57,5 +58,15 @@ class AgreementController extends Controller
         return response()->json([
             'document' => $tr
         ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    public function missingRegisterSignedForm($ngo_id)
+    {
+        return response()->json(
+            $this->missingRegisterSignedForm($ngo_id),
+            200,
+            [],
+            JSON_UNESCAPED_UNICODE
+        );
     }
 }
