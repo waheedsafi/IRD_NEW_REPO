@@ -129,10 +129,13 @@ class ViewsNgoController extends Controller
             return response()->json([
                 'message' => __('app_translation.ngo_not_found'),
             ], 404);
+        } else if ($data['status_type_id'] != StatusTypeEnum::register_form_not_completed) {
+            return response()->json([
+                'message' => __('app_translation.unauthorized'),
+            ], 401);
         }
 
         return response()->json([
-            'message' => __('app_translation.success'),
             'ngo' => $data,
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }

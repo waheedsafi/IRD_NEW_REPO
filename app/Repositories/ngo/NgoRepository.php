@@ -17,7 +17,8 @@ class NgoRepository implements NgoRepositoryInterface
         $this->typeTransJoin($query, $locale)
             ->emailJoin($query)
             ->contactJoin($query)
-            ->addressJoin($query);
+            ->addressJoin($query)
+            ->statusJoin($query);
         $ngo = $query->select(
             'n.abbr',
             'n.ngo_type_id',
@@ -30,7 +31,8 @@ class NgoRepository implements NgoRepositoryInterface
             'a.district_id',
             'a.id as address_id',
             'e.value as email',
-            'c.value as contact'
+            'c.value as contact',
+            'ns.status_type_id'
         )->first();
 
         if (!$ngo)
@@ -59,6 +61,7 @@ class NgoRepository implements NgoRepositoryInterface
             'area_english' => $areaTrans['en']->area ?? '',
             'area_pashto' => $areaTrans['ps']->area ?? '',
             'area_farsi' => $areaTrans['fa']->area ?? '',
+            "status_type_id" => $ngo->status_type_id
         ];
     }
     public function afterRegisterFormInfo($query, $ngo_id, $locale)

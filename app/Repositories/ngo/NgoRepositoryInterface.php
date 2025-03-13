@@ -131,7 +131,7 @@ interface NgoRepositoryInterface
      * @param \Illuminate\Database\Query\Builder $query
      * @param string $ngo_id
      * @param string $locale
-     * @return \App\Repositories\ngo\NgoRepositoryInterface|\Illuminate\Database\Query\Builder
+     * @return array
      */
     public function startRegisterFormInfo($query, $ngo_id, $locale);
     /**
