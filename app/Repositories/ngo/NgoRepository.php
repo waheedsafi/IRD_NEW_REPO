@@ -11,7 +11,58 @@ class NgoRepository implements NgoRepositoryInterface
 {
     use AddressTrait, NgoTrait;
 
-    public function startExtendFormInfo($query, $ngo_id, $locale) {}
+    public function startExtendFormInfo($query, $ngo_id, $locale)
+    {
+        $this->typeTransJoin($query, $locale)
+            ->emailJoin($query)
+            ->contactJoin($query)
+            ->addressJoin($query)
+            ->statusJoin($query);
+        $ngo = $query->select(
+            'n.abbr',
+            'n.ngo_type_id',
+            'ntt.value as type_name',
+            'n.registration_no',
+            'n.moe_registration_no',
+            'n.place_of_establishment',
+            'n.date_of_establishment',
+            'a.province_id',
+            'a.district_id',
+            'a.id as address_id',
+            'e.value as email',
+            'c.value as contact',
+            'ns.status_type_id'
+        )->first();
+
+        if (!$ngo)
+            return null;
+
+        // Fetching translations using a separate query
+        $translations = $this->ngoNameTrans($ngo_id);
+        $areaTrans = $this->getAddressAreaTran($ngo->address_id);
+        $address = $this->getAddressTrans(
+            $ngo->province_id,
+            $ngo->district_id,
+            $locale
+        );
+
+        return [
+            'name_english' => $translations['en']->name ?? null,
+            'name_pashto' => $translations['ps']->name ?? null,
+            'name_farsi' => $translations['fa']->name ?? null,
+            'abbr' => $ngo->abbr,
+            'type' => ['name' => $ngo->type_name, 'id' => $ngo->ngo_type_id],
+            'contact' => $ngo->contact,
+            'email' =>   $ngo->email,
+            'registration_no' => $ngo->registration_no,
+            'province' => $address['province'],
+            'district' => $address['district'],
+            'area_english' => $areaTrans['en']->area ?? '',
+            'area_pashto' => $areaTrans['ps']->area ?? '',
+            'area_farsi' => $areaTrans['fa']->area ?? '',
+            "status_type_id" => $ngo->status_type_id
+        ];
+    }
     public function startRegisterFormInfo($query, $ngo_id, $locale)
     {
         $this->typeTransJoin($query, $locale)

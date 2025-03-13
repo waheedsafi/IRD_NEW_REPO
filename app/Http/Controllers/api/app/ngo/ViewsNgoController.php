@@ -111,6 +111,35 @@ class ViewsNgoController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
+    public function startExtendFormInfo(Request $request, $ngo_id)
+    {
+        $locale = App::getLocale();
+
+        $pendingTaskContent = $this->pendingTask($request, $ngo_id);
+        if ($pendingTaskContent['content']) {
+            return response()->json([
+                'message' => __('app_translation.success'),
+                'content' => $pendingTaskContent['content']
+            ], 200);
+        }
+
+        $query = $this->ngoRepository->ngo($ngo_id);
+        $data = $this->ngoRepository->startRegisterFormInfo($query, $ngo_id, $locale);
+        if (!$data) {
+            return response()->json([
+                'message' => __('app_translation.ngo_not_found'),
+            ], 404);
+        } else if ($data['status_type_id'] != StatusTypeEnum::registration_expired->value) {
+            return response()->json([
+                'message' => __('app_translation.unauthorized'),
+            ], 401);
+        }
+
+        return response()->json([
+            'ngo' => $data,
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
     public function startRegisterForm(Request $request, $ngo_id)
     {
         $locale = App::getLocale();
@@ -129,7 +158,7 @@ class ViewsNgoController extends Controller
             return response()->json([
                 'message' => __('app_translation.ngo_not_found'),
             ], 404);
-        } else if ($data['status_type_id'] != StatusTypeEnum::register_form_not_completed) {
+        } else if ($data['status_type_id'] != StatusTypeEnum::register_form_not_completed->value) {
             return response()->json([
                 'message' => __('app_translation.unauthorized'),
             ], 401);
