@@ -6,7 +6,6 @@ use App\Models\Document;
 use App\Traits\Ngo\NgoTrait;
 use Illuminate\Support\Facades\DB;
 use App\Traits\Address\AddressTrait;
-use App\Enums\CheckList\CheckListEnum;
 
 class NgoRepository implements NgoRepositoryInterface
 {
