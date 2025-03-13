@@ -57,4 +57,5 @@ class AgreementController extends Controller
             'document' => $tr
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
+    public function extendNgoAgreement(Request $request) {}
 }
