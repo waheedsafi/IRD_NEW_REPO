@@ -2,41 +2,53 @@
 
 namespace App\Http\Controllers\api\app\ngo;
 
-use App\Enums\CheckListTypeEnum;
-use App\Enums\Type\StatusTypeEnum;
-use App\Enums\Type\TaskTypeEnum;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\app\ngo\ExtendNgoRequest;
+use App\Models\Ngo;
+use App\Models\Email;
 use App\Models\Address;
-use App\Models\AddressTran;
+use App\Models\Contact;
+use App\Models\NgoTran;
+use App\Models\Director;
+use App\Models\Document;
 use App\Models\Agreement;
+use App\Models\CheckList;
+use App\Enums\CountryEnum;
+use App\Enums\LanguageEnum;
+use App\Models\AddressTran;
+use App\Models\Representer;
+use App\Models\DirectorTran;
+use App\Models\CheckListTrans;
+use Illuminate\Support\Carbon;
+use App\Models\RepresenterTran;
+use App\Enums\CheckListTypeEnum;
+use App\Enums\Type\TaskTypeEnum;
 use App\Models\AgreementDirector;
 use App\Models\AgreementDocument;
-use App\Models\CheckList;
-use App\Models\CheckListTrans;
-use App\Models\Contact;
-use App\Models\Director;
-use App\Models\DirectorTran;
-use App\Models\Document;
-use App\Models\Email;
-use App\Models\Ngo;
-use App\Models\NgoStatus;
-use App\Models\NgoTran;
-use App\Models\PendingTask;
-use App\Models\PendingTaskDocument;
-use App\Repositories\Task\PendingTaskRepositoryInterface;
-use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
+use App\Traits\Helper\HelperTrait;
 use Illuminate\Support\Facades\DB;
+use App\Models\PendingTaskDocument;
+use App\Http\Controllers\Controller;
+use App\Enums\CheckList\CheckListEnum;
+use App\Http\Requests\app\ngo\ExtendNgoRequest;
+use App\Repositories\Task\PendingTaskRepositoryInterface;
+use App\Repositories\Director\DirectorRepositoryInterface;
 
 class ExtendNgoController extends Controller
 {
     //
+    use HelperTrait;
     protected $pendingTaskRepository;
+    protected $notificationRepository;
+    protected $approvalRepository;
+    protected $directorRepository;
 
-    public function __construct(PendingTaskRepositoryInterface $pendingTaskRepository)
-    {
+    public function __construct(
+        PendingTaskRepositoryInterface $pendingTaskRepository,
+
+        DirectorRepositoryInterface $directorRepository
+    ) {
         $this->pendingTaskRepository = $pendingTaskRepository;
+
+        $this->directorRepository = $directorRepository;
     }
 
     public function extendNgoAgreement(ExtendNgoRequest $request)
@@ -76,7 +88,32 @@ class ExtendNgoController extends Controller
             ], 404);
         }
         // 4. Check task exists
-        $errors = $this->validateCheckList($task);
+        $exclude = [
+            CheckListEnum::ngo_register_form_en->value,
+            CheckListEnum::ngo_register_form_fa->value,
+            CheckListEnum::ngo_register_form_ps->value,
+        ];
+        // If Directory Nationality is abroad ask for Work Permit
+        if ($validatedData["nationality"]["id"] == CountryEnum::afghanistan->value) {
+            array_push($exclude, CheckListEnum::director_work_permit->value);
+        }
+        // if director not select previous 
+        if ($validatedData['is_previous_director'] === true) {
+            array_push($exclude, CheckListEnum::director_work_permit->value);
+            array_push($exclude, CheckListEnum::director_nid->value);
+        }
+        // if new representer the id not exists so exclude the ngo represenete letter 
+        if ($validatedData['representor_id']) {
+            array_push($exclude, CheckListEnum::ngo_representor_letter->value);
+        }
+
+        // 4. CheckListEnum:: task exists
+        // Get checklist IDs
+        $checkListIds = CheckList::where('check_list_type_id', CheckListTypeEnum::ngoRegister)
+            ->whereNotIn('id', $exclude)
+            ->pluck('id')
+            ->toArray();
+        $errors = $this->validateCheckList($task, $checkListIds);
         if ($errors) {
             return response()->json([
                 'message' => __('app_translation.checklist_not_found'),
@@ -85,86 +122,119 @@ class ExtendNgoController extends Controller
         }
 
 
+        DB::beginTransaction();
+
         Email::where('id', $ngo->email_id)->update(['value' => $validatedData['email']]);
         Contact::where('id', $ngo->contact_id)->update(['value' => $validatedData['contact']]);
 
-        $ngo_en_tran = NgoTran::where('ngo_id', $id)->where('language_name', 'en')->first();
-        $ngo_ps_tran = NgoTran::where('ngo_id', $id)->where('language_name', 'ps')->first();
-        $ngo_fa_tran = NgoTran::where('ngo_id', $id)->where('language_name', 'fa')->first();
-        $ngo_addres = Address::find($ngo->address_id);
-        $ngo_addres_en = AddressTran::where('address_id', $ngo->address_id)->where('language_name', 'en')->first();
-        $ngo_addres_ps = AddressTran::where('address_id', $ngo->address_id)->where('language_name', 'ps')->first();
-        $ngo_addres_fa = AddressTran::where('address_id', $ngo->address_id)->where('language_name', 'fa')->first();
 
-        $ngo_en_tran->name  =    $validatedData["name_english"];
-        $ngo_ps_tran->name  =    $validatedData["name_pashto"];
-        $ngo_fa_tran->name  =    $validatedData["name_farsi"];
+        // store ngo transalation
+        $ngoTrans = NgoTran::where('ngo_id', $id)->get();
+        if (!$ngoTrans) {
+            return response()->json([
+                'message' => __('app_translation.ngo_not_found'),
+            ], 404, [], JSON_UNESCAPED_UNICODE);
+        }
+
+        foreach (LanguageEnum::LANGUAGES as $code => $name) {
+            $tran =  $ngoTrans->where('language_name', $code)->first();
+            $tran->name = $validatedData["name_{$name}"];
+            $tran->vision = $validatedData["vision_{$name}"];
+            $tran->mission = $validatedData["mission_{$name}"];
+            $tran->general_objective = $validatedData["general_objes_{$name}"];
+            $tran->objective = $validatedData["objes_in_afg_{$name}"];
+            $tran->save();
+        }
+
+        // store ngo Address
+        $ngo_addres = Address::find($ngo->address_id);
+
+        $ngo_addres->province_id  = $validatedData["province"]["id"];
+        $ngo_addres->district_id  = $validatedData["district"]["id"];
+        $ngo_addres = AddressTran::where('address_id', $ngo->address_id)->get();
+
+        foreach (LanguageEnum::LANGUAGES as $code => $name) {
+            $tran =  $ngo_addres->where('language_name', $code)->first();
+            $tran->area = $validatedData["area_{$name}"];
+            $tran->save();
+        }
+
         $ngo->abbr =  $validatedData["abbr"];
         $ngo->ngo_type_id  = $validatedData['type']['id'];
-        // $ngo->ngo_type_id  = $validatedData["type.id"];
         $ngo->moe_registration_no  = $validatedData["moe_registration_no"];
         $ngo->place_of_establishment   = $validatedData["country"]["id"];
         $ngo->date_of_establishment  = $validatedData["establishment_date"];
-        $ngo_addres->province_id  = $validatedData["province"]["id"];
-        $ngo_addres->district_id  = $validatedData["district"]["id"];
-        $ngo_addres_en->area = $validatedData["area_english"];
-        $ngo_addres_ps->area = $validatedData["area_pashto"];
-        $ngo_addres_fa->area = $validatedData["area_farsi"];
-
-        $ngo_en_tran->vision  =    $validatedData["vision_english"];
-        $ngo_ps_tran->vision  =    $validatedData["vision_pashto"];
-        $ngo_fa_tran->vision  =    $validatedData["vision_farsi"];
-        $ngo_en_tran->mission  =    $validatedData["mission_english"];
-        $ngo_ps_tran->mission  =    $validatedData["mission_pashto"];
-        $ngo_fa_tran->mission  =    $validatedData["mission_farsi"];
-        $ngo_en_tran->general_objective  =    $validatedData["general_objes_english"];
-        $ngo_ps_tran->general_objective  =    $validatedData["general_objes_pashto"];
-        $ngo_fa_tran->general_objective  =    $validatedData["general_objes_farsi"];
-        $ngo_en_tran->objective  =    $validatedData["objes_in_afg_english"];
-        $ngo_ps_tran->objective  =    $validatedData["objes_in_afg_pashto"];
-        $ngo_fa_tran->objective  =    $validatedData["objes_in_afg_farsi"];
-
-        DB::beginTransaction();
-
-        $ngo_en_tran->save();
-        $ngo_ps_tran->save();
-        $ngo_fa_tran->save();
         $ngo_addres->save();
-        $ngo_addres_en->save();
-        $ngo_addres_ps->save();
-        $ngo_addres_fa->save();
         $ngo->save();
+
+
 
         // **Fix agreement creation**
         $agreement = Agreement::create([
             'ngo_id' => $id,
-            'start_date' => Carbon::now()->toDateString(),
-            'end_date' => Carbon::now()->addYear()->toDateString(),
+            'representer_id' => '',
+            'agreement_no' => ''
         ]);
         $agreement->agreement_no = "AG" . '-' . Carbon::now()->year . '-' . $agreement->id;
         $agreement->save();
 
-        // Make prevous state to false
-        NgoStatus::where('ngo_id', $id)->update(['is_active' => false]);
-        NgoStatus::create([
-            'ngo_id' => $id,
-            "is_active" => true,
-            'status_type_id' => StatusTypeEnum::register_form_submited,
-            'comment' => 'Register Form Complete',
-        ]);
 
-        $document =  $this->documentStore($request, $agreement->id, $id, $validatedData["name_english"]);
+
+        $directorDocumentsId = [];
+        $representerDocumentId = '';
+        $document =  $this->documentStore($agreement->id, $id, $task->id, function ($documentData) use ($directorDocumentsId) {
+            $checklist_id = $documentData['check_list_id'];
+            $document = Document::create([
+                'actual_name' => $documentData['actual_name'],
+                'size' => $documentData['size'],
+                'path' => $documentData['path'],
+                'type' => $documentData['type'],
+                'check_list_id' => $checklist_id,
+            ]);
+            if (
+                $checklist_id == CheckListEnum::director_work_permit->value
+                || $checklist_id == CheckListEnum::director_nid->value
+            ) {
+                array_push($directorDocumentsId, $document->id);
+            }
+            if ($checklist_id == CheckListEnum::ngo_representor_letter->value) {
+                $representer_id = $document->id;
+            }
+
+            AgreementDocument::create([
+                'document_id' => $document->id,
+                'agreement_id' => $documentData['agreement_id'],
+            ]);
+        });
         if ($document) {
             return $document;
         }
-        $this->directorStore($validatedData, $id, $agreement->id);
-
-        $this->pendingTaskRepository->deletePendingTask(
+        if ($validatedData['is_previous_director'] === true) {
+            $director = $this->directorRepository->storeNgoDirector(
+                $validatedData,
+                $id,
+                $agreement->id,
+                $directorDocumentsId,
+                true
+            );
+            AgreementDirector::create([
+                'agreement_id' => $agreement->id,
+                'director_id' => $director->id
+            ]);
+        }
+        $representer_id = '';
+        if ($validatedData['representer_id']) {
+            $representer_id = $validatedData['representer_id'];
+        } else {
+            $representer_id =  $this->storeRepresenter($id, $request->user(), $representerDocumentId, $validatedData);
+        }
+        $agreement->representer_id = $representer_id;
+        $agreement->save();
+        $this->pendingTaskRepository->destroyPendingTask(
             $request->user(),
             TaskTypeEnum::ngo_registeration,
             $id
         );
-
 
         DB::commit();
         return response()->json(
@@ -177,13 +247,8 @@ class ExtendNgoController extends Controller
         );
     }
 
-    protected function validateCheckList($task)
+    protected function validateCheckList($task, $checkListIds)
     {
-        // Get checklist IDs
-        $checkListIds = CheckList::where('check_list_type_id', CheckListTypeEnum::externel)
-            ->pluck('id')
-            ->toArray();
-
         // Get checklist IDs from documents
         $documentCheckListIds = $this->pendingTaskRepository->pendingTaskDocumentQuery(
             $task->id
@@ -210,109 +275,75 @@ class ExtendNgoController extends Controller
 
         return null;
     }
-    protected function documentStore($request, $agreement_id, $ngo_id, $ngo_name)
+    protected function documentStore($agreement_id, $ngo_id, $pending_task_id, ?callable $callback)
     {
-        $user = $request->user();
-        $user_id = $user->id;
-        $role = $user->role_id;
-        $task_type = TaskTypeEnum::ngo_registeration;
-
-        $task = PendingTask::where('user_id', $user_id)
-            ->where('user_type', $role)
-            ->where('task_type', $task_type)
-            ->where('task_id', $ngo_id)
-            ->first();
-
-
-        if (!$task) {
-            return response()->json(['error' => 'No pending task found'], 404);
-        }
         // Get checklist IDs
-
         $documents = PendingTaskDocument::join('check_lists', 'check_lists.id', 'pending_task_documents.check_list_id')
-            ->select('size', 'path', 'acceptable_mimes', 'check_list_id', 'actual_name', 'extension')
-            ->where('pending_task_id', $task->id)
+            ->where('pending_task_id', $pending_task_id)
+            ->select('size', 'path', 'check_list_id', 'actual_name', 'extension')
             ->get();
 
         foreach ($documents as $checklist) {
+            $baseName = basename($checklist['path']);
+            $oldPath = $this->getTempFullPath() . $baseName; // Absolute path of temp file
 
-            $oldPath = storage_path("app/" . $checklist['path']); // Absolute path of temp file
+            $newDirectory = $this->ngoRegisterFolder($ngo_id, $agreement_id, $checklist['check_list_id']);
 
-            $newDirectory = storage_path() . "/app/private/ngos/{$ngo_name}/{$agreement_id}/";
-
-            if (!file_exists($newDirectory)) {
+            if (!is_dir($newDirectory)) {
                 mkdir($newDirectory, 0775, true);
             }
-
-            $newPath = $newDirectory . basename($checklist['path']); // Keep original filename
-
-            $dbStorePath = "private/ngos/{$ngo_name}/{$agreement_id}/"
-                . basename($checklist['path']);
-            // Ensure the new directory exists
-
+            $newPath = $newDirectory . $baseName; // Keep original filename
+            $dbStorePath = $this->ngoRegisterDBPath($ngo_id, $agreement_id, $checklist['check_list_id'], $baseName);
             // Move the file
             if (file_exists($oldPath)) {
                 rename($oldPath, $newPath);
             } else {
-                return response()->json(['error' => __('app_translation.not_found') . $oldPath], 404);
+                return response()->json([
+                    'error' => __('app_translation.file_not_found'),
+                    "file" => $checklist['actual_name']
+                ], 404);
             }
 
-
-            $document = Document::create([
+            $documentData = [
                 'actual_name' => $checklist['actual_name'],
                 'size' => $checklist['size'],
                 'path' => $dbStorePath,
                 'type' => $checklist['extension'],
                 'check_list_id' => $checklist['check_list_id'],
-            ]);
-
-            // **Fix whitespace issue in keys**
-            AgreementDocument::create([
-                'document_id' => $document->id,
-                'agreement_id' => $agreement_id,
-            ]);
+                'agreement_id' => $agreement_id
+            ];
+            if ($callback) {
+                $callback($documentData);
+            }
         }
     }
-    protected function directorStore($validatedData, $ngo_id, $agreement_id)
+    private function storeRepresenter($ngo_id, $authUser, $documentId, $validatedData)
     {
-        $email = Email::create(['value' => $validatedData['director_email']]);
-        $contact = Contact::create(['value' => $validatedData['director_contact']]);
-
-        // **Fix address creation**
-        $address = Address::create([
-            'province_id' => $validatedData['director_province']['id'],
-            'district_id' => $validatedData['director_dis']['id'],
-        ]);
-
-        AddressTran::insert([
-            ['language_name' => 'en', 'address_id' => $address->id, 'area' => $validatedData['director_area_english']],
-            ['language_name' => 'ps', 'address_id' => $address->id, 'area' => $validatedData['director_area_pashto']],
-            ['language_name' => 'fa', 'address_id' => $address->id, 'area' => $validatedData['director_area_farsi']],
-        ]);
-
-        $director = Director::create([
+        // 1. Get current agreement
+        $agreement = Agreement::where('ngo_id', $ngo_id)
+            ->where('end_date', null)->where('create_at', max('create_at'))
+            ->first();
+        if (!$agreement) {
+            return response()->json([
+                'message' => __('app_translation.representor_add_error')
+            ], 409);
+        }
+        // 2. Update prevous representors status
+        Representer::where('ngo_id', $ngo_id)->update(['is_active' => false]);
+        // 3. Store representor
+        $representer = Representer::create([
             'ngo_id' => $ngo_id,
-            'nid_no' => $validatedData['nid'] ?? '',
-            'nid_type_id' => $validatedData['identity_type']['id'],
-            'is_Active' => 1,
-            'gender_id' => $validatedData['gender']['id'],
-            'country_id' => $validatedData['nationality']['id'],
-            'address_id' => $address->id,
-            'email_id' => $email->id,
-            'contact_id' => $contact->id,
+            'user_id' => $authUser->id,
+            'is_active' => true,
+            "document_id" => $documentId
         ]);
-
-
-
-        DirectorTran::insert([
-            ['director_id' => $director->id, 'language_name' => 'en', 'name' => $validatedData['director_name_english'], 'last_name' => $validatedData['surname_english']],
-            ['director_id' => $director->id, 'language_name' => 'ps', 'name' => $validatedData['director_name_pashto'], 'last_name' => $validatedData['surname_pashto']],
-            ['director_id' => $director->id, 'language_name' => 'fa', 'name' => $validatedData['director_name_farsi'], 'last_name' => $validatedData['surname_farsi']],
-        ]);
-
-        AgreementDirector::create([
-            'agreement_id' => $agreement_id,
-            'director_id' => $director->id
-        ]);
+        foreach (LanguageEnum::LANGUAGES as $code => $name) {
+            RepresenterTran::create([
+                'representer_id' => $representer->id,
+                'language_name' =>  $code,
+                'full_name' => $validatedData["repre_name_{$name}"],
+            ]);
+        }
+        return $representer->id;
     }
 }

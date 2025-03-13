@@ -275,55 +275,50 @@ class StoresNgoController extends Controller
             ], 400);
         }
 
+        DB::beginTransaction();
+
 
         Email::where('id', $ngo->email_id)->update(['value' => $validatedData['email']]);
         Contact::where('id', $ngo->contact_id)->update(['value' => $validatedData['contact']]);
 
-        $ngo_en_tran = NgoTran::where('ngo_id', $id)->where('language_name', 'en')->first();
-        $ngo_ps_tran = NgoTran::where('ngo_id', $id)->where('language_name', 'ps')->first();
-        $ngo_fa_tran = NgoTran::where('ngo_id', $id)->where('language_name', 'fa')->first();
-        $ngo_addres = Address::find($ngo->address_id);
-        $ngo_addres_en = AddressTran::where('address_id', $ngo->address_id)->where('language_name', 'en')->first();
-        $ngo_addres_ps = AddressTran::where('address_id', $ngo->address_id)->where('language_name', 'ps')->first();
-        $ngo_addres_fa = AddressTran::where('address_id', $ngo->address_id)->where('language_name', 'fa')->first();
+        // store ngo transalation
+        $ngoTrans = NgoTran::where('ngo_id', $id)->get();
+        if (!$ngoTrans) {
+            return response()->json([
+                'message' => __('app_translation.ngo_not_found'),
+            ], 404, [], JSON_UNESCAPED_UNICODE);
+        }
 
-        $ngo_en_tran->name  =    $validatedData["name_english"];
-        $ngo_ps_tran->name  =    $validatedData["name_pashto"];
-        $ngo_fa_tran->name  =    $validatedData["name_farsi"];
+        foreach (LanguageEnum::LANGUAGES as $code => $name) {
+            $tran =  $ngoTrans->where('language_name', $code)->first();
+            $tran->name = $validatedData["name_{$name}"];
+            $tran->vision = $validatedData["vision_{$name}"];
+            $tran->mission = $validatedData["mission_{$name}"];
+            $tran->general_objective = $validatedData["general_objes_{$name}"];
+            $tran->objective = $validatedData["objes_in_afg_{$name}"];
+            $tran->save();
+        }
+
+        // store ngo Address
+        $ngo_addres = Address::find($ngo->address_id);
+
+        $ngo_addres->province_id  = $validatedData["province"]["id"];
+        $ngo_addres->district_id  = $validatedData["district"]["id"];
+        $ngo_addres = AddressTran::where('address_id', $ngo->address_id)->get();
+
+        foreach (LanguageEnum::LANGUAGES as $code => $name) {
+            $tran =  $ngo_addres->where('language_name', $code)->first();
+            $tran->area = $validatedData["area_{$name}"];
+            $tran->save();
+        }
+
         $ngo->abbr =  $validatedData["abbr"];
         $ngo->ngo_type_id  = $validatedData['type']['id'];
         // $ngo->ngo_type_id  = $validatedData["type.id"];
         $ngo->moe_registration_no  = $validatedData["moe_registration_no"];
         $ngo->place_of_establishment   = $validatedData["country"]["id"];
         $ngo->date_of_establishment  = $validatedData["establishment_date"];
-        $ngo_addres->province_id  = $validatedData["province"]["id"];
-        $ngo_addres->district_id  = $validatedData["district"]["id"];
-        $ngo_addres_en->area = $validatedData["area_english"];
-        $ngo_addres_ps->area = $validatedData["area_pashto"];
-        $ngo_addres_fa->area = $validatedData["area_farsi"];
-
-        $ngo_en_tran->vision  =    $validatedData["vision_english"];
-        $ngo_ps_tran->vision  =    $validatedData["vision_pashto"];
-        $ngo_fa_tran->vision  =    $validatedData["vision_farsi"];
-        $ngo_en_tran->mission  =    $validatedData["mission_english"];
-        $ngo_ps_tran->mission  =    $validatedData["mission_pashto"];
-        $ngo_fa_tran->mission  =    $validatedData["mission_farsi"];
-        $ngo_en_tran->general_objective  =    $validatedData["general_objes_english"];
-        $ngo_ps_tran->general_objective  =    $validatedData["general_objes_pashto"];
-        $ngo_fa_tran->general_objective  =    $validatedData["general_objes_farsi"];
-        $ngo_en_tran->objective  =    $validatedData["objes_in_afg_english"];
-        $ngo_ps_tran->objective  =    $validatedData["objes_in_afg_pashto"];
-        $ngo_fa_tran->objective  =    $validatedData["objes_in_afg_farsi"];
-
-        DB::beginTransaction();
-
-        $ngo_en_tran->save();
-        $ngo_ps_tran->save();
-        $ngo_fa_tran->save();
         $ngo_addres->save();
-        $ngo_addres_en->save();
-        $ngo_addres_ps->save();
-        $ngo_addres_fa->save();
         $ngo->save();
 
         // Make prevous state to false
