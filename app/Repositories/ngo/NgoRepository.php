@@ -12,6 +12,7 @@ class NgoRepository implements NgoRepositoryInterface
 {
     use AddressTrait, NgoTrait;
 
+    public function startExtendFormInfo($query, $ngo_id, $locale) {}
     public function startRegisterFormInfo($query, $ngo_id, $locale)
     {
         $this->typeTransJoin($query, $locale)

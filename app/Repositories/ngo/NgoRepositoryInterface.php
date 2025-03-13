@@ -153,4 +153,14 @@ interface NgoRepositoryInterface
      * @return \App\Repositories\ngo\NgoRepositoryInterface|\Illuminate\Database\Query\Builder
      */
     public function statuses($ngo_id, $locale);
+    /**
+     * Retrieve NGO extend data.
+     * 
+     *
+     * @param \Illuminate\Database\Query\Builder $query
+     * @param string $ngo_id
+     * @param string $locale
+     * @return array
+     */
+    public function startExtendFormInfo($query, $ngo_id, $locale);
 }
