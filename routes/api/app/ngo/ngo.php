@@ -18,13 +18,13 @@ Route::prefix('v1')->group(function () {
   Route::get('public/ngos', [ViewsNgoController::class, 'publicNgos']);
 });
 Route::prefix('v1')->middleware(['api.key', "doubleAuthorized:" . 'user:api,ngo:api'])->group(function () {
+  Route::get('/ngo/status/{id}', [ViewsNgoController::class, 'currentStatus']);
   Route::get('/ngo/details/{id}', [ViewsNgoController::class, 'ngoDetail'])->middleware(["userHasSubViewPermission:" . PermissionEnum::ngo->value . "," . SubPermissionEnum::ngo_information->value]);
   Route::post('/ngo/update-info', [EditesNgoController::class, 'updateInfo'])->middleware(["userHasSubEditPermission:" . PermissionEnum::ngo->value . "," . SubPermissionEnum::ngo_information->value]);
   Route::get('/ngo/statuses/{id}', [ViewsNgoController::class, 'statuses'])->middleware(["userHasSubViewPermission:" . PermissionEnum::ngo->value . "," . SubPermissionEnum::ngo_status->value]);
   Route::post('/ngo/more-information/updated', [EditesNgoController::class, 'UpdateMoreInformation'])->middleware(["userHasSubEditPermission:" . PermissionEnum::ngo->value . "," . SubPermissionEnum::ngo_more_information->value]);
   Route::get('/ngo/more-information/{id}', [ViewsNgoController::class, 'moreInformation'])->middleware(["userHasSubViewPermission:" . PermissionEnum::ngo->value . "," . SubPermissionEnum::ngo_more_information->value]);
   Route::get('/ngo/start/register/form/{id}', [ViewsNgoController::class, 'startRegisterForm']);
-  Route::get('/ngo/start/extend/form/{id}', [ViewsNgoController::class, 'startExtendFormInfo']);
   Route::post('/ngo/register/form/complete', [StoresNgoController::class, 'registerFormCompleted']);
   Route::post('/ngo/store/signed/register/form', [StoresNgoController::class, 'StoreSignedRegisterForm']);
   Route::get('/ngo/header-info/{id}', [ViewsNgoController::class, 'headerInfo']);

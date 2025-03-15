@@ -61,7 +61,7 @@ class NgoInfoUpdateRequest extends FormRequest
             "area_english" => "required|max:128|min:5",
             "area_pashto" => "required|max:128|min:5",
             "area_farsi" => "required|max:128|min:5",
-            "place_of_establishment.id" => "required|exists:countries,id",
+            "country.id" => "required|exists:countries,id",
             "contact" => "required",
             "email" => "required",
         ];

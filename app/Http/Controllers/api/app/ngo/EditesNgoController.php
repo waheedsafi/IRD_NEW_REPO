@@ -72,7 +72,7 @@ class EditesNgoController extends Controller
         $ngo->registration_no = $request->registration_no;
         $ngo->moe_registration_no = $request->moe_registration_no;
         $ngo->date_of_establishment = $request->establishment_date;
-        $ngo->place_of_establishment = $request->place_of_establishment['id'];
+        $ngo->place_of_establishment = $request->country['id'];
         $address->province_id = $request->province['id'];
         $address->district_id = $request->district['id'];
         $ngo->ngo_type_id = $request->type['id'];

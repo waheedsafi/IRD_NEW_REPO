@@ -100,10 +100,91 @@ class TestController extends Controller
     }
     public function index()
     {
-        $locale = App::getLocale();
+        $locale = App::getLocale(); // Current locale/language
 
-        $now = Carbon::now('UTC');
-        return $now;
+        $ngo_id = 1;
+        $ngo = DB::table('ngos as n')
+            ->where('n.id', $ngo_id)
+            ->join('ngo_trans as nt', 'nt.ngo_id', '=', 'n.id')
+            ->join('ngo_type_trans as ntt', function ($join) use ($locale) {
+                $join->on('ntt.ngo_type_id', '=', 'n.ngo_type_id')
+                    ->where('ntt.language_name', $locale);
+            })
+            ->join('contacts as c', 'c.id', '=', 'n.contact_id')
+            ->join('emails as e', 'e.id', '=', 'n.email_id')
+            ->join('addresses as a', 'a.id', '=', 'n.address_id')
+            ->join('address_trans as at', 'at.address_id', '=', 'a.id')
+            ->join('district_trans as dt', function ($join) use ($locale) {
+                $join->on('dt.district_id', '=', 'a.district_id')
+                    ->where('dt.language_name', $locale);
+            })
+            ->join('province_trans as pt', function ($join) use ($locale) {
+                $join->on('pt.province_id', '=', 'a.province_id')
+                    ->where('pt.language_name', $locale);
+            })
+            ->join('country_trans as ct', function ($join) use ($locale) {
+                $join->on('ct.country_id', '=', 'n.place_of_establishment')
+                    ->where('ct.language_name', $locale);
+            })
+            ->select(
+                'n.id',
+                'n.date_of_establishment as establishment_date',
+                'n.moe_registration_no',
+                'n.registration_no',
+                'n.abbr',
+                'n.ngo_type_id',
+                'ntt.value as ngo_type',
+                'c.value as contact',
+                'e.value as email',
+                'dt.value as province',
+                'pt.value as district',
+                'ct.country_id',
+                'ct.value as country',
+                // Aggregating the name by conditional filtering for each language
+                DB::raw("MAX(CASE WHEN nt.language_name = 'ps' THEN nt.name END) as name_pashto"),
+                DB::raw("MAX(CASE WHEN nt.language_name = 'fa' THEN nt.name END) as name_farsi"),
+                DB::raw("MAX(CASE WHEN nt.language_name = 'en' THEN nt.name END) as name_english"),
+                DB::raw("MAX(CASE WHEN at.language_name = 'ps' THEN at.area END) as area_pashto"),
+                DB::raw("MAX(CASE WHEN at.language_name = 'fa' THEN at.area END) as area_farsi"),
+                DB::raw("MAX(CASE WHEN at.language_name = 'en' THEN at.area END) as area_english")
+            )
+            ->groupBy(
+                'n.id',
+                'n.date_of_establishment',
+                'n.moe_registration_no',
+                'n.registration_no',
+                'n.abbr',
+                'n.ngo_type_id',
+                'ntt.value',
+                'c.value',
+                'e.value',
+                'dt.value',
+                'pt.value',
+                'ct.country_id',
+                'ct.value',
+            )
+            ->first();
+
+        return [
+            "id" => $ngo->id,
+            "abbr" => $ngo->abbr,
+            "name_english" => $ngo->name_english,
+            "name_farsi" => $ngo->name_farsi,
+            "name_pashto" => $ngo->name_pashto,
+            "type" => ['id' => $ngo->ngo_type_id, 'name' => $ngo->ngo_type],
+            "contact" => $ngo->contact,
+            "email" => $ngo->email,
+            "registration_no" => $ngo->registration_no,
+            "province" => $ngo->province,
+            "district" => $ngo->district,
+            "area_english" => $ngo->area_english,
+            "area_pashto" => $ngo->area_pashto,
+            "area_farsi" => $ngo->area_farsi,
+            "moe_registration_no" => $ngo->moe_registration_no,
+            'establishment_date' => $ngo->establishment_date,
+            'country' => ['id' => $ngo->country_id, 'name' => $ngo->country],
+        ];
+
 
         // Fetch expired agreements in bulk using DB::table()
         return DB::table('agreements')

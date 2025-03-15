@@ -128,12 +128,11 @@ interface NgoRepositoryInterface
      * Retrieve NGO data when registered by IRD.
      * 
      *
-     * @param \Illuminate\Database\Query\Builder $query
      * @param string $ngo_id
      * @param string $locale
      * @return array
      */
-    public function startRegisterFormInfo($query, $ngo_id, $locale);
+    public function startRegisterFormInfo($ngo_id, $locale);
     /**
      * Retrieve NGO data when registeration is completed.
      * 
@@ -153,14 +152,4 @@ interface NgoRepositoryInterface
      * @return \App\Repositories\ngo\NgoRepositoryInterface|\Illuminate\Database\Query\Builder
      */
     public function statuses($ngo_id, $locale);
-    /**
-     * Retrieve NGO extend data.
-     * 
-     *
-     * @param \Illuminate\Database\Query\Builder $query
-     * @param string $ngo_id
-     * @param string $locale
-     * @return array
-     */
-    public function startExtendFormInfo($query, $ngo_id, $locale);
 }

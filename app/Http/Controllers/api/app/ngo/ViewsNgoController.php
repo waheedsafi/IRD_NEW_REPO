@@ -111,10 +111,8 @@ class ViewsNgoController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    public function startExtendFormInfo(Request $request, $ngo_id)
+    public function startExtendForm(Request $request, $ngo_id)
     {
-        $locale = App::getLocale();
-
         $pendingTaskContent = $this->pendingTask($request, $ngo_id);
         if ($pendingTaskContent['content']) {
             return response()->json([
@@ -123,37 +121,9 @@ class ViewsNgoController extends Controller
             ], 200);
         }
 
-        $query = $this->ngoRepository->ngo($ngo_id);
-        $data = $this->ngoRepository->startRegisterFormInfo($query, $ngo_id, $locale);
-        if (!$data) {
-            return response()->json([
-                'message' => __('app_translation.ngo_not_found'),
-            ], 404);
-        } else if ($data['status_type_id'] != StatusTypeEnum::registration_expired->value) {
-            return response()->json([
-                'message' => __('app_translation.unauthorized'),
-            ], 401);
-        }
-
-        return response()->json([
-            'ngo' => $data,
-        ], 200, [], JSON_UNESCAPED_UNICODE);
-    }
-
-    public function startRegisterForm(Request $request, $ngo_id)
-    {
         $locale = App::getLocale();
-
-        $pendingTaskContent = $this->pendingTask($request, $ngo_id);
-        if ($pendingTaskContent['content']) {
-            return response()->json([
-                'message' => __('app_translation.success'),
-                'content' => $pendingTaskContent['content']
-            ], 200);
-        }
-
-        $query = $this->ngoRepository->ngo($ngo_id);
-        $data = $this->ngoRepository->startRegisterFormInfo($query, $ngo_id, $locale);
+        $query = $this->ngoRepository->ngo($ngo_id);  // Start with the base query
+        $data = $this->ngoRepository->afterRegisterFormInfo($query, $ngo_id, $locale);
         if (!$data) {
             return response()->json([
                 'message' => __('app_translation.ngo_not_found'),
@@ -167,6 +137,45 @@ class ViewsNgoController extends Controller
         return response()->json([
             'ngo' => $data,
         ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+    public function startRegisterForm(Request $request, $ngo_id)
+    {
+        $locale = App::getLocale();
+
+        $pendingTaskContent = $this->pendingTask($request, $ngo_id);
+        if ($pendingTaskContent['content']) {
+            return response()->json([
+                'message' => __('app_translation.success'),
+                'content' => $pendingTaskContent['content']
+            ], 200);
+        }
+
+        $data = $this->ngoRepository->startRegisterFormInfo($ngo_id, $locale);
+        if (!$data) {
+            return response()->json([
+                'message' => __('app_translation.ngo_not_found'),
+            ], 404);
+        }
+
+        return response()->json([
+            'ngo' => $data,
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    public function currentStatus($ngo_id)
+    {
+        $locale = App::getLocale();
+        $query = $this->ngoRepository->ngo($ngo_id);  // Start with the base query
+        $this->ngoRepository->statusJoin($query, $ngo_id, $locale);
+        $status = $query->select('ns.status_type_id')
+            ->first();
+        if (!$status) {
+            return response()->json([
+                'message' => __('app_translation.ngo_status_not_found'),
+            ], 404);
+        }
+
+        return response()->json($status, 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function ngoDetail($ngo_id)

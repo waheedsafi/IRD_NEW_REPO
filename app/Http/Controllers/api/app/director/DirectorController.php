@@ -84,6 +84,26 @@ class DirectorController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
+    public function ngoDirectorsName($id)
+    {
+        $locale = App::getLocale();
+        // Joining necessary tables to fetch the NGO data
+        $director = DB::table('directors as d')
+            ->where('d.ngo_id', $id)
+            ->join('director_trans as dt', function ($join) use ($locale) {
+                $join->on('dt.director_id', '=', 'd.id')
+                    ->where("dt.language_name", $locale);
+            })
+            ->select(
+                'd.id',
+                'd.is_active',
+                DB::raw("CONCAT(dt.name, ' ', dt.last_name) as name")
+            )
+            ->get();
+
+        return response()->json($director, 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
     public function ngoDirector(Request $request, $id)
     {
         $locale = App::getLocale();
