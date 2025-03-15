@@ -142,7 +142,7 @@ interface NgoRepositoryInterface
      * @param string $locale
      * @return \App\Repositories\ngo\NgoRepositoryInterface|\Illuminate\Database\Query\Builder
      */
-    public function afterRegisterFormInfo($query, $ngo_id, $locale);
+    public function afterRegisterFormInfo($ngo_id, $locale);
     /**
      * Retrieve NGO all statuses along with tanslations.
      * 

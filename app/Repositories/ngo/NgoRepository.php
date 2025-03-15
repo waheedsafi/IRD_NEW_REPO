@@ -62,25 +62,7 @@ class NgoRepository implements NgoRepositoryInterface
     // }
     public function startRegisterFormInfo($ngo_id, $locale)
     {
-        $ngo = DB::table('ngos as n')
-            ->where('n.id', $ngo_id)
-            ->join('ngo_trans as nt', 'nt.ngo_id', '=', 'n.id')
-            ->join('ngo_type_trans as ntt', function ($join) use ($locale) {
-                $join->on('ntt.ngo_type_id', '=', 'n.ngo_type_id')
-                    ->where('ntt.language_name', $locale);
-            })
-            ->join('contacts as c', 'c.id', '=', 'n.contact_id')
-            ->join('emails as e', 'e.id', '=', 'n.email_id')
-            ->join('addresses as a', 'a.id', '=', 'n.address_id')
-            ->join('address_trans as at', 'at.address_id', '=', 'a.id')
-            ->join('district_trans as dt', function ($join) use ($locale) {
-                $join->on('dt.district_id', '=', 'a.district_id')
-                    ->where('dt.language_name', $locale);
-            })
-            ->join('province_trans as pt', function ($join) use ($locale) {
-                $join->on('pt.province_id', '=', 'a.province_id')
-                    ->where('pt.language_name', $locale);
-            })
+        $ngo = $this->generalQuery($ngo_id, $locale)
             ->select(
                 'n.id',
                 'n.registration_no',
@@ -133,45 +115,29 @@ class NgoRepository implements NgoRepositoryInterface
             "area_farsi" => $ngo->area_farsi,
         ];
     }
-    public function afterRegisterFormInfo($query, $ngo_id, $locale)
+    public function afterRegisterFormInfo($ngo_id, $locale)
     {
-        $ngo = DB::table('ngos as n')
-            ->where('n.id', $ngo_id)
-            ->join('ngo_trans as nt', 'nt.ngo_id', '=', 'n.id')
-            ->join('ngo_type_trans as ntt', function ($join) use ($locale) {
-                $join->on('ntt.ngo_type_id', '=', 'n.ngo_type_id')
-                    ->where('ntt.language_name', $locale);
-            })
-            ->join('contacts as c', 'c.id', '=', 'n.contact_id')
-            ->join('emails as e', 'e.id', '=', 'n.email_id')
-            ->join('addresses as a', 'a.id', '=', 'n.address_id')
-            ->join('address_trans as at', 'at.address_id', '=', 'a.id')
-            ->join('district_trans as dt', function ($join) use ($locale) {
-                $join->on('dt.district_id', '=', 'a.district_id')
-                    ->where('dt.language_name', $locale);
-            })
-            ->join('province_trans as pt', function ($join) use ($locale) {
-                $join->on('pt.province_id', '=', 'a.province_id')
-                    ->where('pt.language_name', $locale);
-            })
+        $ngo = $this->generalQuery($ngo_id, $locale)
             ->join('country_trans as ct', function ($join) use ($locale) {
                 $join->on('ct.country_id', '=', 'n.place_of_establishment')
                     ->where('ct.language_name', $locale);
             })
             ->select(
                 'n.id',
+                'n.registration_no',
+                'n.place_of_establishment as country_id',
+                'ct.value as country',
                 'n.date_of_establishment as establishment_date',
                 'n.moe_registration_no',
-                'n.registration_no',
                 'n.abbr',
                 'n.ngo_type_id',
                 'ntt.value as ngo_type',
                 'c.value as contact',
                 'e.value as email',
-                'dt.value as province',
-                'pt.value as district',
-                'ct.country_id',
-                'ct.value as country',
+                'dt.value as district',
+                'dt.district_id',
+                'pt.value as province',
+                'pt.province_id',
                 // Aggregating the name by conditional filtering for each language
                 DB::raw("MAX(CASE WHEN nt.language_name = 'ps' THEN nt.name END) as name_pashto"),
                 DB::raw("MAX(CASE WHEN nt.language_name = 'fa' THEN nt.name END) as name_farsi"),
@@ -182,9 +148,12 @@ class NgoRepository implements NgoRepositoryInterface
             )
             ->groupBy(
                 'n.id',
+                'n.registration_no',
+                'ct.value',
+                'n.place_of_establishment',
+                'ct.value',
                 'n.date_of_establishment',
                 'n.moe_registration_no',
-                'n.registration_no',
                 'n.abbr',
                 'n.ngo_type_id',
                 'ntt.value',
@@ -192,8 +161,8 @@ class NgoRepository implements NgoRepositoryInterface
                 'e.value',
                 'dt.value',
                 'pt.value',
-                'ct.country_id',
-                'ct.value',
+                'dt.district_id',
+                'pt.province_id',
             )
             ->first();
 
@@ -207,8 +176,8 @@ class NgoRepository implements NgoRepositoryInterface
             "contact" => $ngo->contact,
             "email" => $ngo->email,
             "registration_no" => $ngo->registration_no,
-            "province" => $ngo->province,
-            "district" => $ngo->district,
+            "province" => ["id" => $ngo->province_id, "name" => $ngo->province],
+            "district" => ["id" => $ngo->district_id, "name" => $ngo->district],
             "area_english" => $ngo->area_english,
             "area_pashto" => $ngo->area_pashto,
             "area_farsi" => $ngo->area_farsi,
@@ -353,5 +322,27 @@ class NgoRepository implements NgoRepositoryInterface
                 ->whereRaw('ag.end_date = (select max(ns2.end_date) from agreements as ns2 where ns2.ngo_id = n.id)');
         });
         return $this;
+    }
+    public function generalQuery($ngo_id, $locale)
+    {
+        return DB::table('ngos as n')
+            ->where('n.id', $ngo_id)
+            ->join('ngo_trans as nt', 'nt.ngo_id', '=', 'n.id')
+            ->join('ngo_type_trans as ntt', function ($join) use ($locale) {
+                $join->on('ntt.ngo_type_id', '=', 'n.ngo_type_id')
+                    ->where('ntt.language_name', $locale);
+            })
+            ->join('contacts as c', 'c.id', '=', 'n.contact_id')
+            ->join('emails as e', 'e.id', '=', 'n.email_id')
+            ->join('addresses as a', 'a.id', '=', 'n.address_id')
+            ->join('address_trans as at', 'at.address_id', '=', 'a.id')
+            ->join('district_trans as dt', function ($join) use ($locale) {
+                $join->on('dt.district_id', '=', 'a.district_id')
+                    ->where('dt.language_name', $locale);
+            })
+            ->join('province_trans as pt', function ($join) use ($locale) {
+                $join->on('pt.province_id', '=', 'a.province_id')
+                    ->where('pt.language_name', $locale);
+            });
     }
 }

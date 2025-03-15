@@ -181,8 +181,7 @@ class ViewsNgoController extends Controller
     public function ngoDetail($ngo_id)
     {
         $locale = App::getLocale();
-        $query = $this->ngoRepository->ngo($ngo_id);  // Start with the base query
-        $data = $this->ngoRepository->afterRegisterFormInfo($query, $ngo_id, $locale);
+        $data = $this->ngoRepository->afterRegisterFormInfo($ngo_id, $locale);
         if (!$data) {
             return response()->json([
                 'message' => __('app_translation.ngo_not_found'),

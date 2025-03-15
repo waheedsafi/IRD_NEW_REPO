@@ -105,15 +105,17 @@ class TestController extends Controller
         $ngo_id = 1;
         $ngo = DB::table('ngos as n')
             ->where('n.id', $ngo_id)
-            ->join('ngo_trans as nt', 'nt.ngo_id', '=', 'n.id')
-            ->join('ngo_type_trans as ntt', function ($join) use ($locale) {
-                $join->on('ntt.ngo_type_id', '=', 'n.ngo_type_id')
-                    ->where('ntt.language_name', $locale);
+            ->join('ngo_trans as nt', function ($join) use ($locale) {
+                $join->on('nt.ngo_id', '=', 'n.id')
+                    ->where('nt.language_name', $locale);
             })
             ->join('contacts as c', 'c.id', '=', 'n.contact_id')
             ->join('emails as e', 'e.id', '=', 'n.email_id')
             ->join('addresses as a', 'a.id', '=', 'n.address_id')
-            ->join('address_trans as at', 'at.address_id', '=', 'a.id')
+            ->join('address_trans as at', function ($join) use ($locale) {
+                $join->on('at.address_id', '=', 'a.id')
+                    ->where('at.language_name', $locale);
+            })
             ->join('district_trans as dt', function ($join) use ($locale) {
                 $join->on('dt.district_id', '=', 'a.district_id')
                     ->where('dt.language_name', $locale);
@@ -128,62 +130,109 @@ class TestController extends Controller
             })
             ->select(
                 'n.id',
-                'n.date_of_establishment as establishment_date',
-                'n.moe_registration_no',
                 'n.registration_no',
+                'n.moe_registration_no',
                 'n.abbr',
-                'n.ngo_type_id',
-                'ntt.value as ngo_type',
+                'n.date_of_establishment',
+                'nt.name',
+                'nt.vision',
+                'nt.mission',
+                'nt.general_objective',
+                'nt.objective',
                 'c.value as contact',
                 'e.value as email',
-                'dt.value as province',
-                'pt.value as district',
-                'ct.country_id',
+                'dt.value as district',
+                'dt.district_id',
+                'at.area',
+                'pt.value as province',
+                'pt.province_id',
                 'ct.value as country',
-                // Aggregating the name by conditional filtering for each language
-                DB::raw("MAX(CASE WHEN nt.language_name = 'ps' THEN nt.name END) as name_pashto"),
-                DB::raw("MAX(CASE WHEN nt.language_name = 'fa' THEN nt.name END) as name_farsi"),
-                DB::raw("MAX(CASE WHEN nt.language_name = 'en' THEN nt.name END) as name_english"),
-                DB::raw("MAX(CASE WHEN at.language_name = 'ps' THEN at.area END) as area_pashto"),
-                DB::raw("MAX(CASE WHEN at.language_name = 'fa' THEN at.area END) as area_farsi"),
-                DB::raw("MAX(CASE WHEN at.language_name = 'en' THEN at.area END) as area_english")
-            )
-            ->groupBy(
-                'n.id',
-                'n.date_of_establishment',
-                'n.moe_registration_no',
-                'n.registration_no',
-                'n.abbr',
-                'n.ngo_type_id',
-                'ntt.value',
-                'c.value',
-                'e.value',
-                'dt.value',
-                'pt.value',
-                'ct.country_id',
-                'ct.value',
             )
             ->first();
 
+        $director =  DB::table('directors as d')
+            ->where('d.ngo_id', $ngo_id)
+            ->where('d.is_active', true)
+            ->join('director_trans as dirt', function ($join) use ($locale) {
+                $join->on('dirt.director_id', '=', 'd.id')
+                    ->where("dirt.language_name", $locale);
+            })
+            ->join('addresses as a', 'a.id', '=', 'd.address_id')
+            ->join('address_trans as at', function ($join) use ($locale) {
+                $join->on('at.address_id', '=', 'a.id')
+                    ->where('at.language_name', $locale);
+            })
+            ->join('district_trans as dt', function ($join) use ($locale) {
+                $join->on('dt.district_id', '=', 'a.district_id')
+                    ->where('dt.language_name', $locale);
+            })
+            ->join('province_trans as pt', function ($join) use ($locale) {
+                $join->on('pt.province_id', '=', 'a.province_id')
+                    ->where('pt.language_name', $locale);
+            })
+            ->join('country_trans as ct', function ($join) use ($locale) {
+                $join->on('ct.country_id', '=', 'd.country_id')
+                    ->where('ct.language_name', $locale);
+            })
+            ->select(
+                'dirt.name',
+                'dirt.last_name',
+                'dt.value as district',
+                'dt.district_id',
+                'pt.value as province',
+                'pt.province_id',
+                'ct.value as country',
+                'at.area',
+            )
+            ->first();
+        if (!$director) {
+            return "Director not found";
+        }
+        $irdDirector = DB::table('staff as s')
+            ->where('s.staff_type_id', StaffEnum::director->value)
+            ->join('staff_trans as st', function ($join) use ($locale) {
+                $join->on('st.staff_id', '=', 's.id')
+                    ->where("st.language_name", $locale);
+            })
+            ->select(
+                'st.name',
+            )
+            ->first();
+        if (!$irdDirector) {
+            return "IRD Director not found";
+        }
         return [
-            "id" => $ngo->id,
-            "abbr" => $ngo->abbr,
-            "name_english" => $ngo->name_english,
-            "name_farsi" => $ngo->name_farsi,
-            "name_pashto" => $ngo->name_pashto,
-            "type" => ['id' => $ngo->ngo_type_id, 'name' => $ngo->ngo_type],
-            "contact" => $ngo->contact,
-            "email" => $ngo->email,
-            "registration_no" => $ngo->registration_no,
-            "province" => $ngo->province,
-            "district" => $ngo->district,
-            "area_english" => $ngo->area_english,
-            "area_pashto" => $ngo->area_pashto,
-            "area_farsi" => $ngo->area_farsi,
-            "moe_registration_no" => $ngo->moe_registration_no,
-            'establishment_date' => $ngo->establishment_date,
-            'country' => ['id' => $ngo->country_id, 'name' => $ngo->country],
+            'register_number' => $ngo->registration_no,
+            'date_of_sign' => '................',
+            'ngo_name' =>  $ngo->name,
+            'abbr' => $ngo->abbr,
+            'contact' => $ngo->contact,
+            'address' =>                      [
+                'complete_address' => $ngo->area . ',' . $ngo->district . ',' . $ngo->province . ',' . $ngo->country,
+                'area' => $ngo->area,
+                'district' => $ngo->district,
+                'province' => $ngo->province,
+                'country' => $ngo->country
+            ],
+            'director' => $director->name . " " . $director->last_name,
+            'director_address' => [
+                'complete_address' => $director->area . ',' . $director->district . ',' . $director->province . ',' . $director->country,
+                'area' => $director->area,
+                'district' => $director->district,
+                'province' => $director->province,
+                'country' => $director->country
+            ],
+            'email' => $ngo->email,
+            'establishment_date' => $ngo->date_of_establishment,
+            'place_of_establishment' => $ngo->country,
+            'ministry_economy_no' => $ngo->moe_registration_no,
+            'general_objective' => $ngo->general_objective,
+            'afganistan_objective' => $ngo->objective,
+            'mission' => $ngo->mission,
+            'vission' => $ngo->vision,
+            'ird_director' => $irdDirector->name,
         ];
+
 
 
         // Fetch expired agreements in bulk using DB::table()
