@@ -99,10 +99,13 @@ class UserAuthController extends Controller
             // Get the auth user
             $user = $loggedIn['user'];
             if ($user->status == StatusTypeEnum::blocked) {
+                $this->userLoginLog($request, $user->id, User::class, 'UserBlock');
                 return response()->json([
                     'message' => __('app_translation.account_is_lock'),
                 ], 403, [], JSON_UNESCAPED_UNICODE);
             }
+            $this->userLoginLog($request, $user->id,  User::class, 'Success');
+
             $user = DB::table('users as u')
                 ->where('u.id', $user->id)
                 ->join('model_job_trans as mjt', function ($join) use ($locale) {

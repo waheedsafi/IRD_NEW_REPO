@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use App\Models\NgoTypeTrans;
 use Illuminate\Http\Request;
 use App\Models\StatusTypeTran;
+use App\Models\UserLoginLog;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 
@@ -183,5 +184,20 @@ abstract class Controller
                 ->where('language_name', $locale)
                 ->get();
         });
+    }
+
+    protected function userLoginLog($request, $user_id, $userType, $result)
+    {
+
+
+        UserLoginLog::create([
+            'user_id'            => $user_id,
+            'action'             => 'login',
+            'user_type'          => $userType, // Make sure this field exists in the table and model
+            'local_ip_address'   => $request->ip(), // Corrected spelling
+            'public_ip_address'  => $request->header('host') ?? $request->ip(),
+            'computer_name'      => $request->header('user-agent') ?? '', // Assuming client passes host_name in header
+            'result'             => $result,
+        ]);
     }
 }
