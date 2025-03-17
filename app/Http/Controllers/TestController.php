@@ -101,8 +101,36 @@ class TestController extends Controller
     public function index()
     {
         $locale = App::getLocale(); // Current locale/language
+        $ngo_id = 4;
+        return  $representor = DB::table('representers as r')
+            ->where('r.ngo_id', $ngo_id)
+            ->join('representer_trans as rt', function ($join) use ($locale) {
+                $join->on('r.id', '=', 'rt.representer_id')
+                    ->where('rt.language_name', $locale);
+            })
+            ->join('agreement_representers as ar', 'ar.representer_id', '=', 'r.id')
+            ->join('agreements as a', function ($join) {
+                $join->on('a.id', '=', 'ar.agreement_id');
+            })
+            ->leftJoin('users as u', function ($join) {
+                $join->on('r.userable_id', '=', 'u.id')
+                    ->where('r.userable_type',);
+            })
+            ->select(
+                'r.id',
+                'r.is_active',
+                'r.created_at',
+                'rt.full_name',
+                'u.username',
+                'a.id as agreement_id',
+                'a.agreement_no',
+                'a.start_date',
+                'a.end_date',
+                "u.username as saved_by"
+            )
+            ->orderBy('r.id', 'desc')
+            ->get();
 
-        $ngo_id = 1;
         $ngo = DB::table('ngos as n')
             ->where('n.id', $ngo_id)
             ->join('ngo_trans as nt', function ($join) use ($locale) {

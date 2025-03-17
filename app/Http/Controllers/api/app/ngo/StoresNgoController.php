@@ -11,7 +11,6 @@ use App\Models\Address;
 use App\Models\Contact;
 use App\Models\NgoTran;
 use App\Models\Setting;
-use App\Models\Director;
 use App\Models\Document;
 use App\Models\Agreement;
 use App\Models\CheckList;
@@ -21,9 +20,7 @@ use App\Enums\SettingEnum;
 use App\Enums\LanguageEnum;
 use App\Enums\NotifierEnum;
 use App\Models\AddressTran;
-use App\Models\PendingTask;
 use App\Models\Representer;
-use App\Models\DirectorTran;
 use App\Enums\PermissionEnum;
 use App\Models\NgoPermission;
 use App\Models\CheckListTrans;
@@ -42,13 +39,13 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use App\Traits\File\PendingFileTrait;
 use App\Enums\CheckList\CheckListEnum;
-use Database\Factories\ApprovalFactory;
 use App\Http\Requests\app\ngo\NgoRegisterRequest;
 use App\Http\Requests\app\ngo\NgoInitStoreRequest;
 use App\Repositories\Task\PendingTaskRepositoryInterface;
 use App\Repositories\Approval\ApprovalRepositoryInterface;
 use App\Repositories\Director\DirectorRepositoryInterface;
 use App\Http\Requests\app\ngo\StoreSignedRegisterFormRequest;
+use App\Models\AgreementRepresenter;
 use App\Repositories\Notification\NotificationRepositoryInterface;
 
 class StoresNgoController extends Controller
@@ -126,7 +123,8 @@ class StoresNgoController extends Controller
         // Set ngo status
         NgoStatus::create([
             "ngo_id" => $newNgo->id,
-            "user_id" => $authUser->id,
+            'userable_id' => $authUser->id,
+            'userable_type' => $this->getModelName(get_class($authUser)),
             "is_active" => true,
             "status_type_id" => StatusTypeEnum::register_form_not_completed->value,
             "comment" => "Newly Created"
@@ -153,13 +151,16 @@ class StoresNgoController extends Controller
             'agreement_id' => $agreement->id,
         ]);
         $representer = Representer::create([
-            'user_id' => $request->user()->id,
+            'userable_id' => $authUser->id,
+            'userable_type' => $this->getModelName(get_class($authUser)),
             'is_active' => true,
             "document_id" => $result['document']->id,
             "ngo_id" => $newNgo->id,
         ]);
-        $agreement->representer_id = $representer->id;
-        $agreement->save();
+        AgreementRepresenter::create([
+            "agreement_id" => $agreement->id,
+            "representer_id" => $representer->id
+        ]);
         foreach (LanguageEnum::LANGUAGES as $code => $name) {
             RepresenterTran::create([
                 'representer_id' => $representer->id,
@@ -219,6 +220,7 @@ class StoresNgoController extends Controller
         // return $request;
         $id = $request->ngo_id;
         $validatedData = $request->validated();
+        $authUser = $request->user();
 
         $agreement = Agreement::where('ngo_id', $id)
             ->where('end_date', null) // Order by end_date descending
@@ -241,7 +243,7 @@ class StoresNgoController extends Controller
 
         // 3. Ensure task exists before proceeding
         $task = $this->pendingTaskRepository->pendingTaskExist(
-            $request->user(),
+            $authUser,
             TaskTypeEnum::ngo_registeration,
             $id
         );
@@ -277,7 +279,6 @@ class StoresNgoController extends Controller
 
         DB::beginTransaction();
 
-
         Email::where('id', $ngo->email_id)->update(['value' => $validatedData['email']]);
         Contact::where('id', $ngo->contact_id)->update(['value' => $validatedData['contact']]);
 
@@ -304,10 +305,10 @@ class StoresNgoController extends Controller
 
         $ngo_addres->province_id  = $validatedData["province"]["id"];
         $ngo_addres->district_id  = $validatedData["district"]["id"];
-        $ngo_addres = AddressTran::where('address_id', $ngo->address_id)->get();
+        $ngo_addres_trans = AddressTran::where('address_id', $ngo->address_id)->get();
 
         foreach (LanguageEnum::LANGUAGES as $code => $name) {
-            $tran =  $ngo_addres->where('language_name', $code)->first();
+            $tran =  $ngo_addres_trans->where('language_name', $code)->first();
             $tran->area = $validatedData["area_{$name}"];
             $tran->save();
         }
@@ -325,7 +326,8 @@ class StoresNgoController extends Controller
         NgoStatus::where('ngo_id', $id)->update(['is_active' => false]);
         NgoStatus::create([
             'ngo_id' => $id,
-            'user_id' => $request->user()->id,
+            'userable_id' => $authUser->id,
+            'userable_type' => $this->getModelName(get_class($authUser)),
             "is_active" => true,
             'status_type_id' => StatusTypeEnum::register_form_completed,
             'comment' => 'Register Form Complete',
@@ -361,7 +363,9 @@ class StoresNgoController extends Controller
             $id,
             $agreement->id,
             $directorDocumentsId,
-            true
+            true,
+            $authUser->id,
+            $this->getModelName(get_class($authUser))
         );
         AgreementDirector::create([
             'agreement_id' => $agreement->id,
@@ -389,6 +393,7 @@ class StoresNgoController extends Controller
     {
         $request->validated();
         $ngo_id = $request->ngo_id;
+        $authUser = $request->user();
 
         // 1. Validate date
         $expirationDate = Setting::where('id', SettingEnum::registeration_expire_time->value)
@@ -452,7 +457,7 @@ class StoresNgoController extends Controller
 
         // 3. Ensure task exists before proceeding
         $task = $this->pendingTaskRepository->pendingTaskExist(
-            $request->user(),
+            $authUser,
             TaskTypeEnum::ngo_registeration,
             $ngo_id
         );
@@ -499,7 +504,7 @@ class StoresNgoController extends Controller
         }
 
         $this->pendingTaskRepository->destroyPendingTask(
-            $request->user(),
+            $authUser,
             TaskTypeEnum::ngo_registeration,
             $ngo_id
         );
@@ -517,7 +522,8 @@ class StoresNgoController extends Controller
         NgoStatus::where('ngo_id', $ngo_id)->update(['is_active' => false]);
         NgoStatus::create([
             'ngo_id' => $ngo_id,
-            'user_id' => $request->user()->id,
+            'userable_id' => $authUser->id,
+            'userable_type' => $this->getModelName(get_class($authUser)),
             "is_active" => true,
             'status_type_id' => StatusTypeEnum::signed_register_form_submitted->value,
             'comment' => 'Signed Register Form Submitted',
@@ -585,7 +591,7 @@ class StoresNgoController extends Controller
                 rename($oldPath, $newPath);
             } else {
                 return response()->json([
-                    'error' => __('app_translation.file_not_found'),
+                    'errors' => [[__('app_translation.file_not_found')]],
                     "file" => $checklist['actual_name']
                 ], 404);
             }

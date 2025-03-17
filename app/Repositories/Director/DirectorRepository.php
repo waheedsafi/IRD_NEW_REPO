@@ -13,8 +13,15 @@ use App\Models\DirectorDocuments;
 
 class DirectorRepository implements DirectorRepositoryInterface
 {
-    public function storeNgoDirector($validatedData, $ngo_id, $agreement_id, $DocumentsId, $is_active)
-    {
+    public function storeNgoDirector(
+        $validatedData,
+        $ngo_id,
+        $agreement_id,
+        $DocumentsId,
+        $is_active,
+        $userable_id,
+        $userable_type
+    ) {
         $email = Email::create(['value' => $validatedData['director_email']]);
         $contact = Contact::create(['value' => $validatedData['director_contact']]);
 
@@ -39,6 +46,8 @@ class DirectorRepository implements DirectorRepositoryInterface
             'address_id' => $address->id,
             'email_id' => $email->id,
             'contact_id' => $contact->id,
+            'userable_id' => $userable_id,
+            'userable_type' => $userable_type,
         ]);
 
         DirectorTran::insert([

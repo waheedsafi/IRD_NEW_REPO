@@ -11,17 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('representers', function (Blueprint $table) {
+        Schema::create('agreement_representers', function (Blueprint $table) {
             $table->id();
-            $table->string('userable_type');
-            $table->unsignedBigInteger('userable_id');
-            $table->unsignedBigInteger('ngo_id');
-            $table->foreign('ngo_id')->references('id')->on('ngos')
+            $table->unsignedBigInteger('agreement_id');
+            $table->foreign('agreement_id')->references('id')->on('agreements')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
-            $table->boolean('is_active')->default(false);
-            $table->unsignedBigInteger('document_id')->nullable();
-            $table->foreign('document_id')->references('id')->on('documents')
+            $table->unsignedBigInteger('representer_id');
+            $table->foreign('representer_id')->references('id')->on('representers')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
             $table->timestamps();
@@ -33,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ngo_representers');
+        Schema::dropIfExists('agreement_representers');
     }
 };

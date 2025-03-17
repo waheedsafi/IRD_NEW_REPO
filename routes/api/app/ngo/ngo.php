@@ -25,6 +25,7 @@ Route::prefix('v1')->middleware(['api.key', "doubleAuthorized:" . 'user:api,ngo:
   Route::post('/ngo/more-information/updated', [EditesNgoController::class, 'UpdateMoreInformation'])->middleware(["userHasSubEditPermission:" . PermissionEnum::ngo->value . "," . SubPermissionEnum::ngo_more_information->value]);
   Route::get('/ngo/more-information/{id}', [ViewsNgoController::class, 'moreInformation'])->middleware(["userHasSubViewPermission:" . PermissionEnum::ngo->value . "," . SubPermissionEnum::ngo_more_information->value]);
   Route::get('/ngo/start/register/form/{id}', [ViewsNgoController::class, 'startRegisterForm']);
+  Route::get('/ngo/start/extend/form/{id}', [ViewsNgoController::class, 'startExtendForm']);
   Route::post('/ngo/register/form/complete', [StoresNgoController::class, 'registerFormCompleted']);
   Route::post('/ngo/store/signed/register/form', [StoresNgoController::class, 'StoreSignedRegisterForm']);
   Route::get('/ngo/header-info/{id}', [ViewsNgoController::class, 'headerInfo']);

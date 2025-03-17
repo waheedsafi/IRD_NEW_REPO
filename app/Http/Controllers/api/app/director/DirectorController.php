@@ -97,6 +97,7 @@ class DirectorController extends Controller
             ->select(
                 'd.id',
                 'd.is_active',
+                'd.country_id',
                 DB::raw("CONCAT(dt.name, ' ', dt.last_name) as name")
             )
             ->get();

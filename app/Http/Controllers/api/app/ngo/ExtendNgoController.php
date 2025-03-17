@@ -11,6 +11,7 @@ use App\Models\Director;
 use App\Models\Document;
 use App\Models\Agreement;
 use App\Models\CheckList;
+use App\Models\NgoStatus;
 use App\Enums\CountryEnum;
 use App\Enums\LanguageEnum;
 use App\Models\AddressTran;
@@ -23,11 +24,13 @@ use App\Enums\CheckListTypeEnum;
 use App\Enums\Type\TaskTypeEnum;
 use App\Models\AgreementDirector;
 use App\Models\AgreementDocument;
+use App\Enums\Type\StatusTypeEnum;
 use App\Traits\Helper\HelperTrait;
 use Illuminate\Support\Facades\DB;
 use App\Models\PendingTaskDocument;
 use App\Http\Controllers\Controller;
 use App\Enums\CheckList\CheckListEnum;
+use App\Traits\Director\DirectorTrait;
 use App\Http\Requests\app\ngo\ExtendNgoRequest;
 use App\Repositories\Task\PendingTaskRepositoryInterface;
 use App\Repositories\Director\DirectorRepositoryInterface;
@@ -35,7 +38,7 @@ use App\Repositories\Director\DirectorRepositoryInterface;
 class ExtendNgoController extends Controller
 {
     //
-    use HelperTrait;
+    use HelperTrait, DirectorTrait;
     protected $pendingTaskRepository;
     protected $notificationRepository;
     protected $approvalRepository;
@@ -43,7 +46,6 @@ class ExtendNgoController extends Controller
 
     public function __construct(
         PendingTaskRepositoryInterface $pendingTaskRepository,
-
         DirectorRepositoryInterface $directorRepository
     ) {
         $this->pendingTaskRepository = $pendingTaskRepository;
@@ -54,27 +56,110 @@ class ExtendNgoController extends Controller
     public function extendNgoAgreement(ExtendNgoRequest $request)
     {
         // return $request;
-        $id = $request->ngo_id;
-        $validatedData =  $request->validated();
+        $ngo_id = $request->ngo_id;
+        $request->validated();
 
-        $agreement = Agreement::where('ngo_id', $id)
-            ->latest('end_date') // Order by end_date descending
-            ->first();           // Get the first record (most recent)
-
-        // 1. If agreement exists do not allow process furtherly.
-        if ($agreement->end_date >= now()) {
-            return response()->json([
-                'message' => __('app_translation.agreement_exists')
-            ], 409);
-        }
-
-        // 2. Check NGO exist
-        $ngo = Ngo::find($id);
+        // Step.1
+        // Email and Contact
+        $ngo = Ngo::find($ngo_id);
         if (!$ngo) {
             return response()->json([
                 'message' => __('app_translation.ngo_not_found'),
             ], 200, [], JSON_UNESCAPED_UNICODE);
         }
+        DB::beginTransaction();
+        $email = Email::where('value', '=', $request->email)->first();
+        if ($email) {
+            if ($email->id != $ngo->email_id)
+                return response()->json([
+                    'message' => __('app_translation.email_exist'),
+                ], 400, [], JSON_UNESCAPED_UNICODE);
+        } else {
+            $email->value = $request->email;
+        }
+        $contact = Contact::where('value', '=', $request->contact)->first();
+        if ($contact) {
+            if ($contact->id != $ngo->contact_id) {
+                return response()->json([
+                    'message' => __('app_translation.contact_exist'),
+                ], 400, [], JSON_UNESCAPED_UNICODE);
+            }
+        } else {
+            $ngo->value = $request->contact;
+        }
+
+        // Address and Ngo
+        $address = Address::where('id', $ngo->address_id)
+            ->select("district_id", "id", "province_id")
+            ->first();
+        if (!$address) {
+            return response()->json([
+                'message' => __('app_translation.address_not_found'),
+            ], 404, [], JSON_UNESCAPED_UNICODE);
+        }
+        $address->province_id = $request->province->id;
+        $address->district_id = $request->district->id;
+        // * Update Ngo information
+        $ngo->abbr = $request->abbr;
+        $ngo->moe_registration_no = $request->moe_registration_no;
+        $ngo->date_of_establishment = $request->establishment_date;
+        $ngo->place_of_establishment = $request->country['id'];
+        $ngo->ngo_type_id = $request->type['id'];
+        // * Translations
+        $addressTrans = AddressTran::where('address_id', $address->id)->get();
+        $ngoTrans = NgoTran::where('ngo_id', $ngo->id)->get();
+        foreach (LanguageEnum::LANGUAGES as $code => $name) {
+            $addressTran = $addressTrans->where('language_name', $code)->first();
+            $ngoTran = $ngoTrans->where('language_name', $code)->first();
+            $addressTran->update([
+                'area' => $request["area_{$name}"],
+            ]);
+            $ngoTran->update([
+                'name' => $request["name_{$name}"],
+            ]);
+        }
+        $email->save();
+        $contact->save();
+        $ngo->save();
+        $address->save();
+
+        // Step.2 
+        // Agreement
+        $agreement = Agreement::create([
+            'ngo_id' => $ngo->id,
+            "agreement_no" => ""
+        ]);
+        $agreement->agreement_no = "AG" . '-' . Carbon::now()->year . '-' . $agreement->id;
+        $agreement->save();
+        NgoStatus::where('ngo_id', $ngo->id)->update(['is_active' => false]);
+        NgoStatus::create([
+            'ngo_id' => $ngo->id,
+            'user_id' => $request->user()->id,
+            "is_active" => true,
+            'status_type_id' => StatusTypeEnum::register_form_completed,
+            'comment' => 'Extend Form Complete',
+        ]);
+        // Step.3 
+        // Director with Agreement
+        $director = null;
+        if ($request->new_director == true) {
+            // New director is assigned
+            $result = $this->storeDirector($ngo->id, $request);
+            if (!$result['success']) {
+                return $result['response'];
+            }
+            $director = $result['director'];
+        } else {
+            $director = $request->prev_dire;
+        }
+        AgreementDirector::create([
+            'agreement_id' => $agreement->id,
+            'director_id' => $director->id
+        ]);
+
+
+        // Step.4
+
 
         // 3. Ensure task exists before proceeding
         $task = $this->pendingTaskRepository->pendingTaskExist(
@@ -177,8 +262,6 @@ class ExtendNgoController extends Controller
         ]);
         $agreement->agreement_no = "AG" . '-' . Carbon::now()->year . '-' . $agreement->id;
         $agreement->save();
-
-
 
         $directorDocumentsId = [];
         $representerDocumentId = '';

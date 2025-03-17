@@ -2,12 +2,7 @@
 
 namespace App\Http\Controllers\api\app\ngo;
 
-use Carbon\Carbon;
-use App\Models\Ngo;
-use App\Models\Document;
-use App\Models\Agreement;
 use App\Enums\LanguageEnum;
-use App\Models\PendingTask;
 use App\Traits\Ngo\NgoTrait;
 use Illuminate\Http\Request;
 use App\Enums\Type\TaskTypeEnum;
@@ -16,7 +11,6 @@ use App\Models\PendingTaskContent;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
-use App\Models\Email;
 use App\Traits\Address\AddressTrait;
 use App\Repositories\ngo\NgoRepositoryInterface;
 use App\Repositories\Task\PendingTaskRepositoryInterface;
@@ -111,33 +105,7 @@ class ViewsNgoController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    public function startExtendForm(Request $request, $ngo_id)
-    {
-        $pendingTaskContent = $this->pendingTask($request, $ngo_id);
-        if ($pendingTaskContent['content']) {
-            return response()->json([
-                'message' => __('app_translation.success'),
-                'content' => $pendingTaskContent['content']
-            ], 200);
-        }
 
-        $locale = App::getLocale();
-        $query = $this->ngoRepository->ngo($ngo_id);  // Start with the base query
-        $data = $this->ngoRepository->afterRegisterFormInfo($query, $ngo_id, $locale);
-        if (!$data) {
-            return response()->json([
-                'message' => __('app_translation.ngo_not_found'),
-            ], 404);
-        } else if ($data['status_type_id'] != StatusTypeEnum::register_form_not_completed->value) {
-            return response()->json([
-                'message' => __('app_translation.unauthorized'),
-            ], 401);
-        }
-
-        return response()->json([
-            'ngo' => $data,
-        ], 200, [], JSON_UNESCAPED_UNICODE);
-    }
     public function startRegisterForm(Request $request, $ngo_id)
     {
         $locale = App::getLocale();
@@ -162,6 +130,28 @@ class ViewsNgoController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
+    public function startExtendForm(Request $request, $ngo_id)
+    {
+        $locale = App::getLocale();
+        $pendingTaskContent = $this->pendingTask($request, $ngo_id);
+        if ($pendingTaskContent['content']) {
+            return response()->json([
+                'message' => __('app_translation.success'),
+                'content' => $pendingTaskContent['content']
+            ], 200);
+        }
+
+        $data = $this->ngoRepository->afterRegisterFormInfo($ngo_id, $locale);
+        if (!$data) {
+            return response()->json([
+                'message' => __('app_translation.ngo_not_found'),
+            ], 404);
+        }
+
+        return response()->json([
+            'ngo' => $data,
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
     public function currentStatus($ngo_id)
     {
         $locale = App::getLocale();
@@ -212,7 +202,6 @@ class ViewsNgoController extends Controller
                 'content' => $pendingTask ? $pendingTask->content : null
             ];
         }
-
         return [
             'content' => null
         ];

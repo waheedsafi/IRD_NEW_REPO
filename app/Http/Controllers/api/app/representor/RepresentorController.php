@@ -89,12 +89,13 @@ class RepresentorController extends Controller
         $locale = App::getLocale();
         $representor = DB::table('representers as r')
             ->where('r.ngo_id', $ngo_id)
-            ->leftJoin('agreements as a', function ($join) {
-                $join->on('a.representer_id', '=', 'r.id');
-            })
             ->join('representer_trans as rt', function ($join) use ($locale) {
                 $join->on('r.id', '=', 'rt.representer_id')
                     ->where('rt.language_name', $locale);
+            })
+            ->join('agreement_representers as ar', 'ar.representer_id', '=', 'r.id')
+            ->join('agreements as a', function ($join) {
+                $join->on('a.id', '=', 'ar.agreement_id');
             })
             ->join('users as u', 'r.user_id', '=', 'u.id')
             ->select(
@@ -292,5 +293,23 @@ class RepresentorController extends Controller
             ->select('ad.id')
             ->first();
         AgreementDocument::where('id', $id->id)->update(['document_id' => $document_id]);
+    }
+    public function ngoRepresentorsName($id)
+    {
+        $locale = App::getLocale();
+        // Joining necessary tables to fetch the NGO data
+        $representers = DB::table('representers as r')
+            ->where('r.ngo_id', $id)
+            ->join('representer_trans as rt', function ($join) use ($locale) {
+                $join->on('r.id', '=', 'rt.representer_id')
+                    ->where('rt.language_name', $locale);
+            })
+            ->select(
+                'r.id',
+                "rt.full_name as name"
+            )
+            ->get();
+
+        return response()->json($representers, 200, [], JSON_UNESCAPED_UNICODE);
     }
 }

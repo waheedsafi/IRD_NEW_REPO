@@ -12,6 +12,7 @@ use App\Enums\LanguageEnum;
 use App\Models\AddressTran;
 use Illuminate\Http\Request;
 use App\Enums\Type\StatusTypeEnum;
+use App\Traits\Helper\HelperTrait;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
@@ -20,6 +21,7 @@ use App\Http\Requests\app\ngo\NgoUpdatedMoreInformationRequest;
 
 class EditesNgoController extends Controller
 {
+    use HelperTrait;
     public function updateInfo(NgoInfoUpdateRequest $request)
     {
         $request->validated();
@@ -69,7 +71,6 @@ class EditesNgoController extends Controller
 
         // 4. Update Ngo information
         $ngo->abbr = $request->abbr;
-        $ngo->registration_no = $request->registration_no;
         $ngo->moe_registration_no = $request->moe_registration_no;
         $ngo->date_of_establishment = $request->establishment_date;
         $ngo->place_of_establishment = $request->country['id'];
@@ -189,7 +190,8 @@ class EditesNgoController extends Controller
                 'ngo_id' => $validatedData['ngo_id'],
                 'comment' => $validatedData['comment'],
                 'is_active' => 1,
-                "user_id" => $authUser->id
+                'userable_id' => $authUser->id,
+                'userable_type' => $this->getModelName(get_class($authUser)),
             ]);
             $status->is_active = 0;
             $status->save();

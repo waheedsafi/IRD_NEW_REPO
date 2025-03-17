@@ -25,13 +25,8 @@ class LocationController extends Controller
         return response()->json($tr);
     }
 
-    public function provinces(Request $request)
+    public function provinces($country_id)
     {
-        $request->validate([
-            'country_id' => 'required',
-        ]);
-        $country_id = $request->input('country_id');
-
         $locale = App::getLocale();
         $tr = DB::table('provinces as p')
             ->where('p.country_id', $country_id)
@@ -44,12 +39,8 @@ class LocationController extends Controller
         return response()->json($tr);
     }
 
-    public function districts(Request $request)
+    public function districts($province_id)
     {
-        $request->validate([
-            'province_id' => 'required',
-        ]);
-        $province_id = $request->input('province_id');
         $locale = App::getLocale();
         $tr = DB::table('districts as d')
             ->where('d.province_id', $province_id)

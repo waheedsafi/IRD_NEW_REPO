@@ -41,6 +41,29 @@ class CheckListController extends Controller
             'checklist' => $this->getChecklistsWithExclude($exclude)
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
+    public function ngoExtend()
+    {
+        $exclude = [
+            CheckListEnum::director_work_permit->value,
+            CheckListEnum::ngo_register_form_en->value,
+            CheckListEnum::ngo_register_form_fa->value,
+            CheckListEnum::ngo_register_form_ps->value,
+        ];
+        return response()->json([
+            'checklist' => $this->getChecklistsWithExclude($exclude)
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+    public function ngoExtendAbroadDirector()
+    {
+        $exclude = [
+            CheckListEnum::ngo_register_form_en->value,
+            CheckListEnum::ngo_register_form_fa->value,
+            CheckListEnum::ngo_register_form_ps->value,
+        ];
+        return response()->json([
+            'checklist' => $this->getChecklistsWithExclude($exclude)
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
     public function projectRegister()
     {
         $tr =  [];
@@ -225,28 +248,6 @@ class CheckListController extends Controller
         );
     }
 
-    public function validationChecklist($id)
-    {
-        $checklist = DB::table('check_lists as cl')
-            ->where('cl.id', $id)
-            ->where('cl.active', true)
-            ->select(
-                'cl.id',
-                'cl.acceptable_mimes',
-                'cl.acceptable_extensions',
-                'cl.description',
-                'cl.file_size',
-            )
-            ->first();
-
-
-        return response()->json(
-            $checklist,
-            200,
-            [],
-            JSON_UNESCAPED_UNICODE
-        );
-    }
     public function checklist($id)
     {
         $locale = App::getLocale();
@@ -418,5 +419,26 @@ class CheckListController extends Controller
             )
             ->orderBy('cl.id')
             ->get();
+    }
+
+    public function validationChecklist($id)
+    {
+        $checklist = DB::table('check_lists as cl')
+            ->where('cl.id', $id)
+            ->where('cl.active', true)
+            ->select(
+                'cl.id',
+                'cl.acceptable_mimes',
+                'cl.acceptable_extensions',
+                'cl.description',
+                'cl.file_size',
+            )
+            ->first();
+        return response()->json(
+            $checklist,
+            200,
+            [],
+            JSON_UNESCAPED_UNICODE
+        );
     }
 }
