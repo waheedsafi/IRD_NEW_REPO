@@ -43,10 +43,11 @@ use App\Models\RolePermissionSub;
 use App\Enums\DestinationTypeEnum;
 use App\Enums\Type\StatusTypeEnum;
 use App\Models\PendingTaskContent;
+use App\Traits\Helper\HelperTrait;
 use Illuminate\Support\Facades\DB;
 use App\Models\PendingTaskDocument;
-use Illuminate\Support\Facades\App;
 
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 use App\Enums\Type\ApprovalTypeEnum;
 use App\Traits\Address\AddressTrait;
@@ -62,6 +63,7 @@ class TestController extends Controller
 {
     protected $ngoRepository;
     protected $userRepository;
+    use HelperTrait;
 
     public function __construct(
         NgoRepositoryInterface $ngoRepository,
