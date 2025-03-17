@@ -104,6 +104,9 @@ class TestController extends Controller
     {
         $locale = App::getLocale(); // Current locale/language
         $ngo_id = 4;
+        $userModel = $this->getModelName(User::class);
+        $ngoModel = $this->getModelName(Ngo::class);
+
         return  $representor = DB::table('representers as r')
             ->where('r.ngo_id', $ngo_id)
             ->join('representer_trans as rt', function ($join) use ($locale) {
@@ -114,13 +117,19 @@ class TestController extends Controller
             ->join('agreements as a', function ($join) {
                 $join->on('a.id', '=', 'ar.agreement_id');
             })
-            ->leftJoin('users as u', function ($join) {
+            ->leftJoin('users as u', function ($join) use ($userModel) {
                 $join->on('r.userable_id', '=', 'u.id')
-                    ->where('r.userable_type',);
+                    ->where('r.userable_type', $userModel);
+            })
+            ->leftJoin('ngos as n', function ($join) use ($ngoModel) {
+                $join->on('r.userable_id', '=', 'n.id')
+                    ->where('r.userable_type', $ngoModel);
             })
             ->select(
                 'r.id',
                 'r.is_active',
+                'r.userable_id',
+                'r.userable_type',
                 'r.created_at',
                 'rt.full_name',
                 'u.username',

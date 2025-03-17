@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\api\app\representor;
 
+use App\Models\Ngo;
+use App\Models\User;
 use App\Models\Agreement;
 use App\Enums\LanguageEnum;
 use App\Models\Representer;
 use App\Models\RepresenterTran;
 use App\Models\AgreementDocument;
+use App\Traits\Helper\HelperTrait;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
@@ -17,7 +20,7 @@ use App\Http\Requests\app\representor\UpdateRepresentorRequest;
 
 class RepresentorController extends Controller
 {
-    use PendingFileTrait;
+    use PendingFileTrait, HelperTrait;
     public function ngoRepresentor($id)
     {
         $representor = DB::table('representers as r')
@@ -87,6 +90,9 @@ class RepresentorController extends Controller
     public function ngoRepresentors($ngo_id)
     {
         $locale = App::getLocale();
+        $representor = $userModel = $this->getModelName(User::class);
+        $ngoModel = $this->getModelName(Ngo::class);
+
         $representor = DB::table('representers as r')
             ->where('r.ngo_id', $ngo_id)
             ->join('representer_trans as rt', function ($join) use ($locale) {
@@ -97,10 +103,19 @@ class RepresentorController extends Controller
             ->join('agreements as a', function ($join) {
                 $join->on('a.id', '=', 'ar.agreement_id');
             })
-            ->join('users as u', 'r.user_id', '=', 'u.id')
+            ->leftJoin('users as u', function ($join) use ($userModel) {
+                $join->on('r.userable_id', '=', 'u.id')
+                    ->where('r.userable_type', $userModel);
+            })
+            ->leftJoin('ngos as n', function ($join) use ($ngoModel) {
+                $join->on('r.userable_id', '=', 'n.id')
+                    ->where('r.userable_type', $ngoModel);
+            })
             ->select(
                 'r.id',
                 'r.is_active',
+                'r.userable_id',
+                'r.userable_type',
                 'r.created_at',
                 'rt.full_name',
                 'u.username',
