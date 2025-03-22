@@ -218,15 +218,17 @@ class NgoRepository implements NgoRepositoryInterface
         $query = $this->ngo($ngo_id);
         $this->statusJoinAll($query)
             ->statusTypeTransJoin($query, $locale);
-        return $query->select(
-            'n.id as ngo_id',
-            'ns.id',
-            'ns.comment',
-            'ns.status_type_id',
-            'stt.name',
-            'ns.is_active',
-            'ns.created_at',
-        )->get();
+        return $query
+            ->select(
+                'n.id as ngo_id',
+                'ns.id',
+                'ns.comment',
+                'ns.status_type_id',
+                'stt.name',
+                'ns.userable_type',
+                'ns.is_active',
+                'ns.created_at',
+            )->get();
     }
     // Joins
     public function ngo($id = null)
@@ -254,7 +256,7 @@ class NgoRepository implements NgoRepositoryInterface
     }
     public function statusJoin($query)
     {
-        $query->leftjoin('ngo_statuses as ns', function ($join) {
+        $query->join('ngo_statuses as ns', function ($join) {
             $join->on('ns.ngo_id', '=', 'n.id')
                 ->where('ns.is_active', true);
             // ->whereRaw('ns.created_at = (select max(ns2.created_at) from ngo_statuses as ns2 where ns2.ngo_id = n.id)');
@@ -263,14 +265,14 @@ class NgoRepository implements NgoRepositoryInterface
     }
     public function statusJoinAll($query)
     {
-        $query->leftJoin('ngo_statuses as ns', function ($join) {
+        $query->join('ngo_statuses as ns', function ($join) {
             $join->on('ns.ngo_id', '=', 'n.id');
         });
         return $this;
     }
     public function statusTypeTransJoin($query, $locale)
     {
-        $query->leftjoin('status_type_trans as stt', function ($join) use ($locale) {
+        $query->join('status_type_trans as stt', function ($join) use ($locale) {
             $join->on('stt.status_type_id', '=', 'ns.status_type_id')
                 ->where('stt.language_name', $locale);
         });
@@ -302,22 +304,22 @@ class NgoRepository implements NgoRepositoryInterface
     }
     public function emailJoin($query)
     {
-        $query->leftJoin('emails as e', 'e.id', '=', 'n.email_id');
+        $query->join('emails as e', 'e.id', '=', 'n.email_id');
         return $this;
     }
     public function contactJoin($query)
     {
-        $query->leftJoin('contacts as c', 'c.id', '=', 'n.contact_id');
+        $query->join('contacts as c', 'c.id', '=', 'n.contact_id');
         return $this;
     }
     public function addressJoin($query)
     {
-        $query->leftJoin('addresses as a', 'a.id', '=', 'n.address_id');
+        $query->join('addresses as a', 'a.id', '=', 'n.address_id');
         return $this;
     }
     public function agreementJoin($query)
     {
-        $query->leftJoin('agreements as ag', function ($join) {
+        $query->join('agreements as ag', function ($join) {
             $join->on('n.id', '=', 'ag.ngo_id')
                 ->whereRaw('ag.end_date = (select max(ns2.end_date) from agreements as ns2 where ns2.ngo_id = n.id)');
         });

@@ -7,7 +7,7 @@ use App\Http\Controllers\api\app\checklist\CheckListController;
 
 
 
-Route::prefix('v1')->middleware(['api.key', "doubleAuthorized:" . 'user:api,ngo:api'])->group(function () {
+Route::prefix('v1')->middleware(['api.key', "multiAuthorized:" . 'user:api,ngo:api'])->group(function () {
   Route::get('checklists', [CheckListController::class, 'checklists']);
   Route::get('ngo/checklist/types', [CheckListController::class, 'checklistTypes']);
   Route::get('project/register/checklist', [CheckListController::class, 'projectRegister']);

@@ -20,10 +20,6 @@ return new class extends Migration
                 ->onUpdate('cascade')
                 ->onDelete('no action');
             $table->boolean('is_active')->default(false);
-            $table->unsignedBigInteger('document_id')->nullable();
-            $table->foreign('document_id')->references('id')->on('documents')
-                ->onUpdate('cascade')
-                ->onDelete('no action');
             $table->timestamps();
         });
     }

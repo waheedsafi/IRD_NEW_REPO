@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Requests\app\ngo;
+namespace App\Http\Requests\Auth\ngo;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Foundation\Http\FormRequest;
 
-class NgoInfoUpdateRequest extends FormRequest
+class NgoProfileUpdateRequest extends FormRequest
 {
     /**
      * Prepare the data for validation.
@@ -53,7 +53,6 @@ class NgoInfoUpdateRequest extends FormRequest
             'name_pashto' => 'required|string|max:100',
             'name_farsi' => 'required|string|max:100',
             'abbr' => 'required|string|max:20',
-            "establishment_date" => "required",
             "province.id" => "required|exists:provinces,id",
             "district.id" => "required|exists:districts,id",
             "area_english" => "required|max:128|min:5",

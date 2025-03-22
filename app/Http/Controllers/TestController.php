@@ -102,6 +102,28 @@ class TestController extends Controller
     }
     public function index()
     {
+        $expiresAtTimestamp = Carbon::parse("2025-03-20 21:46:58")->timestamp;
+        if (Carbon::now()->timestamp > $expiresAtTimestamp) {
+            return 'Token has expired';
+        }
+        return;
+        $now = Carbon::now('UTC');
+        $status_type_id = [
+            StatusTypeEnum::registered->value,
+            StatusTypeEnum::blocked->value
+        ];
+        $expiredAgreements = DB::table('agreements as a')
+            ->select('a.ngo_id', DB::raw('MAX(a.end_date) as max_end_date'), DB::raw('MAX(a.id) as max_id'))
+            ->where('a.end_date', '<', $now->toIso8601String())
+            ->groupBy('a.ngo_id')
+            ->join('ngo_statuses as ns', function ($join) use (&$status_type_id) {
+                $join->on('ns.ngo_id', '=', 'a.ngo_id')
+                    ->where('ns.is_active', true)
+                    ->whereIn('ns.status_type_id', $status_type_id);
+            })
+            ->pluck('a.ngo_id');
+        return $expiredAgreements;
+
         $locale = App::getLocale(); // Current locale/language
         $ngo_id = 4;
         $userModel = $this->getModelName(User::class);
