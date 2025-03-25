@@ -10,10 +10,6 @@ use App\Http\Controllers\Controller;
 
 class UserLoginLogController extends Controller
 {
-    //
-
-
-
     public function logs(Request $request)
     {
         $locale = App::getLocale();
@@ -23,20 +19,22 @@ class UserLoginLogController extends Controller
 
         // Start building the query
         $query = DB::table('user_login_logs as log')
-            ->leftJoin(DB::raw('(SELECT id, username, "User" as user_type FROM users 
+            ->leftJoin(DB::raw('(SELECT id, username, profile, "User" as user_type FROM users 
                              UNION ALL 
-                             SELECT id, username, "Ngo" as user_type FROM ngos) as usr'), function ($join) {
+                             SELECT id, username, profile, "Ngo" as user_type FROM ngos) as usr'), function ($join) {
                 $join->on('log.userable_id', '=', 'usr.id')
                     ->whereRaw('log.userable_type = usr.user_type');
             })
             ->select(
                 "log.id",
                 "usr.username",
+                "usr.profile",
                 "log.userable_type",
                 "log.action",
                 "log.ip_address",
                 "log.browser",
-                "log.device"
+                "log.device",
+                "log.created_at as date",
             );
 
         // Fetch results
@@ -95,17 +93,7 @@ class UserLoginLogController extends Controller
     // filter function
     protected function applyFilters($query, $request)
     {
-
-        $sort = $request->input('filters.sort'); // Sorting column
         $order = $request->input('filters.order', 'asc'); // Sorting order (default 
-        $allowedColumns = [
-            'action' => 'log.action',
-            'created_at' => 'log.created_at',
-            'username' => 'usr.username',
-
-        ];
-        if (in_array($sort, array_keys($allowedColumns))) {
-            $query->orderBy($allowedColumns[$sort], $order);
-        }
+        $query->orderBy('log.id', $order);
     }
 }
