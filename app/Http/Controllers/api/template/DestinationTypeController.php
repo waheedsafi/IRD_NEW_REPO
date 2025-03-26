@@ -24,63 +24,63 @@ class DestinationTypeController extends Controller
             })->select('dt.id', 'dtt.value as name')->get();
         return response()->json($tr, 200, [], JSON_UNESCAPED_UNICODE);
     }
-    public function store(DestinationTypeStoreRequest $request)
-    {
-        $payload = $request->validated();
-        try {
-            // 1. Create
-            $destinationType = DestinationType::create([
-                "name" => $payload["english"]
-            ]);
-            if ($destinationType) {
-                // 1. Translate
-                $this->TranslateFarsi($payload["farsi"], $destinationType->id, DestinationType::class);
-                $this->TranslatePashto($payload["pashto"], $destinationType->id, DestinationType::class);
-                // Get local
-                $locale = App::getLocale();
-                if ($locale === LanguageEnum::default->value) {
-                    return response()->json([
-                        'message' => __('app_translation.success'),
-                        'destinationType' => [
-                            "id" => $destinationType->id,
-                            "name" => $destinationType->name,
-                            "createdAt" => $destinationType->created_at
-                        ]
-                    ], 200, [], JSON_UNESCAPED_UNICODE);
-                } else if ($locale === LanguageEnum::pashto->value) {
-                    return response()->json([
-                        'message' => __('app_translation.success'),
-                        'destinationType' => [
-                            "id" => $destinationType->id,
-                            "name" => $payload["pashto"],
-                            "createdAt" => $destinationType->created_at
-                        ]
-                    ], 200, [], JSON_UNESCAPED_UNICODE);
-                } else {
-                    return response()->json([
-                        'message' => __('app_translation.success'),
-                        'destinationType' => [
-                            "id" => $destinationType->id,
-                            "name" => $payload["farsi"],
-                            "createdAt" => $destinationType->created_at
-                        ]
-                    ], 200, [], JSON_UNESCAPED_UNICODE);
-                }
+    // public function store(DestinationTypeStoreRequest $request)
+    // {
+    //     $payload = $request->validated();
+    //     try {
+    //         // 1. Create
+    //         $destinationType = DestinationType::create([
+    //             "name" => $payload["english"]
+    //         ]);
+    //         if ($destinationType) {
+    //             // 1. Translate
+    //             $this->TranslateFarsi($payload["farsi"], $destinationType->id, DestinationType::class);
+    //             $this->TranslatePashto($payload["pashto"], $destinationType->id, DestinationType::class);
+    //             // Get local
+    //             $locale = App::getLocale();
+    //             if ($locale === LanguageEnum::default->value) {
+    //                 return response()->json([
+    //                     'message' => __('app_translation.success'),
+    //                     'destinationType' => [
+    //                         "id" => $destinationType->id,
+    //                         "name" => $destinationType->name,
+    //                         "createdAt" => $destinationType->created_at
+    //                     ]
+    //                 ], 200, [], JSON_UNESCAPED_UNICODE);
+    //             } else if ($locale === LanguageEnum::pashto->value) {
+    //                 return response()->json([
+    //                     'message' => __('app_translation.success'),
+    //                     'destinationType' => [
+    //                         "id" => $destinationType->id,
+    //                         "name" => $payload["pashto"],
+    //                         "createdAt" => $destinationType->created_at
+    //                     ]
+    //                 ], 200, [], JSON_UNESCAPED_UNICODE);
+    //             } else {
+    //                 return response()->json([
+    //                     'message' => __('app_translation.success'),
+    //                     'destinationType' => [
+    //                         "id" => $destinationType->id,
+    //                         "name" => $payload["farsi"],
+    //                         "createdAt" => $destinationType->created_at
+    //                     ]
+    //                 ], 200, [], JSON_UNESCAPED_UNICODE);
+    //             }
 
-                return response()->json([
-                    'message' => __('app_translation.success'),
-                ], 200, [], JSON_UNESCAPED_UNICODE);
-            } else
-                return response()->json([
-                    'message' => __('app_translation.failed'),
-                ], 400, [], JSON_UNESCAPED_UNICODE);
-        } catch (Exception $err) {
-            Log::info('User login error =>' . $err->getMessage());
-            return response()->json([
-                'message' => __('app_translation.server_error')
-            ], 500, [], JSON_UNESCAPED_UNICODE);
-        }
-    }
+    //             return response()->json([
+    //                 'message' => __('app_translation.success'),
+    //             ], 200, [], JSON_UNESCAPED_UNICODE);
+    //         } else
+    //             return response()->json([
+    //                 'message' => __('app_translation.failed'),
+    //             ], 400, [], JSON_UNESCAPED_UNICODE);
+    //     } catch (Exception $err) {
+    //         Log::info('User login error =>' . $err->getMessage());
+    //         return response()->json([
+    //             'message' => __('app_translation.server_error')
+    //         ], 500, [], JSON_UNESCAPED_UNICODE);
+    //     }
+    // }
     public function destroy($id)
     {
         $destinationType = DestinationType::find($id);

@@ -53,6 +53,10 @@ trait HelperTrait
     {
         return storage_path() . "/app/{$filePath}";
     }
+    public function getPrivatePath($filePath)
+    {
+        return storage_path() . "/app/private/{$filePath}";
+    }
     public function getPublicPath($filePath)
     {
         return storage_path() . "/app/public/{$filePath}";

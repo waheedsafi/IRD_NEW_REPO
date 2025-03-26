@@ -14,8 +14,7 @@ use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
 use App\Traits\Address\AddressTrait;
 use App\Repositories\ngo\NgoRepositoryInterface;
-use Illuminate\Foundation\Console\ViewMakeCommand;
-use App\Repositories\Task\PendingTaskRepositoryInterface;
+use App\Repositories\PendingTask\PendingTaskRepositoryInterface;
 
 class DeletesNgoController extends Controller
 {

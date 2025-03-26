@@ -8,7 +8,6 @@ require __DIR__ . '/api/template/job.php';
 require __DIR__ . '/api/template/role.php';
 require __DIR__ . '/api/template/permission.php';
 require __DIR__ . '/api/template/media.php';
-require __DIR__ . '/api/template/notification.php';
 require __DIR__ . '/api/template/profile.php';
 require __DIR__ . '/api/template/application.php';
 require __DIR__ . '/api/template/log.php';

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\api\template\task;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Repositories\Task\PendingTaskRepositoryInterface;
+use App\Repositories\PendingTask\PendingTaskRepositoryInterface;
 
 class PendingTaskController extends Controller
 {

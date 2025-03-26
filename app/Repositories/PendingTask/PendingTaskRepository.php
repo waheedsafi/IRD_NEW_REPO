@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repositories\Task;
+namespace App\Repositories\PendingTask;
 
 use App\Models\Agreement;
 use App\Models\AgreementDocument;

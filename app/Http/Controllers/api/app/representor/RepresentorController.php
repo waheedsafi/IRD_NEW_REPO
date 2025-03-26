@@ -11,18 +11,18 @@ use App\Models\Representer;
 use App\Models\RepresenterTran;
 use App\Enums\Type\TaskTypeEnum;
 use App\Models\AgreementDocument;
+use App\Enums\Type\StatusTypeEnum;
 use App\Traits\Helper\HelperTrait;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
 use App\Models\AgreementRepresenter;
+use App\Models\RepresentorDocuments;
 use App\Enums\CheckList\CheckListEnum;
-use App\Enums\Type\StatusTypeEnum;
 use App\Repositories\Storage\StorageRepositoryInterface;
-use App\Repositories\Task\PendingTaskRepositoryInterface;
 use App\Http\Requests\app\representor\StoreRepresentorRequest;
 use App\Http\Requests\app\representor\UpdateRepresentorRequest;
-use App\Models\RepresentorDocuments;
+use App\Repositories\PendingTask\PendingTaskRepositoryInterface;
 use App\Repositories\Representative\RepresentativeRepositoryInterface;
 
 class RepresentorController extends Controller
@@ -375,7 +375,7 @@ class RepresentorController extends Controller
                 ->get();
             foreach ($docsToDelete as $document) {
                 // Perform some action with each document, for example, deleting it
-                $this->deleteFile($document->path);
+                $this->deleteDocument($this->getPrivatePath($document->path));
                 DB::table('documents')->where('id', $document->id)->delete();
             }
         }

@@ -38,13 +38,13 @@ use Illuminate\Support\Facades\Hash;
 use App\Enums\CheckList\CheckListEnum;
 use App\Http\Requests\app\ngo\NgoRegisterRequest;
 use App\Http\Requests\app\ngo\NgoInitStoreRequest;
-use App\Repositories\Task\PendingTaskRepositoryInterface;
+use App\Repositories\Storage\StorageRepositoryInterface;
 use App\Repositories\Approval\ApprovalRepositoryInterface;
 use App\Repositories\Director\DirectorRepositoryInterface;
 use App\Http\Requests\app\ngo\StoreSignedRegisterFormRequest;
+use App\Repositories\PendingTask\PendingTaskRepositoryInterface;
 use App\Repositories\Notification\NotificationRepositoryInterface;
 use App\Repositories\Representative\RepresentativeRepositoryInterface;
-use App\Repositories\Storage\StorageRepositoryInterface;
 
 class StoresNgoController extends Controller
 {

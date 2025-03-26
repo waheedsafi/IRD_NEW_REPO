@@ -5,22 +5,22 @@ namespace App\Providers;
 use App\Repositories\ngo\NgoRepository;
 use Illuminate\Support\ServiceProvider;
 use App\Repositories\User\UserRepository;
+use App\Repositories\Storage\StorageRepository;
 use App\Repositories\ngo\NgoRepositoryInterface;
-use App\Repositories\Task\PendingTaskRepository;
 use App\Repositories\Approval\ApprovalRepository;
+use App\Repositories\Director\DirectorRepository;
 use App\Repositories\User\UserRepositoryInterface;
 use App\Repositories\Permission\PermissionRepository;
-use App\Repositories\Notification\NotificationRepository;
-use App\Repositories\Task\PendingTaskRepositoryInterface;
-use App\Repositories\Approval\ApprovalRepositoryInterface;
-use App\Repositories\Director\DirectorRepository;
-use App\Repositories\Director\DirectorRepositoryInterface;
-use App\Repositories\Permission\PermissionRepositoryInterface;
-use App\Repositories\Notification\NotificationRepositoryInterface;
-use App\Repositories\Representative\RepresentativeRepository;
-use App\Repositories\Representative\RepresentativeRepositoryInterface;
-use App\Repositories\Storage\StorageRepository;
+use App\Repositories\PendingTask\PendingTaskRepository;
 use App\Repositories\Storage\StorageRepositoryInterface;
+use App\Repositories\Notification\NotificationRepository;
+use App\Repositories\Approval\ApprovalRepositoryInterface;
+use App\Repositories\Director\DirectorRepositoryInterface;
+use App\Repositories\Representative\RepresentativeRepository;
+use App\Repositories\Permission\PermissionRepositoryInterface;
+use App\Repositories\PendingTask\PendingTaskRepositoryInterface;
+use App\Repositories\Notification\NotificationRepositoryInterface;
+use App\Repositories\Representative\RepresentativeRepositoryInterface;
 
 class AppServiceProvider extends ServiceProvider
 {

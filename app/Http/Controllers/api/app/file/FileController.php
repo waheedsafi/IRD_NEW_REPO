@@ -8,7 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Repositories\ngo\NgoRepositoryInterface;
 use Pion\Laravel\ChunkUpload\Receiver\FileReceiver;
 use Pion\Laravel\ChunkUpload\Handler\HandlerFactory;
-use App\Repositories\Task\PendingTaskRepositoryInterface;
+use App\Repositories\PendingTask\PendingTaskRepositoryInterface;
 use Pion\Laravel\ChunkUpload\Exceptions\UploadMissingFileException;
 
 class FileController extends Controller

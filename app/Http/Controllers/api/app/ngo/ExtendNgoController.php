@@ -25,8 +25,8 @@ use App\Models\AgreementRepresenter;
 use App\Enums\CheckList\CheckListEnum;
 use App\Http\Requests\app\ngo\ExtendNgoRequest;
 use App\Repositories\Storage\StorageRepositoryInterface;
-use App\Repositories\Task\PendingTaskRepositoryInterface;
 use App\Repositories\Director\DirectorRepositoryInterface;
+use App\Repositories\PendingTask\PendingTaskRepositoryInterface;
 use App\Repositories\Representative\RepresentativeRepositoryInterface;
 
 class ExtendNgoController extends Controller
