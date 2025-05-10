@@ -169,6 +169,8 @@ class UserAuthController extends Controller
 
     public function logout(Request $request)
     {
+        $this->storeUserLog($request, $request->user()->id, StringUtils::getModelName(User::class), "Logout");
+
         $request->user()->invalidateToken(); // Calls the invalidateToken method defined in the trait
         return response()->json([
             'message' => __('app_translation.user_logged_out_success')
