@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\api\template\approval;
+namespace App\Http\Controllers\api\app\approval;
 
 use Carbon\Carbon;
 use App\Models\Ngo;

@@ -45,7 +45,6 @@ return Application::configure(basePath: dirname(__DIR__))
                 'allowAdminOrSuper'  => AllowAdminOrSuperMiddleware::class,
                 'apiAllowedUser'  => AllowedApiUserMiddleware::class,
                 'accessUserCheck'  => AccessUserCheckMiddleware::class,
-                'api.key' => ValidateApiKey::class,
             ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

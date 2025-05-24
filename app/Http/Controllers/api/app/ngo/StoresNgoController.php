@@ -442,30 +442,9 @@ class StoresNgoController extends Controller
                 [],
                 JSON_UNESCAPED_UNICODE
             );
-        } else {
-            $start_date = Carbon::parse($request->start_date);
-            $end_date = Carbon::parse($request->end_date);
-            $gapInDays = ceil($start_date->diffInDays($end_date));
-            if ($gapInDays < $expirationDate->days) {
-                return response()->json(
-                    [
-                        'message' => __('app_translation.date_is_smaller') . " " . ($expirationDate->days / 365) . ' ' . __('app_translation.year') . ' => ' . $gapInDays,
-                    ],
-                    500,
-                    [],
-                    JSON_UNESCAPED_UNICODE
-                );
-            } else if ($gapInDays > $expirationDate->days) {
-                return response()->json(
-                    [
-                        'message' => __('app_translation.date_is_bigger') . " " . ($expirationDate->days / 365) . ' ' . __('app_translation.year') . ' => ' . $gapInDays,
-                    ],
-                    500,
-                    [],
-                    JSON_UNESCAPED_UNICODE
-                );
-            }
         }
+        $start_date = Carbon::parse($request->start_date);
+        $end_date = $start_date->copy()->addDays((int)$expirationDate->days);
 
         $agreement = Agreement::where('ngo_id', $ngo_id)
             ->where('end_date', null) // Order by end_date descending
@@ -535,8 +514,8 @@ class StoresNgoController extends Controller
             "notifier_type_id" => NotifierEnum::ngo_submitted_register_form->value,
             "message" => ""
         ]);
-        $agreement->start_date = $request->start_date;
-        $agreement->end_date = $request->end_date;
+        $agreement->start_date = $start_date;
+        $agreement->end_date = $end_date;
         $agreement->save();
         // Update ngo status
         NgoStatus::where('ngo_id', $ngo_id)->update(['is_active' => false]);

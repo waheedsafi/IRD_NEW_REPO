@@ -62,7 +62,7 @@ class DirectorRepository implements DirectorRepositoryInterface
             'nid_type_id' => $request['identity_type']['id'],
             'is_active' => $is_active,
             'gender_id' => $request['gender']['id'],
-            'country_id' => $request['nationality']['id'],
+            'nationality_id' => $request['nationality']['id'],
             'address_id' => $address->id,
             'email_id' => $email->id,
             'contact_id' => $contact->id,

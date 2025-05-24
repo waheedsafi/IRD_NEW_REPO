@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\api\template\log;
+namespace App\Http\Controllers\api\template;
 
 use App\Enums\RoleEnum;
 use Illuminate\Http\Request;

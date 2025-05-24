@@ -15,7 +15,7 @@ Route::prefix('v1')->group(function () {
   Route::get('/staff/public/technicalSupports', [AboutController::class, "publicTechnicalSupports"]);
   Route::get('/public/sliders', [AboutController::class, 'publicSliders']);
 });
-Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
+Route::prefix('v1')->middleware(["authorized:" . 'user:api'])->group(function () {
   Route::get('/staff/director', [AboutController::class, "director"]);
   Route::get('/staff/manager', [AboutController::class, "manager"]);
   Route::get('/staff/technicalSupports', [AboutController::class, "technicalSupports"]);

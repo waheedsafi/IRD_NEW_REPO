@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers\api\template;
 
-use App\Enums\LanguageEnum;
-use App\Http\Controllers\Controller;
+use Exception;
+use App\Models\Gender;
 use App\Models\Country;
 use App\Models\District;
 use App\Models\Province;
-use Exception;
+use App\Enums\LanguageEnum;
+use App\Models\NidTypeTrans;
+use Illuminate\Http\Request;
+use App\Models\NationalityTrans;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
 class ApplicationController extends Controller
 {
@@ -54,5 +57,36 @@ class ApplicationController extends Controller
             Log::info('User login error =>' . $err->getMessage());
             return response()->json(['message' => "Something went wrong please try again later!"], 500);
         }
+    }
+    public function nationalities()
+    {
+        $locale = App::getLocale();
+        $countryId = 2;
+        $nationality = NationalityTrans::select('nationality_id as id', 'value as name')
+            ->where('language_name', $locale)
+            ->orderByRaw("FIELD(nationality_id," . $countryId . ") DESC") // ID 2 will come first
+            ->get();
+
+        return  response()->json(
+            $nationality,
+            200,
+            [],
+            JSON_UNESCAPED_UNICODE
+        );
+    }
+    public function genders()
+    {
+        $locale = App::getLocale();
+        $gender = Gender::select('id', "name_{$locale} as name")->get();
+        return response()->json($gender);
+    }
+
+    public function nidTypes()
+    {
+        $locale = App::getLocale();
+        $nidtype =  NidTypeTrans::select('value as name', 'nid_type_id as id')
+            ->where('language_name', $locale)
+            ->get();
+        return response()->json($nidtype);
     }
 }

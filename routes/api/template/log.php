@@ -5,7 +5,7 @@ use App\Enums\PermissionEnum;
 use App\Enums\SubPermissionEnum;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\api\template\LogController;
-use App\Http\Controllers\api\template\log\UserLoginLogController;
+use App\Http\Controllers\api\template\UserLoginLogController;
 
 
 

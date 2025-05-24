@@ -4,10 +4,10 @@
 use App\Enums\PermissionEnum;
 use App\Enums\SubPermissionEnum;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\api\template\approval\ApprovalController;
+use App\Http\Controllers\api\app\approval\ApprovalController;
 
 
-Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
+Route::prefix('v1')->middleware(["authorized:" . 'user:api'])->group(function () {
   Route::get('pending/user/approvals', [ApprovalController::class, 'pendingUserApproval'])->middleware(["userHasSubViewPermission:" . PermissionEnum::approval->value . "," . SubPermissionEnum::pending_approval->value]);
   Route::get('approved/user/approvals', [ApprovalController::class, 'approvedUserApproval'])->middleware(["userHasSubViewPermission:" . PermissionEnum::approval->value . "," . SubPermissionEnum::approved_approval->value]);
   Route::get('rejected/user/approvals', [ApprovalController::class, 'rejectedUserApproval'])->middleware(["userHasSubViewPermission:" . PermissionEnum::approval->value . "," . SubPermissionEnum::rejected_approval->value]);

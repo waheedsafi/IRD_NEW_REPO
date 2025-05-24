@@ -9,7 +9,7 @@ use App\Enums\SubPermissionEnum;
 
 
 
-Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
+Route::prefix('v1')->middleware(["authorized:" . 'user:api'])->group(function () {
     Route::get('/users/record/count', [UserController::class, "userCount"])->middleware(["userHasMainViewPermission:" . PermissionEnum::users->value]);
     Route::get('/users', [UserController::class, "users"])->middleware(["userHasMainViewPermission:" . PermissionEnum::users->value]);
     Route::get('/user/{id}', [UserController::class, "user"])->middleware(['accessUserCheck', "userHasMainViewPermission:" . PermissionEnum::users->value]);

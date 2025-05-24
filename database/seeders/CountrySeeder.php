@@ -3,14 +3,16 @@
 namespace Database\Seeders;
 
 use App\Models\Country;
-use App\Models\CountryTrans;
 use App\Models\District;
-use App\Models\DistrictTrans;
 use App\Models\Province;
+use App\Models\CountryTrans;
+use App\Models\DistrictTrans;
+use App\Models\Nationality;
+use App\Models\NationalityTrans;
 use App\Models\ProvinceTrans;
-use App\Models\Translate;
 use Illuminate\Database\Seeder;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CountrySeeder extends Seeder
 {
@@ -19,10 +21,45 @@ class CountrySeeder extends Seeder
      */
     public function run(): void
     {
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+
+        // Truncate the tables
+        DB::table('countries')->truncate();
+        DB::table('country_trans')->truncate();
+        DB::table('provinces')->truncate();
+        DB::table('districts')->truncate();
+        DB::table('district_trans')->truncate();
+        DB::table('province_trans')->truncate();
+        DB::table('nationalities')->truncate();
+        DB::table('nationality_trans')->truncate();
+
+
+        // Re-enable foreign key checks
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+
         $country = [
+            "Saudi Arabia" => [
+                "fa" => "عربستان سعودی",
+                "ps" => "سعودي عربستان",
+                "nationality" => [
+                    "en" => "Saudi",
+                    "fa" => "سعودی",
+                    "ps" => "سعودی",
+
+                ],
+                "provinces" => []
+
+            ],
             "Afghanistan" => [
                 "fa" => "افغانستان",
                 "ps" => "افغانستان",
+                "nationality" => [
+                    "en" => "Afghan",
+                    "fa" => "افغان",
+                    "ps" => "افغان",
+
+                ],
                 "provinces" => [
                     "Kabul" => [
                         "fa" => "کابل",
@@ -66,6 +103,8 @@ class CountrySeeder extends Seeder
                             "Kushki Kuhna" => ["fa" => "کُشک کهنه", "ps" => "کُشک کهنه"],
                             "Obe" => ["fa" => "اوبه", "ps" => "اوبه"],
                             "Zinda Jan" => ["fa" => "زنده‌جان", "ps" => "زنده‌جان"],
+                            "Adraskan" => ["fa" => "ادرسکان", "ps" => "ادرسکان"],
+                            "Koshk Roobat Sangi" => ["fa" => "کوشک روبات سنګي", "ps" => "کوشک روبات سنګي"],
 
 
                         ]
@@ -92,6 +131,7 @@ class CountrySeeder extends Seeder
                             "Sholgara" => ["fa" => "شولگره", "ps" => "شولگره"],
                             "Shortepa" => ["fa" => "شورتپه", "ps" => "شورتپه"],
                             "Marmul" => ["fa" => "مارمَل", "ps" => "مارمَل"],
+                            "Balkh" => ["fa" => "بلخ", "ps" => "بلخ"],
 
 
                         ]
@@ -115,6 +155,9 @@ class CountrySeeder extends Seeder
                             "Reg" => ["fa" => "ریگستان", "ps" => "ریگستان"],
                             "Shorabak" => ["fa" => "شورابَک", "ps" => "شورابَک"],
                             "Spin Boldak" => ["fa" => "سپین‌بولدَک", "ps" => "سپین‌بولدَک"],
+                            "Nish" => ["fa" => "نیش", "ps" => "نیش"],
+                            "Takhta pul" => ["fa" => "تخته پل", "ps" => "تخته پل"],
+                            "Zhary" => ["fa" => "زهری ", "ps" => "زهری"],
 
 
                         ]
@@ -148,6 +191,7 @@ class CountrySeeder extends Seeder
                             "Rodat" => ["fa" => "رودات", "ps" => "رودات"],
                             "Sherzad" => ["fa" => "شیرزاد", "ps" => "شیرزاد"],
                             "Surkh Rod" => ["fa" => "سرخ‌رود", "ps" => "سرخ‌رود"],
+                            "Spin Ghar" => ["fa" => "سپین‌غر", "ps" => "سپین‌غر"],
 
 
 
@@ -180,8 +224,7 @@ class CountrySeeder extends Seeder
                             "Gelan" => ["fa" => "گېلان", "ps" => "گیلان"],
                             "Giro" => ["fa" => "گیرو", "ps" => "گېرو"],
                             "Jaghatū" => ["fa" => "جَغَتو", "ps" => "جغتو"],
-                            "Khogyani" => ["fa" => "خوگیانی
-                                ", "ps" => "خوگیاڼی "],
+                            "Khogyani" => ["fa" => "خوگیانی", "ps" => "خوگیاڼی "],
                             "Khwaja Umari" => ["fa" => "خواجه‌عُمری", "ps" => "خواجه عمري"],
                             "Malistan" => ["fa" => "مالستان", "ps" => "مالستان"],
                             "Muqur" => ["fa" => "مقر", "ps" => "مقر"],
@@ -190,6 +233,7 @@ class CountrySeeder extends Seeder
                             "Rashidan" => ["fa" => "رشیدان", "ps" => "راشیدان"],
                             "Waghaz" => ["fa" => "وغاز", "ps" => "وغاز"],
                             "Zana Khan" => ["fa" => "زنه خان", "ps" => "زنه‌خان"],
+                            "Wali-Mohammad Shahid" => ["fa" => " ولي محمد شهید", "ps" => "ولی محمد شهید"],
                         ]
                     ],
                     "Badakhshan" => [
@@ -222,6 +266,10 @@ class CountrySeeder extends Seeder
                             "Yaftali Sufla" => ["fa" => "یفتلِ پایین", "ps" => "یفتال سفله"],
                             "Yamgan" => ["fa" => "یَمَگان", "ps" => "یمگان "],
                             "Zebak" => ["fa" => "زیباک", "ps" => "زېباک"],
+                            "Maymy	" => ["fa" => "میمی ", "ps" => "میمی "],
+                            "Nussai	" => ["fa" => "نوسی ", "ps" => "نوسی "],
+                            "Koof	" => ["fa" => "کوف ", "ps" => "کوف"],
+                            "Khash	" => ["fa" => "خاش ", "ps" => "خاش"],
                         ]
                     ],
                     "Bamyan" => [
@@ -277,6 +325,8 @@ class CountrySeeder extends Seeder
                             "Namak Ab" => ["fa" => "نمک‌آب", "ps" => "نمک آب"],
                             "Rustaq" => ["fa" => "روستاق", "ps" => "رستاق"],
                             "Warsaj" => ["fa" => "ورساج", "ps" => "ورساج"],
+                            "Chaal" => ["fa" => "چال", "ps" => "چال"],
+                            "hazar Somuch " => ["fa" => "هزار سموچ", "ps" => "هزار سموچ"],
 
                         ]
                     ],
@@ -298,6 +348,8 @@ class CountrySeeder extends Seeder
                             "Zadran" => ["fa" => "زَدران", "ps" => "ځدران"],
                             "Zazi " => ["fa" => "جاجی", "ps" => "ځاځي"],
                             "Zurmat" => ["fa" => "زرمت", "ps" => "زرمت"],
+                            "Jaji Ali Khil" => ["fa" => "ځاځي علي خیل", "ps" => "ځاځي علي خیل"],
+                            "laja Mangal" => ["fa" => "لجه منگل", "ps" => "لژه منګل"],
 
 
                         ]
@@ -320,6 +372,7 @@ class CountrySeeder extends Seeder
                             "Spera" => ["fa" => "سپیره", "ps" => "سپېره"],
                             "Tani" => ["fa" => "تَنی", "ps" => "تڼۍ"],
                             "Tirazayi" => ["fa" => "تیریزائی", "ps" => "تېره زی"],
+                            "Matun" => ["fa" => "متون", "ps" => "متون"],
                         ]
                     ],
                     "Paktika" => [
@@ -346,6 +399,8 @@ class CountrySeeder extends Seeder
                             "Yahyakhel" => ["fa" => "یخیی خېل ", "ps" => "یخیی خېل "],
                             "Yusufkhel" => ["fa" => "یوسف خېل ", "ps" => "یوسف خېل "],
                             "Zerok" => ["fa" => "زیروک", "ps" => "زیروک"],
+                            "Deela wa Khosmand" => ["fa" => "خوشمند", "ps" => "دیله او خوشمند "],
+                            "Khosmand" => ["fa" => "خوشمند", "ps" => "خوشمند"],
 
 
 
@@ -364,7 +419,7 @@ class CountrySeeder extends Seeder
                             "Chahar Burjak" => ["fa" => "چهاربُرجک", "ps" => "چاربورجک"],
                             "Chakhansur" => ["fa" => "چَخانسور", "ps" => "چخانسور"],
                             "Kang" => ["fa" => "کَنگ", "ps" => "کنگ"],
-
+                            "Delaram" => ["fa" => "دل آرام", "ps" => "دل آرام"],
                         ]
                     ],
                     "Urozgan" => [
@@ -376,7 +431,9 @@ class CountrySeeder extends Seeder
                             "Chora" => ["fa" => "چوره", "ps" => "چوره"],
                             "Khas Uruzgan" => ["fa" => "خاص‌ارزگان", "ps" => "خاص اروزگان"],
                             "Shahidi Hassas" => ["fa" => "شهید حساس", "ps" => "شهيدې حساس"],
-
+                            "Gizab" => ["fa" => "گیزاب", "ps" => "ګیزاب"],
+                            "Chinar Tu" => ["fa" => "چنار تو", "ps" => "چنار تو"],
+                            "Chahar Chinah" => ["fa" => "چهار چینه", "ps" => "چهار چینه"],
                         ]
                     ],
                     "Daykundi" => [
@@ -426,6 +483,7 @@ class CountrySeeder extends Seeder
                             "Shahrak " => ["fa" => "شهرک", "ps" => "شهرک"],
                             "Taywara " => ["fa" => "تیوره", "ps" => "تایواره"],
                             "Tulak " => ["fa" => "تولک", "ps" => "تولک"],
+                            "Feroz Koh " => ["fa" => "فیروز کوه", "ps" => "فیروز کوه"],
                         ]
                     ],
                     "Sar-e Pol" => [
@@ -439,6 +497,10 @@ class CountrySeeder extends Seeder
                             "Sangcharak" => ["fa" => "سانچارک", "ps" => "سنگچارک"],
                             "Sayyad" => ["fa" => "صیاد", "ps" => "سیاد"],
                             "Sozma Qala" => ["fa" => "سرپل", "ps" => "سوزمه کلا"],
+                            "Al jehad" => ["fa" => "الجهاد", "ps" => "الجهاد"],
+                            "Said Abad" => ["fa" => "سید آباد", "ps" => "سید آباد"],
+                            "Al Fath" => ["fa" => "الجهاد", "ps" => "الفتح"],
+                            "Al Badri" => ["fa" => "البدري", "ps" => "البدري"],
 
                         ]
                     ],
@@ -476,7 +538,8 @@ class CountrySeeder extends Seeder
                             "Paryan" => ["fa" => "پریان", "ps" => "پریان"],
                             "Rokha" => ["fa" => "روخه", "ps" => "روخه "],
                             "Shotul" => ["fa" => "شُتُل", "ps" => "شوتل"],
-
+                            "Abshar" => ["fa" => "ابشار", "ps" => "ابشار"],
+                            "Hais Awall" => ["fa" => "حصه اول", "ps" => "اوله حصه"],
                         ]
                     ],
                     "Parwan" => [
@@ -494,6 +557,7 @@ class CountrySeeder extends Seeder
                             "Sheikh Ali" => ["fa" => " شیخ علي", "ps" => " شیخ علي"],
                             "Shinwari" => ["fa" => "شینواری", "ps" => "شینواري"],
                             "Surkhi Parsa" => ["fa" => "سرخِ پارسا", "ps" => "سرخ پارسا"],
+                            "Sia Gerd " => ["fa" => "سیاه گرد", "ps" => "تور گرد"],
 
 
 
@@ -550,6 +614,10 @@ class CountrySeeder extends Seeder
                             "Nawzad" => ["fa" => "نوزاد", "ps" => "نوزاد"],
                             "Sangin" => ["fa" => "سَنگین", "ps" => "سنگین"],
                             "Washir" => ["fa" => "واشیر", "ps" => "واشېر"],
+                            "Marjah" => ["fa" => "مرجح", "ps" => "مرجح"],
+                            "Nahr -E- Seraj" => ["fa" => "نهر سراج", "ps" => "نهر سراج"],
+                            "Naw mish" => ["fa" => "ناو میش", "ps" => "ناو میش"],
+                            "Nawa" => ["fa" => "ناوه", "ps" => "ناوه"],
 
 
                         ]
@@ -569,7 +637,7 @@ class CountrySeeder extends Seeder
                             "Shamulzayi" => ["fa" => "شمولزی", "ps" => " شمولزی"],
                             " Shinkay" => ["fa" => "شینکی", "ps" => " شینکی"],
                             "Tarnak Wa Jaldak" => ["fa" => "ترنک او جلدک", "ps" => "ترنک او جلدک "],
-
+                            "Shah joyi" => ["fa" => "شاه جویی", "ps" => "شاه جویي "],
 
 
                         ]
@@ -606,6 +674,8 @@ class CountrySeeder extends Seeder
                             "Mihtarlam" => ["fa" => "مهترلام", "ps" => "مهترلام "],
                             "Dawlat Shah " => ["fa" => "دولت‌شاه ", "ps" => "دولتشاه "],
                             "Qarghayi" => ["fa" => "قرغیي", "ps" => "قرغیي"],
+                            "Bad pokh" => ["fa" => "باد پوخ", "ps" => "باد پوښ"],
+                            "Spinghar" => ["fa" => "سپین غر", "ps" => "سپین غر"],
 
 
                         ]
@@ -629,6 +699,8 @@ class CountrySeeder extends Seeder
                             "Shaigal" => ["fa" => "شیگل", "ps" => "شیگل "],
                             "Sirkanai " => ["fa" => "سرکانی", "ps" => "سرکاڼو"],
                             "Wata Pur " => ["fa" => "وَتَه‌پور", "ps" => "وټه پور"],
+                            "Ghazi Abad" => ["fa" => "غازي اباد", "ps" => "غازي آباد"],
+                            "Narang" => ["fa" => "نارنج", "ps" => "نارنج "],
 
 
                         ]
@@ -708,7 +780,11 @@ class CountrySeeder extends Seeder
                             "Nahrin" => ["fa" => "نهرین", "ps" => "ناهرين "],
                             "Puli Hisar" => ["fa" => "پل حصار", "ps" => "پل حصار "],
                             "Puli Khumri" => ["fa" => "	پل خمری", "ps" => "پلخمري "],
-                            "Tala wa Barfak" => ["fa" => "روخه", "ps" => "تاله او برفک "],
+                            "Tala wa Barfak" => ["fa" => "تاله او برفک ", "ps" => "تاله او برفک "],
+                            "Bano" => ["fa" => "بانو", "ps" => "بانو"],
+                            "Doshi" => ["fa" => "دوشی", "ps" => "دوشي"],
+                            "Khwaja Hejran" => ["fa" => "بانخواجه هجرانو", "ps" => "خواجه هجران"],
+
 
 
 
@@ -718,765 +794,2381 @@ class CountrySeeder extends Seeder
 
                 ]
             ],
-            "Albania" => [
-                "fa" => "آلبانی",
-                "ps" => "آلبانی",
+            "United States" => [
+                "fa" => "ایالات متحده",
+                "ps" => "متحده ایالات",
+                "nationality" => [
+                    "en" => "American",
+                    "fa" => "امریکایی",
+                    "ps" => "آمریکایی",
+
+                ],
+                "provinces" => []
             ],
-            "Algeria" => [
-                "fa" => "الجزایر",
-                "ps" => "الجزایر",
+
+            "United Kingdom" => [
+                "fa" => "بریتانیا",
+                "ps" => "بریتانیا",
+                "nationality" => [
+                    "en" => "British",
+                    "fa" => "برتانیایی",
+                    "ps" => "بریتانیایی",
+
+                ],
+                "provinces" => []
             ],
-            "Andorra" => [
-                "fa" => "اندورا",
-                "ps" => "اندورا",
-            ],
-            "Angola" => [
-                "fa" => "انگولا",
-                "ps" => "انگولا",
-            ],
-            "Argentina" => [
-                "fa" => "آرژانتین",
-                "ps" => "آرژانتین",
-            ],
-            "Armenia" => [
-                "fa" => "ارمنستان",
-                "ps" => "ارمنستان",
-            ],
-            "Australia" => [
-                "fa" => "استرالیا",
-                "ps" => "استرالیا",
-            ],
-            "Austria" => [
-                "fa" => "اتریش",
-                "ps" => "اتریش",
-            ],
-            "Azerbaijan" => [
-                "fa" => "آذربایجان",
-                "ps" => "آذربایجان",
-            ],
-            "Bahamas" => [
-                "fa" => "باهاماس",
-                "ps" => "باهاماس",
-            ],
-            "Bahrain" => [
-                "fa" => "بحرین",
-                "ps" => "بحرین",
-            ],
-            "Bangladesh" => [
-                "fa" => "بنگلادش",
-                "ps" => "بنگلادش",
-            ],
-            "Barbados" => [
-                "fa" => "باربادوس",
-                "ps" => "باربادوس",
-            ],
-            "Belarus" => [
-                "fa" => "بلاروس",
-                "ps" => "بلاروس",
-            ],
-            "Belgium" => [
-                "fa" => "بلژیک",
-                "ps" => "بلژیک",
-            ],
-            "Belize" => [
-                "fa" => "بلیز",
-                "ps" => "بلیز",
-            ],
-            "Benin" => [
-                "fa" => "بنین",
-                "ps" => "بنین",
-            ],
-            "Bhutan" => [
-                "fa" => "بوتان",
-                "ps" => "بوتان",
-            ],
-            "Bolivia" => [
-                "fa" => "بولیوی",
-                "ps" => "بولیوی",
-            ],
-            "Bosnia and Herzegovina" => [
-                "fa" => "بوسنی و هرزگوین",
-                "ps" => "بوسنی و هرزگوین",
-            ],
-            "Botswana" => [
-                "fa" => "بوتسوانا",
-                "ps" => "بوتسوانا",
-            ],
-            "Brazil" => [
-                "fa" => "برازیل",
-                "ps" => "برازیل",
-            ],
-            "Brunei" => [
-                "fa" => "برونئی",
-                "ps" => "برونئی",
-            ],
-            "Bulgaria" => [
-                "fa" => "بلغاریا",
-                "ps" => "بلغاریا",
-            ],
-            "Burkina Faso" => [
-                "fa" => "بورکینافاسو",
-                "ps" => "بورکینافاسو",
-            ],
-            "Burundi" => [
-                "fa" => "بوروندی",
-                "ps" => "بوروندی",
-            ],
-            "Cabo Verde" => [
-                "fa" => "کابو وردی",
-                "ps" => "کابو وردی",
-            ],
-            "Cambodia" => [
-                "fa" => "کامبوج",
-                "ps" => "کامبوج",
-            ],
-            "Cameroon" => [
-                "fa" => "کامرون",
-                "ps" => "کامرون",
-            ],
+
             "Canada" => [
                 "fa" => "کانادا",
-                "ps" => "کانادا",
+                "ps" => "کاناډا",
+                "nationality" => [
+                    "en" => "Canadian",
+                    "fa" => "کانادایی",
+                    "ps" => "کاناډایی",
+
+                ],
+                "provinces" => []
+
             ],
-            "Central African Republic" => [
-                "fa" => "جمهوری آفریقای مرکزی",
-                "ps" => "جمهوری آفریقای مرکزی",
+
+            "Germany" => [
+                "fa" => "آلمان",
+                "ps" => "جرمني",
+                "nationality" => [
+                    "en" => "German",
+                    "fa" => "آلمانی",
+                    "ps" => "آلمانی",
+
+                ],
+                "provinces" => []
+
             ],
-            "Chad" => [
-                "fa" => "چاد",
-                "ps" => "چاد",
-            ],
-            "Chile" => [
-                "fa" => "شیلی",
-                "ps" => "شیلی",
-            ],
-            "China" => [
-                "fa" => "چین",
-                "ps" => "چین",
-            ],
-            "Colombia" => [
-                "fa" => "کلمبیا",
-                "ps" => "کلمبیا",
-            ],
-            "Comoros" => [
-                "fa" => "کومور",
-                "ps" => "کومور",
-            ],
-            "Congo, Democratic Republic of the" => [
-                "fa" => "جمهوری دموکراتیک کنگو",
-                "ps" => "جمهوری دموکراتیک کنگو",
-            ],
-            "Congo, Republic of the" => [
-                "fa" => "جمهوری کنگو",
-                "ps" => "جمهوری کنگو",
-            ],
-            "Costa Rica" => [
-                "fa" => "کاستاریکا",
-                "ps" => "کاستاریکا",
-            ],
-            "Croatia" => [
-                "fa" => "کرواسی",
-                "ps" => "کرواسی",
-            ],
-            "Cuba" => [
-                "fa" => "کیوبا",
-                "ps" => "کیوبا",
-            ],
-            "Cyprus" => [
-                "fa" => "قبرس",
-                "ps" => "قبرس",
-            ],
-            "Czech Republic" => [
-                "fa" => "جمهوری چک",
-                "ps" => "جمهوری چک",
-            ],
-            "Denmark" => [
-                "fa" => "دانمارک",
-                "ps" => "دانمارک",
-            ],
-            "Djibouti" => [
-                "fa" => "جیبوتی",
-                "ps" => "جیبوتی",
-            ],
-            "Dominica" => [
-                "fa" => "دومینیکا",
-                "ps" => "دومینیکا",
-            ],
-            "Dominican Republic" => [
-                "fa" => "جمهوری دومینیکن",
-                "ps" => "جمهوری دومینیکن",
-            ],
-            "Ecuador" => [
-                "fa" => "اکوادور",
-                "ps" => "اکوادور",
-            ],
-            "Egypt" => [
-                "fa" => "مصر",
-                "ps" => "مصر",
-            ],
-            "El Salvador" => [
-                "fa" => "السالوادور",
-                "ps" => "السالوادور",
-            ],
-            "Equatorial Guinea" => [
-                "fa" => "گینه استوایی",
-                "ps" => "گینه استوایی",
-            ],
-            "Eritrea" => [
-                "fa" => "اریتره",
-                "ps" => "اریتره",
-            ],
-            "Estonia" => [
-                "fa" => "استونی",
-                "ps" => "استونی",
-            ],
-            "Eswatini" => [
-                "fa" => "اسواتینی",
-                "ps" => "اسواتینی",
-            ],
-            "Ethiopia" => [
-                "fa" => "اتیوپی",
-                "ps" => "اتیوپی",
-            ],
-            "Fiji" => [
-                "fa" => "فیجی",
-                "ps" => "فیجی",
-            ],
-            "Finland" => [
-                "fa" => "فنلند",
-                "ps" => "فنلند",
-            ],
+
             "France" => [
                 "fa" => "فرانسه",
                 "ps" => "فرانسه",
+                "nationality" => [
+                    "en" => "French",
+                    "fa" => "فرانسوی",
+                    "ps" => "فرانسوی",
+
+                ],
+                "provinces" => []
+
             ],
-            "Gabon" => [
-                "fa" => "گابن",
-                "ps" => "گابن",
+
+            "Italy" => [
+                "fa" => "ایتالیا",
+                "ps" => "ایټالیا",
+                "nationality" => [
+                    "en" => "Italian",
+                    "fa" => "ایتالیایی",
+                    "ps" => "ایټالوی",
+
+                ],
+                "provinces" => []
+
             ],
-            "Gambia" => [
-                "fa" => "گامبیا",
-                "ps" => "گامبیا",
+
+            "Spain" => [
+                "fa" => "اسپانیا",
+                "ps" => "هسپانیا",
+                "nationality" => [
+                    "en" => "Spanish",
+                    "fa" => "اسپانیایی",
+                    "ps" => "اسپانیایی",
+
+                ],
+                "provinces" => []
+
             ],
-            "Georgia" => [
-                "fa" => "گرجستان",
-                "ps" => "گرجستان",
+
+            "China" => [
+                "fa" => "چین",
+                "ps" => "چین",
+                "nationality" => [
+                    "en" => "Chinese",
+                    "fa" => "چینایی",
+                    "ps" => "چینایی",
+
+                ],
+                "provinces" => []
+
             ],
-            "Germany" => [
-                "fa" => "جرمنی",
-                "ps" => "جرمنی",
+
+            "Japan" => [
+                "fa" => "جاپان",
+                "ps" => "جاپان",
+                "nationality" => [
+                    "en" => "Japanese",
+                    "fa" => "جاپانی",
+                    "ps" => "جاپانی",
+
+                ],
+                "provinces" => []
+
             ],
-            "Ghana" => [
-                "fa" => "غنا",
-                "ps" => "غنا",
-            ],
-            "Greece" => [
-                "fa" => "یونان",
-                "ps" => "یونان",
-            ],
-            "Grenada" => [
-                "fa" => "گرانادا",
-                "ps" => "گرانادا",
-            ],
-            "Guatemala" => [
-                "fa" => "گواتمالا",
-                "ps" => "گواتمالا",
-            ],
-            "Guinea" => [
-                "fa" => "گینه",
-                "ps" => "گینه",
-            ],
-            "Guinea-Bissau" => [
-                "fa" => "گینه بیسائو",
-                "ps" => "گینه بیسائو",
-            ],
-            "Guyana" => [
-                "fa" => "گویانا",
-                "ps" => "گویانا",
-            ],
-            "Haiti" => [
-                "fa" => "هائیتی",
-                "ps" => "هائیتی",
-            ],
-            "Honduras" => [
-                "fa" => "هندوراس",
-                "ps" => "هندوراس",
-            ],
-            "Hungary" => [
-                "fa" => "مجارستان",
-                "ps" => "مجارستان",
-            ],
-            "Iceland" => [
-                "fa" => "ایسلند",
-                "ps" => "ایسلند",
-            ],
-            "India" => [
-                "fa" => "هند",
-                "ps" => "هند",
-            ],
-            "Indonesia" => [
-                "fa" => "اندونزی",
-                "ps" => "اندونزی",
+
+            "Russia" => [
+                "fa" => "روسیه",
+                "ps" => "روسیه",
+                "nationality" => [
+                    "en" => "Russian",
+                    "fa" => "روسی",
+                    "ps" => "روسی",
+
+                ],
+                "provinces" => []
+
             ],
             "Iran" => [
                 "fa" => "ایران",
                 "ps" => "ایران",
+                "nationality" => [
+                    "en" => "Iranian",
+                    "fa" => "ایرانی",
+                    "ps" => "ایرانی",
+
+                ],
+                "provinces" => []
+
             ],
-            "Iraq" => [
-                "fa" => "عراق",
-                "ps" => "عراق",
-            ],
-            "Ireland" => [
-                "fa" => "ایرلند",
-                "ps" => "ایرلند",
-            ],
-            "Israel" => [
-                "fa" => "اسرائیل",
-                "ps" => "اسرائیل",
-            ],
-            "Italy" => [
-                "fa" => "ایتالیا",
-                "ps" => "ایتالیا",
-            ],
-            "Jamaica" => [
-                "fa" => "جامائیکا",
-                "ps" => "جامائیکا",
-            ],
-            "Japan" => [
-                "fa" => "جاپان",
-                "ps" => "جاپان",
-            ],
-            "Jordan" => [
-                "fa" => "اردن",
-                "ps" => "اردن",
-            ],
-            "Kazakhstan" => [
-                "fa" => "قزاقستان",
-                "ps" => "قزاقستان",
-            ],
-            "Kenya" => [
-                "fa" => "کنیا",
-                "ps" => "کنیا",
-            ],
-            "Kiribati" => [
-                "fa" => "کیریباتی",
-                "ps" => "کیریباتی",
-            ],
-            "Kuwait" => [
-                "fa" => "کویت",
-                "ps" => "کویت",
-            ],
-            "Kyrgyzstan" => [
-                "fa" => "قرقیزستان",
-                "ps" => "قرقیزستان",
-            ],
-            "Laos" => [
-                "fa" => "لاوس",
-                "ps" => "لاوس",
-            ],
-            "Latvia" => [
-                "fa" => "لتونی",
-                "ps" => "لتونی",
-            ],
-            "Lebanon" => [
-                "fa" => "لبنان",
-                "ps" => "لبنان",
-            ],
-            "Lesotho" => [
-                "fa" => "لسوتو",
-                "ps" => "لسوتو",
-            ],
-            "Liberia" => [
-                "fa" => "لیبریا",
-                "ps" => "لیبریا",
-            ],
-            "Libya" => [
-                "fa" => "لیبیا",
-                "ps" => "لیبیا",
-            ],
-            "Liechtenstein" => [
-                "fa" => "لیختن‌اشتاین",
-                "ps" => "لیختن‌اشتاین",
-            ],
-            "Lithuania" => [
-                "fa" => "لیتوانی",
-                "ps" => "لیتوانی",
-            ],
-            "Luxembourg" => [
-                "fa" => "لوکزامبورگ",
-                "ps" => "لوکزامبورگ",
-            ],
-            "Madagascar" => [
-                "fa" => "ماداگاسکار",
-                "ps" => "ماداگاسکار",
-            ],
-            "Malawi" => [
-                "fa" => "مالاوی",
-                "ps" => "مالاوی",
-            ],
-            "Malaysia" => [
-                "fa" => "مالزی",
-                "ps" => "مالزی",
-            ],
-            "Maldives" => [
-                "fa" => "مالدیو",
-                "ps" => "مالدیو",
-            ],
-            "Mali" => [
-                "fa" => "مالی",
-                "ps" => "مالی",
-            ],
-            "Malta" => [
-                "fa" => "مالت",
-                "ps" => "مالت",
-            ],
-            "Marshall Islands" => [
-                "fa" => "جزایر مارشال",
-                "ps" => "جزایر مارشال",
-            ],
-            "Mauritania" => [
-                "fa" => "موریطانی",
-                "ps" => "موریطانی",
-            ],
-            "Mauritius" => [
-                "fa" => "موریس",
-                "ps" => "موریس",
-            ],
-            "Mexico" => [
-                "fa" => "مکسیکو",
-                "ps" => "مکسیکو",
-            ],
-            "Micronesia" => [
-                "fa" => "میکرونزی",
-                "ps" => "میکرونزی",
-            ],
-            "Moldova" => [
-                "fa" => "مولداوی",
-                "ps" => "مولداوی",
-            ],
-            "Monaco" => [
-                "fa" => "موناكو",
-                "ps" => "موناكو",
-            ],
-            "Mongolia" => [
-                "fa" => "مغولستان",
-                "ps" => "مغولستان",
-            ],
-            "Montenegro" => [
-                "fa" => "مونته‌نگرو",
-                "ps" => "مونته‌نگرو",
-            ],
-            "Morocco" => [
-                "fa" => "مراکش",
-                "ps" => "مراکش",
-            ],
-            "Mozambique" => [
-                "fa" => "موزامبیک",
-                "ps" => "موزامبیک",
-            ],
-            "Myanmar" => [
-                "fa" => "میانمار",
-                "ps" => "میانمار",
-            ],
-            "Namibia" => [
-                "fa" => "نامیبیا",
-                "ps" => "نامیبیا",
-            ],
-            "Nauru" => [
-                "fa" => "ناورو",
-                "ps" => "ناورو",
-            ],
-            "Nepal" => [
-                "fa" => "نیپال",
-                "ps" => "نیپال",
-            ],
-            "Netherlands" => [
-                "fa" => "هلند",
-                "ps" => "هلند",
-            ],
-            "New Zealand" => [
-                "fa" => "نیوزیلند",
-                "ps" => "نیوزیلند",
-            ],
-            "Nicaragua" => [
-                "fa" => "نیکاراگوئه",
-                "ps" => "نیکاراگوئه",
-            ],
-            "Niger" => [
-                "fa" => "نیجر",
-                "ps" => "نیجر",
-            ],
-            "Nigeria" => [
-                "fa" => "نیجریا",
-                "ps" => "نیجریا",
-            ],
-            "North Macedonia" => [
-                "fa" => "مقدونیه شمالی",
-                "ps" => "مقدونیه شمالی",
-            ],
-            "Norway" => [
-                "fa" => "نروژ",
-                "ps" => "نروژ",
-            ],
-            "Oman" => [
-                "fa" => "عمان",
-                "ps" => "عمان",
-            ],
+
             "Pakistan" => [
                 "fa" => "پاکستان",
                 "ps" => "پاکستان",
+                "nationality" => [
+                    "en" => "Pakistani",
+                    "fa" => "پاکستانی",
+                    "ps" => "پاکستانی",
+
+                ],
+                "provinces" => []
+
             ],
-            "Palau" => [
-                "fa" => "پالائو",
-                "ps" => "پالائو",
-            ],
-            "Palestine" => [
-                "fa" => "فلسطین",
-                "ps" => "فلسطین",
-            ],
-            "Panama" => [
-                "fa" => "پاناما",
-                "ps" => "پاناما",
-            ],
-            "Papua New Guinea" => [
-                "fa" => "پاپوآ گینه نو",
-                "ps" => "پاپوآ گینه نو",
-            ],
-            "Paraguay" => [
-                "fa" => "پاراگوئه",
-                "ps" => "پاراگوئه",
-            ],
-            "Peru" => [
-                "fa" => "پرو",
-                "ps" => "پرو",
-            ],
-            "Philippines" => [
-                "fa" => "فیلیپین",
-                "ps" => "فیلیپین",
-            ],
-            "Poland" => [
-                "fa" => "لهستان",
-                "ps" => "لهستان",
-            ],
-            "Portugal" => [
-                "fa" => "پرتغال",
-                "ps" => "پرتغال",
-            ],
-            "Qatar" => [
-                "fa" => "قطر",
-                "ps" => "قطر",
-            ],
-            "Romania" => [
-                "fa" => "رومانی",
-                "ps" => "رومانی",
-            ],
-            "Russia" => [
-                "fa" => "روسیه",
-                "ps" => "روسیه",
-            ],
-            "Rwanda" => [
-                "fa" => "رواندا",
-                "ps" => "رواندا",
-            ],
-            "Saint Kitts and Nevis" => [
-                "fa" => "سنت کیتس و نویس",
-                "ps" => "سنت کیتس و نویس",
-            ],
-            "Saint Lucia" => [
-                "fa" => "سنت لوسیا",
-                "ps" => "سنت لوسیا",
-            ],
-            "Saint Vincent and the Grenadines" => [
-                "fa" => "سنت وینسنت و گرنادین",
-                "ps" => "سنت وینسنت و گرنادین",
-            ],
-            "Samoa" => [
-                "fa" => "ساموآ",
-                "ps" => "ساموآ",
-            ],
-            "San Marino" => [
-                "fa" => "سان مارینو",
-                "ps" => "سان مارینو",
-            ],
-            "Sao Tome and Principe" => [
-                "fa" => "سائوتومه و پرنسیپ",
-                "ps" => "سائوتومه و پرنسیپ",
-            ],
-            "Saudi Arabia" => [
-                "fa" => "عربستان سعودی",
-                "ps" => "عربستان سعودی",
-            ],
-            "Senegal" => [
-                "fa" => "سنگال",
-                "ps" => "سنگال",
-            ],
-            "Serbia" => [
-                "fa" => "صربستان",
-                "ps" => "صربستان",
-            ],
-            "Seychelles" => [
-                "fa" => "سیشل",
-                "ps" => "سیشل",
-            ],
-            "Sierra Leone" => [
-                "fa" => "سیرالئون",
-                "ps" => "سیرالئون",
-            ],
-            "Singapore" => [
-                "fa" => "سنگاپور",
-                "ps" => "سنگاپور",
-            ],
-            "Slovakia" => [
-                "fa" => "اسلواکی",
-                "ps" => "اسلواکی",
-            ],
-            "Slovenia" => [
-                "fa" => "اسلوونی",
-                "ps" => "اسلوونی",
-            ],
-            "Solomon Islands" => [
-                "fa" => "جزایر سلیمان",
-                "ps" => "جزایر سلیمان",
-            ],
-            "Somalia" => [
-                "fa" => "سومالی",
-                "ps" => "سومالی",
-            ],
-            "South Africa" => [
-                "fa" => "آفریقای جنوبی",
-                "ps" => "آفریقای جنوبی",
-            ],
-            "South Korea" => [
-                "fa" => "کره جنوبی",
-                "ps" => "کره جنوبی",
-            ],
-            "South Sudan" => [
-                "fa" => "جنوب سودان",
-                "ps" => "جنوب سودان",
-            ],
-            "Spain" => [
-                "fa" => "اسپانیا",
-                "ps" => "اسپانیا",
-            ],
-            "Sri Lanka" => [
-                "fa" => "سریلانکا",
-                "ps" => "سریلانکا",
-            ],
-            "Sudan" => [
-                "fa" => "سودان",
-                "ps" => "سودان",
-            ],
-            "Suriname" => [
-                "fa" => "سورینام",
-                "ps" => "سورینام",
-            ],
-            "Sweden" => [
-                "fa" => "سوئد",
-                "ps" => "سوئد",
-            ],
-            "Switzerland" => [
-                "fa" => "سویس",
-                "ps" => "سویس",
-            ],
-            "Syria" => [
-                "fa" => "سوریه",
-                "ps" => "سوریه",
-            ],
-            "Tajikistan" => [
-                "fa" => "تاجیکستان",
-                "ps" => "تاجیکستان",
-            ],
-            "Tanzania" => [
-                "fa" => "تانزانیا",
-                "ps" => "تانزانیا",
-            ],
-            "Thailand" => [
-                "fa" => "تایلند",
-                "ps" => "تایلند",
-            ],
-            "Togo" => [
-                "fa" => "توگو",
-                "ps" => "توگو",
-            ],
-            "Tonga" => [
-                "fa" => "تونگا",
-                "ps" => "تونگا",
-            ],
-            "Trinidad and Tobago" => [
-                "fa" => "ترینیداد و توباگو",
-                "ps" => "ترینیداد و توباگو",
-            ],
-            "Tunisia" => [
-                "fa" => "تونس",
-                "ps" => "تونس",
-            ],
+
             "Turkey" => [
                 "fa" => "ترکیه",
                 "ps" => "ترکیه",
+                "nationality" => [
+                    "en" => "Turkish",
+                    "fa" => "ترکی",
+                    "ps" => "ترکی",
+
+                ],
+                "provinces" => []
+
             ],
-            "Turkmenistan" => [
-                "fa" => "ترکمنستان",
-                "ps" => "ترکمنستان",
+
+            "Egypt" => [
+                "fa" => "مصر",
+                "ps" => "مصر",
+                "nationality" => [
+                    "en" => "Egyptian",
+                    "fa" => "مصری",
+                    "ps" => "مصری",
+
+                ],
+                "provinces" => []
+
             ],
-            "Tuvalu" => [
-                "fa" => "تووالو",
-                "ps" => "تووالو",
+
+            "Brazil" => [
+                "fa" => "برزیل",
+                "ps" => "برزیل",
+                "nationality" => [
+                    "en" => "Brazilian",
+                    "fa" => "برازیلی",
+                    "ps" => "برازیلی",
+
+                ],
+                "provinces" => []
+
             ],
-            "Uganda" => [
-                "fa" => "اوگاندا",
-                "ps" => "اوگاندا",
+
+            "Mexico" => [
+                "fa" => "مکسیکو",
+                "ps" => "مکسیکو",
+                "nationality" => [
+                    "en" => "Mexican",
+                    "fa" => "میکسیکویی",
+                    "ps" => "میکسیکویي",
+
+                ],
+                "provinces" => []
+
             ],
+
+            "Australia" => [
+                "fa" => "استرالیا",
+                "ps" => "استرالیا",
+                "nationality" => [
+                    "en" => "Australian",
+                    "fa" => "استرالیایی",
+                    "ps" => "استرالیایی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Argentina" => [
+                "fa" => "ارجنټاین",
+                "ps" => "آرژانتین",
+                "nationality" => [
+                    "en" => "Argentine",
+                    "fa" => "آرژانتینی",
+                    "ps" => "آرژانتینی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Bangladesh" => [
+                "fa" => "بنگلادش",
+                "ps" => "بنګله دېش",
+                "nationality" => [
+                    "en" => "Bangladeshi",
+                    "fa" => "بنگلادشی",
+                    "ps" => "بنگلادشی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Belgium" => [
+                "fa" => "بیلجیم",
+                "ps" => "بیلجیم",
+                "nationality" => [
+                    "en" => "Belgian",
+                    "fa" => "بیلجیمي",
+                    "ps" => "بیلجیمي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Netherlands" => [
+                "fa" => "هلندی",
+                "ps" => "هالنډي",
+                "nationality" => [
+                    "en" => "Dutch",
+                    "fa" => "هالندی",
+                    "ps" => "هالندی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Sweden" => [
+                "fa" => "سویډن",
+                "ps" => "سویډن",
+                "nationality" => [
+                    "en" => "Swedish",
+                    "fa" => "سویډني",
+                    "ps" => "سویډني",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Norway" => [
+                "fa" => "ناروې",
+                "ps" => "ناروې",
+                "nationality" => [
+                    "en" => "Norwegian",
+                    "fa" => "نارویجی",
+                    "ps" => "نارویجی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Denmark" => [
+                "fa" => "دانمارک",
+                "ps" => "ډنمارک",
+                "nationality" => [
+                    "en" => "Danish",
+                    "fa" => "دانمارکی",
+                    "ps" => "ډنمارکي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Finland" => [
+                "fa" => "فنلاند",
+                "ps" => "فنلنډ",
+                "nationality" => [
+                    "en" => "Finnish",
+                    "fa" => "فنلندی",
+                    "ps" => "فنلنډي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Switzerland" => [
+                "fa" => "سویس",
+                "ps" => "سوئیس",
+                "nationality" => [
+                    "en" => "Swiss",
+                    "fa" => "سویسی",
+                    "ps" => "سویسي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Austria" => [
+                "fa" => "اتریش",
+                "ps" => "آستریا",
+                "nationality" => [
+                    "en" => "Austrian",
+                    "fa" => "اتریشی",
+                    "ps" => "اتریشي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Poland" => [
+                "fa" => "پولنډ",
+                "ps" => "پولنډ",
+                "nationality" => [
+                    "en" => "Polish",
+                    "fa" => "پولندی",
+                    "ps" => "پولنډی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Portugal" => [
+                "fa" => "پرتغال",
+                "ps" => "پرتګال",
+                "nationality" => [
+                    "en" => "Portuguese",
+                    "fa" => "پرتغالی",
+                    "ps" => "پرتغالی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Greece" => [
+                "fa" => "یونان",
+                "ps" => "یونان",
+                "nationality" => [
+                    "en" => "Greek",
+                    "fa" => "یونانی",
+                    "ps" => "یوناني",
+
+                ],
+                "provinces" => []
+
+            ],
+
             "Ukraine" => [
                 "fa" => "اوکراین",
                 "ps" => "اوکراین",
+                "nationality" => [
+                    "en" => "Ukrainian",
+                    "fa" => "اوکرایني",
+                    "ps" => "اوکرایني",
+
+                ],
+                "provinces" => []
+
             ],
-            "United Arab Emirates" => [
-                "fa" => "امارات متحده عربی",
-                "ps" => "امارات متحده عربی",
+
+            "South Korea" => [
+                "fa" => "کره جنوبی",
+                "ps" => "جنوبي کوریا",
+                "nationality" => [
+                    "en" => "Korean",
+                    "fa" => "کوریایي",
+                    "ps" => "کوریایي",
+
+                ],
+                "provinces" => []
+
             ],
-            "United Kingdom" => [
-                "fa" => "پادشاهی متحده",
-                "ps" => "متحده ملک",
+
+            "North Korea" => [
+                "fa" => "کوریا شمالی",
+                "ps" => "کوریا شمالی",
+                "nationality" => [
+                    "en" => "North Korean",
+                    "fa" => "کوریا شمالی",
+                    "ps" => "کوریا شمالی",
+
+                ],
+                "provinces" => []
+
             ],
-            "United States" => [
-                "fa" => "ایالات متحده",
-                "ps" => "متحده ایالات",
+
+            "Thailand" => [
+                "fa" => "تایلند",
+                "ps" => "تایلینډ",
+                "nationality" => [
+                    "en" => "Thai",
+                    "fa" => "تایلندی",
+                    "ps" => "تايلنډی",
+
+                ],
+                "provinces" => []
+
             ],
-            "Uruguay" => [
-                "fa" => "اورگوئه",
-                "ps" => "اورگوئه",
-            ],
-            "Uzbekistan" => [
-                "fa" => "ازبکستان",
-                "ps" => "ازبکستان",
-            ],
-            "Vanuatu" => [
-                "fa" => "وانواتو",
-                "ps" => "وانواتو",
-            ],
-            "Vatican City" => [
-                "fa" => "شهر واتیکان",
-                "ps" => "شهر واتیکان",
-            ],
-            "Venezuela" => [
-                "fa" => "ونزوئلا",
-                "ps" => "ونزوئلا",
-            ],
+
             "Vietnam" => [
                 "fa" => "ویتنام",
                 "ps" => "ویتنام",
+                "nationality" => [
+                    "en" => "Vietnamese",
+                    "fa" => "ویتنامی",
+                    "ps" => "ویتنامی",
+
+                ],
+                "provinces" => []
+
             ],
+
+            "Indonesia" => [
+                "fa" => "اندونیزیا",
+                "ps" => "اندونیزیا",
+                "nationality" => [
+                    "en" => "Indonesian",
+                    "fa" => "اندونزیایی",
+                    "ps" => "اندونیزیایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Malaysia" => [
+                "fa" => "مالیزیا",
+                "ps" => "مالیزیا",
+                "nationality" => [
+                    "en" => "Malaysian",
+                    "fa" => "مالزیایی",
+                    "ps" => "مالیزیایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Philippines" => [
+                "fa" => "فیلیپین",
+                "ps" => "فیلیپین",
+                "nationality" => [
+                    "en" => "Filipino",
+                    "fa" => "فیلیپینی",
+                    "ps" => "فلیپیني",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Iraq" => [
+                "fa" => "عراق",
+                "ps" => "عراق",
+                "nationality" => [
+                    "en" => "Iraqi",
+                    "fa" => "عراقی",
+                    "ps" => "عراقي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Syria" => [
+                "fa" => "سوریه",
+                "ps" => "سوریه",
+                "nationality" => [
+                    "en" => "Syrian",
+                    "fa" => "سوریایی",
+                    "ps" => "سوریایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Jordan" => [
+                "fa" => "اردن",
+                "ps" => "اردن",
+                "nationality" => [
+                    "en" => "Jordanian",
+                    "fa" => "اردنی",
+                    "ps" => "اردني",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Lebanon" => [
+                "fa" => "لبنان",
+                "ps" => "لبنان",
+                "nationality" => [
+                    "en" => "Lebanese",
+                    "fa" => "لبنانی",
+                    "ps" => "لبناني",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Qatar" => [
+                "fa" => "قطر",
+                "ps" => "قطر",
+                "nationality" => [
+                    "en" => "Qatari",
+                    "fa" => "قطری",
+                    "ps" => "قطري",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "UAE" => [
+                "fa" => "امارات متحده عربی",
+                "ps" => "متحده عربي امارات",
+                "nationality" => [
+                    "en" => "Emirati",
+                    "fa" => "اماراتی",
+                    "ps" => "اماراتي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Kuwait" => [
+                "fa" => "کویت",
+                "ps" => "کویت",
+                "nationality" => [
+                    "en" => "Kuwaiti",
+                    "fa" => "کویتی",
+                    "ps" => "کویتي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Oman" => [
+                "fa" => "عمان",
+                "ps" => "عمان",
+                "nationality" => [
+                    "en" => "Omani",
+                    "fa" => "عمانی",
+                    "ps" => "عماني",
+
+                ],
+                "provinces" => []
+
+            ],
+
             "Yemen" => [
                 "fa" => "یمن",
                 "ps" => "یمن",
+                "nationality" => [
+                    "en" => "Yemeni",
+                    "fa" => "یمنی",
+                    "ps" => "یمني",
+
+                ],
+                "provinces" => []
+
             ],
+
+            "Sudan" => [
+                "fa" => "سودان",
+                "ps" => "سودان",
+                "nationality" => [
+                    "en" => "Sudanese",
+                    "fa" => "سودانی",
+                    "ps" => "سوداني",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "South Africa" => [
+                "fa" => "آفریقای جنوبی",
+                "ps" => "جنوبي افریقا",
+                "nationality" => [
+                    "en" => "South African",
+                    "fa" => "آفریقای جنوبی",
+                    "ps" => "جنوبي افريقايي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Kenya" => [
+                "fa" => "کنیا",
+                "ps" => "کنیا",
+                "nationality" => [
+                    "en" => "Kenyan",
+                    "fa" => "کینيایي",
+                    "ps" => "کینيایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Nigeria" => [
+                "fa" => "نایجیریا",
+                "ps" => "نایجیریا",
+                "nationality" => [
+                    "en" => "Nigerian",
+                    "fa" => "نایجریایي",
+                    "ps" => "نایجریایي",
+
+                ],
+                "provinces" => []
+
+
+            ],
+
+            "Morocco" => [
+                "fa" => "مراکش",
+                "ps" => "مراکش",
+                "nationality" => [
+                    "en" => "Moroccan",
+                    "fa" => "مراکشی",
+                    "ps" => "مراکشي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Tunisia" => [
+                "fa" => "تونس",
+                "ps" => "تونس",
+                "nationality" => [
+                    "en" => "Tunisian",
+                    "fa" => "تونسی",
+                    "ps" => "تونسې",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Algeria" => [
+                "fa" => "الجزایر",
+                "ps" => "الجزایر",
+                "nationality" => [
+                    "en" => "Algerian",
+                    "fa" => "الجزایری",
+                    "ps" => "الجریایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Angola" => [
+                "fa" => "انګولا",
+                "ps" => "آنگولا",
+                "nationality" => [
+                    "en" => "Angolan",
+                    "fa" => "آنگولایی",
+                    "ps" => "انګولايي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Mozambique" => [
+                "fa" => "موزامبیک",
+                "ps" => "موزامبیک",
+                "nationality" => [
+                    "en" => "Mozambican",
+                    "fa" => "موزامبیکی",
+                    "ps" => "موزامبیکي",
+
+                ],
+                "provinces" => []
+
+            ],
+
             "Zambia" => [
                 "fa" => "زامبیا",
                 "ps" => "زامبیا",
+                "nationality" => [
+                    "en" => "Zambian",
+                    "fa" => "زامبیايي",
+                    "ps" => "زامبیايي",
+
+                ],
+                "provinces" => []
+
             ],
+
             "Zimbabwe" => [
-                "fa" => "زیمبابوه",
-                "ps" => "زیمبابوه",
+                "fa" => "زیمبابوې",
+                "ps" => "زیمبابوې",
+                "nationality" => [
+                    "en" => "Zimbabwean",
+                    "fa" => "زیمبابوې",
+                    "ps" => "زیمبابوې",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Malawi" => [
+                "fa" => "مالاوی",
+                "ps" => "مالاوي",
+                "nationality" => [
+                    "en" => "Malawian",
+                    "fa" => "مالاويی",
+                    "ps" => "مالاویایی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Tanzania" => [
+                "fa" => "تانزانیا",
+                "ps" => "تنزانیا",
+                "nationality" => [
+                    "en" => "Tanzanian",
+                    "fa" => "تانزانیایی",
+                    "ps" => "تنزانيایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Uganda" => [
+                "fa" => "اوگاندا",
+                "ps" => "اوګانډا",
+                "nationality" => [
+                    "en" => "Ugandan",
+                    "fa" => "اوگاندایی",
+                    "ps" => "اوګنډايي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Rwanda" => [
+                "fa" => "رواندا",
+                "ps" => "روانډا",
+                "nationality" => [
+                    "en" => "Rwandan",
+                    "fa" => "رواندايي",
+                    "ps" => "روانډایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Burundi" => [
+                "fa" => "بوروندی",
+                "ps" => "بورونډي",
+                "nationality" => [
+                    "en" => "Burundi",
+                    "fa" => "بوروندی",
+                    "ps" => "بورونډي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Ethiopia" => [
+                "fa" => "اتیوپی",
+                "ps" => "اتیوپیا",
+                "nationality" => [
+                    "en" => "Ethiopian",
+                    "fa" => "اتیوپیایی",
+                    "ps" => "اتیوپیایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Somalia" => [
+                "fa" => "سومالی",
+                "ps" => "سومالیا",
+                "nationality" => [
+                    "en" => "Somali",
+                    "fa" => "سومالی",
+                    "ps" => "سومالیايي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Chad" => [
+                "fa" => "چاد",
+                "ps" => "چاډ",
+                "nationality" => [
+                    "en" => "Chadian",
+                    "fa" => "چادی",
+                    "ps" => "چادي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Central African Republic" => [
+                "fa" => "جمهوری آفریقای مرکزی",
+                "ps" => "د افریقې مرکزي جمهوریت",
+                "nationality" => [
+                    "en" => "Central African",
+                    "fa" => "جمهوری آفریقای مرکزی",
+                    "ps" => "مرکزي افريقايي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Congo" => [
+                "fa" => "کانګو",
+                "ps" => "کنگو",
+                "nationality" => [
+                    "en" => "Congolese",
+                    "fa" => "کنگویی",
+                    "ps" => "کونګولایی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Democratic Republic of the Congo" => [
+                "fa" => "جمهوری دموکراتیک کنگو",
+                "ps" => "د کانګو ډیموکراتیک جمهوریت",
+                "nationality" => [
+                    "en" => "Congolese",
+                    "fa" => "کونګولایی",
+                    "ps" => "کونګولایی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Gabon" => [
+                "fa" => "گابن",
+                "ps" => "ګابون",
+                "nationality" => [
+                    "en" => "Gabonese",
+                    "fa" => "گابنی",
+                    "ps" => "گابوني",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Seychelles" => [
+                "fa" => "سیچل",
+                "ps" => "سیچل",
+                "nationality" => [
+                    "en" => "Seychellois",
+                    "fa" => "سیچلسی",
+                    "ps" => "سیچلسی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Mauritius" => [
+                "fa" => "موریس",
+                "ps" => "موریس",
+                "nationality" => [
+                    "en" => "Mauritian",
+                    "fa" => "موریسی",
+                    "ps" => "موریسی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Madagascar" => [
+                "fa" => "ماداگاسکار",
+                "ps" => "ماداګاسکار",
+                "nationality" => [
+                    "en" => "Malagasy",
+                    "fa" => "ماداگاسکاري",
+                    "ps" => "ماداگاسکاري",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Comoros" => [
+                "fa" => "کوموروس",
+                "ps" => "کوموروس",
+                "nationality" => [
+                    "en" => "Comorian",
+                    "fa" => "کوموروسی",
+                    "ps" => "کوموروسی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Somaliland" => [
+                "fa" => "سرزمین سومالی",
+                "ps" => "سومالیلینډ",
+                "nationality" => [
+                    "en" => "Somalilander",
+                    "fa" => "سومالیا لندی",
+                    "ps" => "سومالیلنډی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Sri Lanka" => [
+                "fa" => "سری‌لانکا",
+                "ps" => "سریلانکا",
+                "nationality" => [
+                    "en" => "Sri Lankan",
+                    "fa" => "سریلانکایی",
+                    "ps" => "سریلانکایی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Nepal" => [
+                "fa" => "نپال",
+                "ps" => "نیپال",
+                "nationality" => [
+                    "en" => "Nepali",
+                    "fa" => "نپالی",
+                    "ps" => "نیپالي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Bhutan" => [
+                "fa" => "بوتان",
+                "ps" => "بوتان",
+                "nationality" => [
+                    "en" => "Bhutanese",
+                    "fa" => "بوتانی",
+                    "ps" => "بوتاني",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Maldives" => [
+                "fa" => "مالدیو",
+                "ps" => "مالدیو",
+                "nationality" => [
+                    "en" => "Maldivian",
+                    "fa" => "مالدیوئی",
+                    "ps" => "مالدیوي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Bangladesh" => [
+                "fa" => "بنگلادش",
+                "ps" => "بنګله‌دېش",
+                "nationality" => [
+                    "en" => "Bangladeshi",
+                    "fa" => "بنگلادشی",
+                    "ps" => "بنګله‌دېشي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "India" => [
+                "fa" => "هندوستان",
+                "ps" => "افغانستان",
+                "nationality" => [
+                    "en" => "Indian",
+                    "fa" => "هندی",
+                    "ps" => "هندی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Belarus" => [
+                "fa" => "بلاروس",
+                "ps" => "بیلاروس",
+                "nationality" => [
+                    "en" => "Belarusian",
+                    "fa" => "بلاروسی",
+                    "ps" => "بلاروسی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Lithuania" => [
+                "fa" => "لتونی",
+                "ps" => "لتوانیا",
+                "nationality" => [
+                    "en" => "Lithuanian",
+                    "fa" => "لیتوانیایی",
+                    "ps" => "لیتوانیایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Latvia" => [
+                "fa" => "لتونی",
+                "ps" => "لاتویا",
+                "nationality" => [
+                    "en" => "Latvian",
+                    "fa" => "لتوانيایي",
+                    "ps" => "لتوانيایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Estonia" => [
+                "fa" => "استونی",
+                "ps" => "استونیا",
+                "nationality" => [
+                    "en" => "Estonian",
+                    "fa" => "استونیایی",
+                    "ps" => "استونیايي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Moldova" => [
+                "fa" => "مولداوی",
+                "ps" => "مولداوا",
+                "nationality" => [
+                    "en" => "Moldovan",
+                    "fa" => "مولداوی",
+                    "ps" => "مولداوي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Armenia" => [
+                "fa" => "ارمنستان",
+                "ps" => "ارمنستان",
+                "nationality" => [
+                    "en" => "Armenian",
+                    "fa" => "ارمنی",
+                    "ps" => "ارمني",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Georgia" => [
+                "fa" => "گرجستان",
+                "ps" => "ګرجستان",
+                "nationality" => [
+                    "en" => "Georgian",
+                    "fa" => "گرجی",
+                    "ps" => "گرجي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Azerbaijan" => [
+                "fa" => "آذربایجان",
+                "ps" => "آذربایجان",
+                "nationality" => [
+                    "en" => "Azerbaijani",
+                    "fa" => "آذربایجانی",
+                    "ps" => "آذربایجاني",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Kazakhstan" => [
+                "fa" => "قزاقستان",
+                "ps" => "قزاقستان",
+                "nationality" => [
+                    "en" => "Kazakh",
+                    "fa" => "قزاق",
+                    "ps" => "قزاق",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Kyrgyzstan" => [
+                "fa" => "قرقیزستان",
+                "ps" => "قرقیزستان",
+                "nationality" => [
+                    "en" => "Kyrgyz",
+                    "fa" => "قرغیزي",
+                    "ps" => "قرغیزي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Uzbekistan" => [
+                "fa" => "ازبکستان",
+                "ps" => "ازبکستان",
+                "nationality" => [
+                    "en" => "Uzbek",
+                    "fa" => "ازبکي",
+                    "ps" => "ازبکی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Turkmenistan" => [
+                "fa" => "ترکمنستان",
+                "ps" => "ترکمنستان",
+                "nationality" => [
+                    "en" => "Turkmen",
+                    "fa" => "پاکستانی",
+                    "ps" => "پاکستاني",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Tajikistan" => [
+                "fa" => "تاجیکستان",
+                "ps" => "تاجیکستان",
+                "nationality" => [
+                    "en" => "Tajik",
+                    "fa" => "تاجيکي",
+                    "ps" => "تاجیکی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Bulgaria" => [
+                "fa" => "بلغارستان",
+                "ps" => "بلغاریا",
+                "nationality" => [
+                    "en" => "Bulgarian",
+                    "fa" => "بلغاری",
+                    "ps" => "بلغارۍ",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Romania" => [
+                "fa" => "رومانی",
+                "ps" => "رومانیا",
+                "nationality" => [
+                    "en" => "Romanian",
+                    "fa" => "پاکستانی",
+                    "ps" => "رومانیایی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Croatia" => [
+                "fa" => "کرواټیا",
+                "ps" => "کرواټیا",
+                "nationality" => [
+                    "en" => "Croatian",
+                    "fa" => "کرواتی",
+                    "ps" => "کروات",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Slovenia" => [
+                "fa" => "سلووینیا",
+                "ps" => "سلووینیا",
+                "nationality" => [
+                    "en" => "Slovene",
+                    "fa" => "اسلوونیایی",
+                    "ps" => "اسلوویني",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Serbia" => [
+                "fa" => "صربستان",
+                "ps" => "سربیا",
+                "nationality" => [
+                    "en" => "Serbian",
+                    "fa" => "صربستانی",
+                    "ps" => "صربستاني",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Bosnia and Herzegovina" => [
+                "fa" => "بوسنی و هرزگوین",
+                "ps" => "بوسنیا او هرزګووینا",
+                "nationality" => [
+                    "en" => "Bosnian",
+                    "fa" => "بوسنیایی",
+                    "ps" => "بوسنیايي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Montenegro" => [
+                "fa" => "مونته‌نگرو",
+                "ps" => "مونټینیګرو",
+                "nationality" => [
+                    "en" => "Montenegrin",
+                    "fa" => "مونته‌نگرویی",
+                    "ps" => "مونته‌نگروېی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "North Macedonia" => [
+                "fa" => "مقدونیه شمالی",
+                "ps" => "شمالي مقدونیه",
+                "nationality" => [
+                    "en" => "Montenegrin",
+                    "fa" => "مقدونیایی",
+                    "ps" => "مقدونيایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Albania" => [
+                "fa" => "آلبانی",
+                "ps" => "البانیا",
+                "nationality" => [
+                    "en" => "Albanian",
+                    "fa" => "آلبانیایی",
+                    "ps" => "آلبانیايي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Kosovo" => [
+                "fa" => "کوزوو",
+                "ps" => "کوسوو",
+                "nationality" => [
+                    "en" => "Kosovar",
+                    "fa" => "کوزوو",
+                    "ps" => "کوزوو",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Malta" => [
+                "fa" => "مالټا",
+                "ps" => "مالټا",
+                "nationality" => [
+                    "en" => "Maltese",
+                    "fa" => "مالتی",
+                    "ps" => "مالټی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Cyprus" => [
+                "fa" => "قبرس",
+                "ps" => "قبرس",
+                "nationality" => [
+                    "en" => "Cypriot",
+                    "fa" => "قبرسی",
+                    "ps" => "قبرسي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Turkey" => [
+                "fa" => "ترکی",
+                "ps" => "ترکی",
+                "nationality" => [
+                    "en" => "Turkish",
+                    "fa" => "ترکی",
+                    "ps" => "ترکی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Israel" => [
+                "fa" => "اسرائیل",
+                "ps" => "اسرائیل",
+                "nationality" => [
+                    "en" => "Israeli",
+                    "fa" => "اسرائیلی",
+                    "ps" => "اسرائیلي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Palestine" => [
+                "fa" => "فلسطین",
+                "ps" => "فلسطین",
+                "nationality" => [
+                    "en" => "Palestinian",
+                    "fa" => "فلسطینی",
+                    "ps" => "فلسطینی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Barbados" => [
+                "fa" => "باربادوس",
+                "ps" => "باربادوس",
+                "nationality" => [
+                    "en" => "Barbadian",
+                    "fa" => "باربادوسی",
+                    "ps" => "باربادوسي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Saint Lucia" => [
+                "fa" => "سینټ لوسیا",
+                "ps" => "سینټ لوسیا",
+                "nationality" => [
+                    "en" => "Saint Lucian",
+                    "fa" => "سنت لوسیایی",
+                    "ps" => "سانت لوسیایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Saint Vincent and the Grenadines" => [
+                "fa" => "سینټ وینسنت او ګریناډینز",
+                "ps" => "سینټ وینسنت او ګریناډینز",
+                "nationality" => [
+                    "en" => "St. Vincentian",
+                    "fa" => "سنت وینسنتی",
+                    "ps" => "سینت وینسینټی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Antigua and Barbuda" => [
+                "fa" => "آنتیگوا و باربودا",
+                "ps" => "آنتیګوا او باربودا",
+                "nationality" => [
+                    "en" => "Antiguan and Barbudan",
+                    "fa" => "آنتیگویی و باربودایی",
+                    "ps" => "آنتیګوایي او باربودایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Dominica" => [
+                "fa" => "دومینیکا",
+                "ps" => "دومینیکا",
+                "nationality" => [
+                    "en" => "Dominican",
+                    "fa" => "دومینیکایی",
+                    "ps" => "ډومینیکايي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Grenada" => [
+                "fa" => "گرانادا",
+                "ps" => "ګریناډا",
+                "nationality" => [
+                    "en" => "Grenadian",
+                    "fa" => "گرنادایی",
+                    "ps" => "ګرينډايي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Saint Kitts and Nevis" => [
+                "fa" => "سنت کیتس و نویس",
+                "ps" => "سینټ کیټس او نیویس",
+                "nationality" => [
+                    "en" => "St. Kitts and Nevisian",
+                    "fa" => "سنت کیتس و نویسی",
+                    "ps" => "سینټ کیټس او نویسی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Jamaica" => [
+                "fa" => "جامائیکا",
+                "ps" => "جامائیکا",
+                "nationality" => [
+                    "en" => "Jamaican",
+                    "fa" => "جامائیکایی",
+                    "ps" => "جامايکايي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Haiti" => [
+                "fa" => "هائیتی",
+                "ps" => "هایټي",
+                "nationality" => [
+                    "en" => "Haitian",
+                    "fa" => "هائیتی",
+                    "ps" => "هایټي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Cuba" => [
+                "fa" => "کوبا",
+                "ps" => "کیوبا",
+                "nationality" => [
+                    "en" => "Cuban",
+                    "fa" => "کوبایی",
+                    "ps" => "کوبایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Dominican Republic" => [
+                "fa" => "جمهوری دومینیکن",
+                "ps" => "دومینیکن جمهوریت",
+                "nationality" => [
+                    "en" => "Dominican",
+                    "fa" => "دومینیکایی",
+                    "ps" => "دومینیکايي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Puerto Rico" => [
+                "fa" => "پورتوریکو",
+                "ps" => "پورتوریکو",
+                "nationality" => [
+                    "en" => "Puerto Rican",
+                    "fa" => "پورتوریکویی",
+                    "ps" => "پورتوریکويی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Costa Rica" => [
+                "fa" => "کاستاریکا",
+                "ps" => "کاستاریکا",
+                "nationality" => [
+                    "en" => "Costa Rican",
+                    "fa" => "کاستاریکایی",
+                    "ps" => "کاستاریکایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Panama" => [
+                "fa" => "پاناما",
+                "ps" => "پاناما",
+                "nationality" => [
+                    "en" => "Panamanian",
+                    "fa" => "پانامایی",
+                    "ps" => "پاناماايي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Nicaragua" => [
+                "fa" => "نیکاراگوئه",
+                "ps" => "نیکاراګوا",
+                "nationality" => [
+                    "en" => "Nicaraguan",
+                    "fa" => "نیکاراگویی",
+                    "ps" => "نیکاراګوایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "El Salvador" => [
+                "fa" => "السالوادور",
+                "ps" => "السالوادور",
+                "nationality" => [
+                    "en" => "Salvadoran",
+                    "fa" => "ال‌ساوادوري",
+                    "ps" => "ال‌ساوادوری",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Honduras" => [
+                "fa" => "هندوراس",
+                "ps" => "هندوراس",
+                "nationality" => [
+                    "en" => "Honduran",
+                    "fa" => "هندوراسی",
+                    "ps" => "هندوراسي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Guatemala" => [
+                "fa" => "گواتمالا",
+                "ps" => "ګواتیمالا",
+                "nationality" => [
+                    "en" => "Guatemalan",
+                    "fa" => "گواتمالایی",
+                    "ps" => "ګواتمالایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Belize" => [
+                "fa" => "بلیز",
+                "ps" => "بلیز",
+                "nationality" => [
+                    "en" => "Belizan",
+                    "fa" => "بلیزی",
+                    "ps" => "بلیزي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Colombia" => [
+                "fa" => "کلمبیا",
+                "ps" => "کولمبیا",
+                "nationality" => [
+                    "en" => "Colombian",
+                    "fa" => "کلمبیایی",
+                    "ps" => "کلمبیايي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Venezuela" => [
+                "fa" => "ونزوئلا",
+                "ps" => "وینزویلا",
+                "nationality" => [
+                    "en" => "Venezuelan",
+                    "fa" => "ونزوئلایی",
+                    "ps" => "ونزویلايي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Guyana" => [
+                "fa" => "گویان",
+                "ps" => "ګویانا",
+                "nationality" => [
+                    "en" => "Guyanese",
+                    "fa" => "گویانیایی",
+                    "ps" => "ګویانيایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Suriname" => [
+                "fa" => "سورینام",
+                "ps" => "سورینام",
+                "nationality" => [
+                    "en" => "Surinamese",
+                    "fa" => "سورینامی",
+                    "ps" => "سورینامي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "French Guiana" => [
+                "fa" => "گویان فرانسه",
+                "ps" => "ګویانا فرانسوي",
+                "nationality" => [
+                    "en" => "French Guianese",
+                    "fa" => "گویانای فرانسوی",
+                    "ps" => "ګویانا فرانسوي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Luxembourg" => [
+                "fa" => "لوکزامبورگ",
+                "ps" => "لوکزامبورګ",
+                "nationality" => [
+                    "en" => "Luxembourgish",
+                    "fa" => "لوکزامبورگی",
+                    "ps" => "لوکزامبورګي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Iceland" => [
+                "fa" => "ایسلند",
+                "ps" => "ایسلهڼډ",
+                "nationality" => [
+                    "en" => "Icelandic",
+                    "fa" => "ایسلندی",
+                    "ps" => "ایسلينډي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Ireland" => [
+                "fa" => "ایرلند",
+                "ps" => "آیرلنډ",
+                "nationality" => [
+                    "en" => "Irish",
+                    "fa" => "ایرلندی",
+                    "ps" => "ایرلندۍ",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Andorra" => [
+                "fa" => "انډورا",
+                "ps" => "آندورا",
+                "nationality" => [
+                    "en" => "Andorran",
+                    "fa" => "آندورایی",
+                    "ps" => "انډورایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Monaco" => [
+                "fa" => "موناکو",
+                "ps" => "موناکو",
+                "nationality" => [
+                    "en" => "Monégasque",
+                    "fa" => "موناکویی",
+                    "ps" => "موناکوي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "San Marino" => [
+                "fa" => "سان مارینو",
+                "ps" => "سان مارینو",
+                "nationality" => [
+                    "en" => "Sanmarinese",
+                    "fa" => "سان‌مارینویی",
+                    "ps" => "سان‌مارينوي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Vatican City" => [
+                "fa" => "واتیکان",
+                "ps" => "د واتیکان ښار",
+                "nationality" => [
+                    "en" => "Vatican",
+                    "fa" => "واتیکانی",
+                    "ps" => "واتیکاني",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Liechtenstein" => [
+                "fa" => "لیختن‌اشتاین",
+                "ps" => "لیختن‌اشتاین",
+                "nationality" => [
+                    "en" => "Liechtensteiner",
+                    "fa" => "لیختن‌اشتایني",
+                    "ps" => "لیختن‌اشتایني",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Czech Republic" => [
+                "fa" => "جمهوری چک",
+                "ps" => "چک جمهوریت",
+                "nationality" => [
+                    "en" => "Czech",
+                    "fa" => "چکی",
+                    "ps" => "چکی",
+                ],
+                "provinces" => []
+
+            ],
+
+
+            "Slovakia" => [
+                "fa" => "اسلواکی",
+                "ps" => "سلوواکیا",
+                "nationality" => [
+                    "en" => "Slovak",
+                    "fa" => "اسلواکی",
+                    "ps" => "اسلواکي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Hungary" => [
+                "fa" => "هنګري",
+                "ps" => "هنګري",
+                "nationality" => [
+                    "en" => "Hungarian",
+                    "fa" => "مجارستاني",
+                    "ps" => "مجارستاني",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Trinidad and Tobago" => [
+                "fa" => "ترینیداد و توباگو",
+                "ps" => "ترینیداد او توباګو",
+                "nationality" => [
+                    "en" => "Trinidadian and Tobagonian",
+                    "fa" => "ترینیدادی و توباگویی",
+                    "ps" => "ترینیدادي او توباګوي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "The Bahamas" => [
+                "fa" => "باهاماس",
+                "ps" => "باهاماس",
+                "nationality" => [
+                    "en" => "Bahamian",
+                    "fa" => "باهامی",
+                    "ps" => "باهامي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "South Sudan" => [
+                "fa" => "سودان جنوبی",
+                "ps" => "جنوبي سوډان",
+                "nationality" => [
+                    "en" => "South Sudanese",
+                    "fa" => "جنوب سودانی",
+                    "ps" => "جنوبي سوډاني",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Eritrea" => [
+                "fa" => "اریتره",
+                "ps" => "اریتریا",
+                "nationality" => [
+                    "en" => "Eritrean",
+                    "fa" => "اریتریایی",
+                    "ps" => "پاکستاني",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Djibouti" => [
+                "fa" => "جیبوتی",
+                "ps" => "جیبوتي",
+                "nationality" => [
+                    "en" => "Djiboutian",
+                    "fa" => "جیبوتی",
+                    "ps" => "جیبوتي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Mali" => [
+                "fa" => "مالی",
+                "ps" => "مالي",
+                "nationality" => [
+                    "en" => "Malian",
+                    "fa" => "مالي",
+                    "ps" => "مالي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Niger" => [
+                "fa" => "نیجر",
+                "ps" => "نیجر",
+                "nationality" => [
+                    "en" => "Nigerien",
+                    "fa" => "نیجری",
+                    "ps" => "نیجري",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Burkina Faso" => [
+                "fa" => "بورکینا فاسو",
+                "ps" => "بورکینا فاسو",
+                "nationality" => [
+                    "en" => "Burkinabé",
+                    "fa" => "بورکینی",
+                    "ps" => "بورکيني",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Senegal" => [
+                "fa" => "سنگال",
+                "ps" => "سینیګال",
+                "nationality" => [
+                    "en" => "Senegalese",
+                    "fa" => "سنگالی",
+                    "ps" => "سنگالي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "The Gambia" => [
+                "fa" => "گامبیا",
+                "ps" => "ګامبیا",
+                "nationality" => [
+                    "en" => "Gambian",
+                    "fa" => "گامبیایی",
+                    "ps" => "ګامبيایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Guinea" => [
+                "fa" => "ګینه",
+                "ps" => "گینه",
+                "nationality" => [
+                    "en" => "Guinean",
+                    "fa" => "گینه‌ای",
+                    "ps" => "ګینه‌اي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Guinea-Bissau" => [
+                "fa" => "گینه بیسائو",
+                "ps" => "ګینه بیساؤ",
+                "nationality" => [
+                    "en" => "Guinea-Bissauan",
+                    "fa" => "گینه‌بیساوویی",
+                    "ps" => "ګینه‌بیساوۍ",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Cape Verde" => [
+                "fa" => "کیپ ورد",
+                "ps" => "کیپ ورد",
+                "nationality" => [
+                    "en" => "Cape Verdean",
+                    "fa" => "کیپ وردی",
+                    "ps" => "کیپ وردي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+
+            "Sao Tome and Principe" => [
+                "fa" => "سائو تومه و پرینسیپ",
+                "ps" => "سائو تومه و پرینسیپ",
+                "nationality" => [
+                    "en" => "São Toméan",
+                    "fa" => "سائوتومه‌ای و پرینسیپی",
+                    "ps" => "سائوتومه او پرنسيپي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Equatorial Guinea" => [
+                "fa" => "گینه استوایی",
+                "ps" => "استوایي ګینه",
+                "nationality" => [
+                    "en" => "Equatorial Guinean",
+                    "fa" => "گینه استوایی",
+                    "ps" => "ګینه‌استوایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Libya" => [
+                "fa" => "لیبیا",
+                "ps" => "لیبیا",
+                "nationality" => [
+                    "en" => "Libyan",
+                    "fa" => "لیبیایی",
+                    "ps" => "لیبیایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Ghana" => [
+                "fa" => "غنا",
+                "ps" => "غنا",
+                "nationality" => [
+                    "en" => "Ghanaian",
+                    "fa" => "غنایی",
+                    "ps" => "غنايي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Togo" => [
+                "fa" => "توگو",
+                "ps" => "ټوګو",
+                "nationality" => [
+                    "en" => "Togian",
+                    "fa" => "توگویی ",
+                    "ps" => "توګوي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Benin" => [
+                "fa" => "بنین",
+                "ps" => "بنین",
+                "nationality" => [
+                    "en" => "Beninese",
+                    "fa" => "بنینی",
+                    "ps" => "بنيني",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Cote d'Ivoire" => [
+                "fa" => "ساحل عاج",
+                "ps" => "عاج ساحل",
+                "nationality" => [
+                    "en" => "Ivorian",
+                    "fa" => "ساحل عاجی",
+                    "ps" => "ساحل عاجي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Cameroon" => [
+                "fa" => "کامرون",
+                "ps" => "کامرون",
+                "nationality" => [
+                    "en" => "Cameroonian",
+                    "fa" => "مالي",
+                    "ps" => "مالي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "MaLesotholi" => [
+                "fa" => "لسوتو",
+                "ps" => "لیسوتو",
+                "nationality" => [
+                    "en" => "Lesothan",
+                    "fa" => "لسوتویی",
+                    "ps" => "لسوتوي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Eswatini" => [
+                "fa" => "اسواتینی",
+                "ps" => "ایسواتیني",
+                "nationality" => [
+                    "en" => "Swazi",
+                    "fa" => "اسواتینی",
+                    "ps" => "اسواتيني",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Botswana" => [
+                "fa" => "بوتسوانا",
+                "ps" => "بوټسوانا",
+                "nationality" => [
+                    "en" => "Botswanan",
+                    "fa" => "بوتسوانایی",
+                    "ps" => "بوتسوانایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Namibia" => [
+                "fa" => "نامیبیا",
+                "ps" => "نامیبیا",
+                "nationality" => [
+                    "en" => "Namibian",
+                    "fa" => "نامیبیاایی",
+                    "ps" => "نامیبیايي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "New Zealand" => [
+                "fa" => "نیوزیلند",
+                "ps" => "نیوزیلېنډ",
+                "nationality" => [
+                    "en" => "New Zealander",
+                    "fa" => "نیوزیلندی",
+                    "ps" => "نیوزیلنډي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Fiji" => [
+                "fa" => "فیجی",
+                "ps" => "فیجي",
+                "nationality" => [
+                    "en" => "Fijian",
+                    "fa" => "فیجیایی",
+                    "ps" => "فیجيایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Papua New Guinea" => [
+                "fa" => "پاپوا گینه نو",
+                "ps" => "پاپوا گینه نو",
+                "nationality" => [
+                    "en" => "Papua New Guinean",
+                    "fa" => "پاپوآ گینه‌نوایی",
+                    "ps" => "پاپوآګینه‌نوایي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Solomon Islands" => [
+                "fa" => "جزایر سلیمان",
+                "ps" => "سلیمان ټاپوګان",
+                "nationality" => [
+                    "en" => "Solomon Islander",
+                    "fa" => "سلیمانی",
+                    "ps" => "سلیماني",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Vanuatu" => [
+                "fa" => "وانواتو",
+                "ps" => "وانواتو",
+                "nationality" => [
+                    "en" => "Vanuatuan",
+                    "fa" => "وانواتویی",
+                    "ps" => "وانواتوي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Samoa" => [
+                "fa" => "ساموآ",
+                "ps" => "ساموآ",
+                "nationality" => [
+                    "en" => "Samoan",
+                    "fa" => "ساموایی",
+                    "ps" => "ساموايي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Tonga" => [
+                "fa" => "تونگا",
+                "ps" => "ټونګا",
+                "nationality" => [
+                    "en" => "Tongan",
+                    "fa" => "تونگایی",
+                    "ps" => "تونګي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Kiribati" => [
+                "fa" => "کیریباتی",
+                "ps" => "کیریباتي",
+                "nationality" => [
+                    "en" => "Kiribatian",
+                    "fa" => "کیریباتی",
+                    "ps" => "کیریباتي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Marshall Islands" => [
+                "fa" => "جزایر مارشال",
+                "ps" => "مارشال ټاپوګان",
+                "nationality" => [
+                    "en" => "Marshallese",
+                    "fa" => "جزایر مارشال",
+                    "ps" => "مارشالي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Federated States of Micronesia" => [
+                "fa" => "ایالات فدرال میکرونزیا",
+                "ps" => "د مایکرو نیژیا متحده ایالات",
+                "nationality" => [
+                    "en" => "Micronesian",
+                    "fa" => "میکرونزیایی",
+                    "ps" => "میکرونزیايي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Palau" => [
+                "fa" => "پالائو",
+                "ps" => "پالاو",
+                "nationality" => [
+                    "en" => "Palauan",
+                    "fa" => "پالائویی",
+                    "ps" => "پالاويي",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Nauru" => [
+                "fa" => "نائورو",
+                "ps" => "نائورو",
+                "nationality" => [
+                    "en" => "Nauruan",
+                    "fa" => "ناورو",
+                    "ps" => "نائورویی",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Tuvalu" => [
+                "fa" => "تووالو",
+                "ps" => "تووالو",
+                "nationality" => [
+                    "en" => "Tuvaluan",
+                    "fa" => "تووالو",
+                    "ps" => "تووالوۍ",
+
+                ],
+                "provinces" => []
+
+            ],
+
+            "Timor-Leste" => [
+                "fa" => "تیمور-لیست",
+                "ps" => "تیمور-لیست",
+                "nationality" => [
+                    "en" => "Timorese",
+                    "fa" => "تیموری",
+                    "ps" => "تیموري",
+
+                ],
+
             ],
         ];
 
@@ -1536,6 +3228,17 @@ class CountrySeeder extends Seeder
                                 ]);
                             }
                         }
+                    }
+                } else if ($key == 'nationality') {
+                    $nationality = Nationality::create([
+                        'country_id' => $cnt->id
+                    ]);
+                    foreach ($value as $provinceName => $provinceDetails) {
+                        NationalityTrans::create([
+                            'value' => $provinceDetails,
+                            "language_name" => $provinceName,
+                            "nationality_id" => $nationality->id
+                        ]);
                     }
                 } else {
                     // Translate country details (e.g., fa, ps)

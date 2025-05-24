@@ -50,7 +50,6 @@ class StoreSignedRegisterFormRequest extends FormRequest
         return [
             "ngo_id" => 'required',
             "start_date" => 'required',
-            "end_date" => 'required',
         ];
     }
 }

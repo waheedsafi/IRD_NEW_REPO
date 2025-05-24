@@ -110,7 +110,6 @@ class NgoPdfController extends Controller
     }
     protected function loadNgoData($locale = 'en', $id)
     {
-        $id = 1;
         $locale = 'en';
         $ngo = DB::table('ngos as n')
             ->where('n.id', $id)
@@ -179,9 +178,9 @@ class NgoPdfController extends Controller
                 $join->on('pt.province_id', '=', 'a.province_id')
                     ->where('pt.language_name', $locale);
             })
-            ->join('country_trans as ct', function ($join) use ($locale) {
-                $join->on('ct.country_id', '=', 'd.country_id')
-                    ->where('ct.language_name', $locale);
+            ->join('nationality_trans as nt', function ($join) use ($locale) {
+                $join->on('nt.nationality_id', '=', 'd.nationality_id')
+                    ->where('nt.language_name', $locale);
             })
             ->select(
                 'dirt.name',
@@ -190,7 +189,7 @@ class NgoPdfController extends Controller
                 'dt.district_id',
                 'pt.value as province',
                 'pt.province_id',
-                'ct.value as country',
+                'nt.value as country',
                 'at.area',
             )
             ->first();

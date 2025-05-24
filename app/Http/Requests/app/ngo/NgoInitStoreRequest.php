@@ -73,7 +73,7 @@ class NgoInitStoreRequest extends FormRequest
             "director_contact" => "required|unique:contacts,value",
             "director_email" => "required|unique:emails,value",
             "gender.id" => "required|exists:genders,id",
-            "nationality.id" => "required|exists:countries,id",
+            "nationality.id" => "required|exists:nationalities,id",
             "identity_type.id" => "required|exists:nid_types,id",
             "nid" => "required|unique:directors,nid_no",
             "director_province.id" => "required|exists:provinces,id",

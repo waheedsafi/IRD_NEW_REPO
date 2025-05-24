@@ -12,6 +12,3 @@ Route::prefix('v1')->group(function () {
 });
 
 Route::get('/generate-pdf', [ReportController::class, 'testReport']);
-
-require __DIR__ . '/web/auth.php';
-require __DIR__ . '/web/key.php';

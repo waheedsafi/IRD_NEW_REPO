@@ -13,7 +13,7 @@ use App\Http\Controllers\api\app\ngo\ExtendNgoController;
 Route::prefix('v1')->group(function () {
   Route::get('public/ngos', [ViewsNgoController::class, 'publicNgos']);
 });
-Route::prefix('v1')->middleware(['api.key', "multiAuthorized:" . 'user:api,ngo:api'])->group(function () {
+Route::prefix('v1')->middleware(["multiAuthorized:" . 'user:api,ngo:api'])->group(function () {
   Route::get('/ngo/status/{id}', [ViewsNgoController::class, 'currentStatus']);
   Route::get('/ngo/details/{id}', [ViewsNgoController::class, 'ngoDetail'])->middleware(["userHasSubViewPermission:" . PermissionEnum::ngo->value . "," . SubPermissionEnum::ngo_information->value]);
   Route::post('/ngo/update-info', [EditesNgoController::class, 'updateInfo'])->middleware(["userHasSubEditPermission:" . PermissionEnum::ngo->value . "," . SubPermissionEnum::ngo_information->value]);
@@ -27,7 +27,7 @@ Route::prefix('v1')->middleware(['api.key', "multiAuthorized:" . 'user:api,ngo:a
   Route::post('/ngo/store/signed/register/form', [StoresNgoController::class, 'StoreSignedRegisterForm']);
   Route::get('/ngo/header-info/{id}', [ViewsNgoController::class, 'headerInfo']);
 });
-Route::prefix('v1')->middleware(['api.key', "authorized:" . 'user:api'])->group(function () {
+Route::prefix('v1')->middleware(["authorized:" . 'user:api'])->group(function () {
   // change ngo status route
   Route::post('/ngo/change-status', [EditesNgoController::class, 'changeStatus'])->middleware(["userHasSubAddPermission:" . PermissionEnum::ngo->value . "," . SubPermissionEnum::ngo_status->value]);
   Route::get('/ngos/record/count', [ViewsNgoController::class, "ngoCount"])->middleware(["userHasMainViewPermission:" . PermissionEnum::ngo->value]);
