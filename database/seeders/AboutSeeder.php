@@ -36,7 +36,7 @@ class AboutSeeder extends Seeder
             "staff_type_id" => StaffEnum::manager,
             "contact" => "+93202301375",
             "email" => "manager@moph.gov.af",
-            "profile" => 'placeholders/user-image.jpg',
+            "profile" => 'placeholders/general.jpg',
         ]);
         StaffTran::create([
             'staff_id' => $staff->id,
@@ -60,7 +60,7 @@ class AboutSeeder extends Seeder
             "staff_type_id" => StaffEnum::director,
             "contact" => "+93202301376",
             "email" => "director@moph.gov.af",
-            "profile" => 'placeholders/user-image.jpg',
+            "profile" => 'placeholders/general.jpg',
         ]);
         StaffTran::create([
             'staff_id' => $staff->id,
