@@ -61,6 +61,16 @@ enum SubPermissionEnum: int
         57 => "representative",
         58 => "update_account_password",
     ];
+    case project_information = 61;
+    case project_center_budget = 62;
+    case project_organization_structure = 63;
+    case project_checklist = 64;
+    public const PROJECT = [
+        61 => "project_information",
+        62 => "center_budget",
+        63 => "organ_structure",
+        64 => "checklist",
+    ];
         // ABOUT
     case about_director = 71;
     case about_manager = 72;

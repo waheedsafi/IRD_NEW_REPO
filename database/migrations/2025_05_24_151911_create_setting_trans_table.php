@@ -11,16 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('setting_time_units', function (Blueprint $table) {
+        Schema::create('setting_trans', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('time_unit_id');
-            $table->foreign('time_unit_id')->references('id')->on('time_units')
-                ->onUpdate('cascade')
-                ->onDelete('cascade');
+            $table->string('value');
             $table->unsignedBigInteger('setting_id');
             $table->foreign('setting_id')->references('id')->on('settings')
                 ->onUpdate('cascade')
-                ->onDelete('cascade');
+                ->onDelete('no action');
+            $table->string('language_name');
+            $table->foreign('language_name')->references('name')->on('languages')
+                ->onUpdate('cascade')
+                ->onDelete('no action');
             $table->timestamps();
         });
     }
@@ -30,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('setting_time_units');
+        Schema::dropIfExists('setting_trans');
     }
 };

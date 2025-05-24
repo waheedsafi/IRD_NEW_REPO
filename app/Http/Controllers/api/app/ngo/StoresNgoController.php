@@ -444,7 +444,6 @@ class StoresNgoController extends Controller
             );
         }
         $start_date = Carbon::parse($request->start_date);
-        $end_date = $start_date->copy()->addDays((int)$expirationDate->days);
 
         $agreement = Agreement::where('ngo_id', $ngo_id)
             ->where('end_date', null) // Order by end_date descending
@@ -479,11 +478,6 @@ class StoresNgoController extends Controller
                 'message' => __('app_translation.task_not_found'),
             ], 404, [], JSON_UNESCAPED_UNICODE);
         }
-        $includes = [
-            CheckListEnum::ngo_register_form_en->value,
-            CheckListEnum::ngo_register_form_fa->value,
-            CheckListEnum::ngo_register_form_ps->value
-        ];
 
         DB::beginTransaction();
         $approval = $this->approvalRepository->storeApproval(
@@ -515,7 +509,6 @@ class StoresNgoController extends Controller
             "message" => ""
         ]);
         $agreement->start_date = $start_date;
-        $agreement->end_date = $end_date;
         $agreement->save();
         // Update ngo status
         NgoStatus::where('ngo_id', $ngo_id)->update(['is_active' => false]);

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\api\template;
 use App\Http\Controllers\Controller;
 use App\Traits\Helper\HelperTrait;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 class MediaController extends Controller
 {

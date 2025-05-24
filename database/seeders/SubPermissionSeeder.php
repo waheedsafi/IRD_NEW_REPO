@@ -20,6 +20,7 @@ class SubPermissionSeeder extends Seeder
         $this->subAboutPermissions();
         $this->subApprovalPermissions();
         $this->subActivityPermissions();
+        $this->subProjectPermissions();
     }
     public function subUserPermissions()
     {
@@ -34,6 +35,16 @@ class SubPermissionSeeder extends Seeder
     public function subNgoPermissions()
     {
         foreach (SubPermissionEnum::NGO as $id => $role) {
+            SubPermission::factory()->create([
+                "id" => $id,
+                "permission" => PermissionEnum::ngo->value,
+                "name" => $role,
+            ]);
+        }
+    }
+    public function subProjectPermissions()
+    {
+        foreach (SubPermissionEnum::PROJECT as $id => $role) {
             SubPermission::factory()->create([
                 "id" => $id,
                 "permission" => PermissionEnum::ngo->value,

@@ -13,12 +13,15 @@ return new class extends Migration
     {
         Schema::create('settings', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
             $table->string('value');
             $table->unsignedBigInteger('user_id')->nullable(); // ID of the user who performed the action
             $table->foreign('user_id')->references('id')->on('users')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
+            $table->unsignedBigInteger('time_unit_id');
+            $table->foreign('time_unit_id')->references('id')->on('time_units')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
             $table->timestamps();
         });
     }
