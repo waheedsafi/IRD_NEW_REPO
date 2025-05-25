@@ -18,8 +18,8 @@ return new class extends Migration
             $table->foreign('donor_id')->references('id')->on('donors')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
-            $table->unsignedBigInteger('status_type_id');
-            $table->foreign('status_type_id')->references('id')->on('status_types')
+            $table->unsignedBigInteger('status_id');
+            $table->foreign('status_type_id')->references('id')->on('statuses')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
             $table->string('comment', 128);

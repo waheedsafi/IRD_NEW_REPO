@@ -13,6 +13,7 @@ use App\Http\Controllers\Controller;
 use App\Traits\Address\AddressTrait;
 use App\Repositories\ngo\NgoRepositoryInterface;
 use App\Repositories\PendingTask\PendingTaskRepositoryInterface;
+use App\Enums\Statuses\StatusEnum;
 
 class ViewsNgoController extends Controller
 {
@@ -86,7 +87,7 @@ class ViewsNgoController extends Controller
         $perPage = $request->input('per_page', 10); // Number of records per page
         $page = $request->input('page', 1); // Current page
         $locale = App::getLocale();
-        $includedIds  = [StatusTypeEnum::registered->value, StatusTypeEnum::registered->value];
+        $includedIds  = [StatusEnum::registered->value, StatusEnum::registered->value];
 
         $query = $this->ngoRepository->ngo();  // Start with the base query
         $this->ngoRepository->transJoin($query, $locale)
@@ -289,7 +290,7 @@ class ViewsNgoController extends Controller
             (SELECT COUNT(*) FROM ngos n JOIN ngo_statuses ns ON n.id = ns.ngo_id WHERE ns.status_type_id = ?) AS activeCount,
          (SELECT COUNT(*) FROM ngos n JOIN ngo_statuses ns ON n.id = ns.ngo_id WHERE ns.status_type_id = ? AND ns.status_type_id != ? ) AS unRegisteredCount
         FROM ngos
-            ", [StatusTypeEnum::registered->value, StatusTypeEnum::registered->value, StatusTypeEnum::blocked->value]);
+            ", [StatusEnum::registered->value, StatusEnum::registered->value, StatusEnum::blocked->value]);
         return response()->json([
             'counts' => [
                 "count" => $statistics[0]->count,

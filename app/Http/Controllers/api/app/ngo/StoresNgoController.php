@@ -22,11 +22,11 @@ use App\Enums\NotifierEnum;
 use App\Models\AddressTran;
 use App\Enums\PermissionEnum;
 use App\Models\NgoPermission;
-use App\Models\StatusTypeTran;
 use App\Enums\CheckListTypeEnum;
 use App\Enums\Type\TaskTypeEnum;
 use App\Models\AgreementDirector;
 use App\Models\AgreementDocument;
+use App\Enums\Statuses\StatusEnum;
 use App\Enums\Type\StatusTypeEnum;
 use App\Traits\Helper\HelperTrait;
 use Illuminate\Support\Facades\DB;
@@ -42,6 +42,8 @@ use App\Repositories\Storage\StorageRepositoryInterface;
 use App\Repositories\Approval\ApprovalRepositoryInterface;
 use App\Repositories\Director\DirectorRepositoryInterface;
 use App\Http\Requests\app\ngo\StoreSignedRegisterFormRequest;
+use App\Models\AgreementStatus;
+use App\Models\StatusTrans;
 use App\Repositories\PendingTask\PendingTaskRepositoryInterface;
 use App\Repositories\Notification\NotificationRepositoryInterface;
 use App\Repositories\Representative\RepresentativeRepositoryInterface;
@@ -130,7 +132,7 @@ class StoresNgoController extends Controller
             'userable_id' => $authUser->id,
             'userable_type' => $this->getModelName(get_class($authUser)),
             "is_active" => true,
-            "status_type_id" => StatusTypeEnum::register_form_not_completed->value,
+            "status_id" => StatusEnum::active->value,
             "comment" => "Newly Created"
         ]);
 
@@ -205,7 +207,7 @@ class StoresNgoController extends Controller
         // If everything goes well, commit the transaction
         DB::commit();
 
-        $status = StatusTypeTran::where('status_type_id', StatusTypeEnum::register_form_not_completed->value)
+        $status = StatusTrans::where('status_id', StatusEnum::active->value)
             ->where('language_name', $locale)
             ->select('name')->first();
         return response()->json(
@@ -216,7 +218,7 @@ class StoresNgoController extends Controller
                     "profile" => $newNgo->profile,
                     "abbr" => $newNgo->abbr,
                     "registration_no" => $newNgo->registration_no,
-                    "status_id" => StatusTypeEnum::register_form_not_completed->value,
+                    "status_id" => StatusEnum::active->value,
                     "status" => $status->name,
                     "type_id" => $validatedData['ngo_type_id'],
                     "establishment_date" => null,
@@ -357,13 +359,13 @@ class StoresNgoController extends Controller
         $ngo->save();
 
         // Make prevous state to false
-        NgoStatus::where('ngo_id', $id)->update(['is_active' => false]);
-        NgoStatus::create([
-            'ngo_id' => $id,
+        AgreementStatus::where('agreement_id', $agreement->id,)->update(['is_active' => false]);
+        AgreementStatus::create([
+            'agreement_id' => $id,
             'userable_id' => $authUser->id,
             'userable_type' => $this->getModelName(get_class($authUser)),
             "is_active" => true,
-            'status_type_id' => StatusTypeEnum::register_form_completed,
+            'status_id' => StatusEnum::register_form_completed,
             'comment' => 'Register Form Complete',
         ]);
 
@@ -518,13 +520,13 @@ class StoresNgoController extends Controller
         $agreement->end_date = $end_date;
         $agreement->save();
         // Update ngo status
-        NgoStatus::where('ngo_id', $ngo_id)->update(['is_active' => false]);
-        NgoStatus::create([
-            'ngo_id' => $ngo_id,
+        AgreementStatus::where('agreement_id', $agreement->id)->update(['is_active' => false]);
+        AgreementStatus::create([
+            'agreement_id' => $agreement->id,
             'userable_id' => $authUser->id,
             'userable_type' => $this->getModelName(get_class($authUser)),
             "is_active" => true,
-            'status_type_id' => StatusTypeEnum::signed_register_form_submitted->value,
+            'status_id' => StatusEnum::signed_register_form_submitted->value,
             'comment' => 'Signed Register Form Submitted',
         ]);
         DB::commit();
