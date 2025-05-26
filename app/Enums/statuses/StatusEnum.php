@@ -12,5 +12,4 @@ enum StatusEnum: int
     case registered = 6;
     case registration_expired = 7;
     case registration_extended = 8;
-    case registratio_expired = 9;
 }
