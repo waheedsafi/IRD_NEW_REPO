@@ -46,8 +46,8 @@ class ViewsNgoController extends Controller
                 $join->on('ns.ngo_id', '=', 'n.id')
                     ->where('ns.is_active', true);
             })
-            ->join('status_type_trans as stt', function ($join) use ($locale) {
-                $join->on('stt.status_type_id', '=', 'ns.status_type_id')
+            ->join('status_trans as stt', function ($join) use ($locale) {
+                $join->on('stt.status_id', '=', 'ns.status_id')
                     ->where('stt.language_name', $locale);
             })
             ->join('ngo_type_trans as ntt', function ($join) use ($locale) {
@@ -61,7 +61,7 @@ class ViewsNgoController extends Controller
                 'n.profile',
                 'n.registration_no',
                 'n.date_of_establishment as establishment_date',
-                'stt.status_type_id as status_id',
+                'stt.status_id',
                 'stt.name as status',
                 'nt.name',
                 'ntt.ngo_type_id as type_id',
@@ -98,7 +98,7 @@ class ViewsNgoController extends Controller
             ->directorTransJoin($query, $locale)
             ->emailJoin($query)
             ->contactJoin($query);
-        $query->whereIn('ns.status_type_id', $includedIds)
+        $query->whereIn('ns.status_id', $includedIds)
             ->select(
                 'n.id',
                 'n.abbr',
@@ -257,11 +257,10 @@ class ViewsNgoController extends Controller
             ->contactJoin($query);
         $ngo = $query->select(
             'n.profile',
-            'ns.status_type_id as status_id',
             'n.username',
             'c.value as contact',
             'e.value as email',
-            'ns.status_type_id',
+            'ns.status_id',
             'stt.name as status_type',
         )->first();
         if (!$ngo) {
@@ -287,8 +286,8 @@ class ViewsNgoController extends Controller
         SELECT
          COUNT(*) AS count,
             (SELECT COUNT(*) FROM ngos WHERE DATE(created_at) = CURDATE()) AS todayCount,
-            (SELECT COUNT(*) FROM ngos n JOIN ngo_statuses ns ON n.id = ns.ngo_id WHERE ns.status_type_id = ?) AS activeCount,
-         (SELECT COUNT(*) FROM ngos n JOIN ngo_statuses ns ON n.id = ns.ngo_id WHERE ns.status_type_id = ? AND ns.status_type_id != ? ) AS unRegisteredCount
+            (SELECT COUNT(*) FROM ngos n JOIN ngo_statuses ns ON n.id = ns.ngo_id WHERE ns.status_id = ?) AS activeCount,
+         (SELECT COUNT(*) FROM ngos n JOIN ngo_statuses ns ON n.id = ns.ngo_id WHERE ns.status_id = ? AND ns.status_id != ? ) AS unRegisteredCount
         FROM ngos
             ", [StatusEnum::registered->value, StatusEnum::registered->value, StatusEnum::block->value]);
         return response()->json([
