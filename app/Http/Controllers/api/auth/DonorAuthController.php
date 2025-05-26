@@ -7,12 +7,12 @@ use App\Models\Email;
 use App\Models\DonorStatus;
 use Sway\Utils\StringUtils;
 use Illuminate\Http\Request;
-use App\Enums\Type\StatusTypeEnum;
+use App\Enums\Status\StatusEnum;
+use App\Traits\Helper\HelperTrait;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Traits\Helper\HelperTrait;
 
 class DonorAuthController extends Controller
 {
@@ -86,7 +86,7 @@ class DonorAuthController extends Controller
             // Get the auth user
             $ngo = $loggedIn['user'];
             $ngoStatus = DonorStatus::where("donor_id", $ngo->id)->first();
-            if ($ngoStatus->status_type_id == StatusTypeEnum::blocked->value) {
+            if ($ngoStatus->status_id == StatusEnum::block->value) {
                 return response()->json([
                     'message' => __('app_translation.account_is_block'),
                 ], 401, [], JSON_UNESCAPED_UNICODE);

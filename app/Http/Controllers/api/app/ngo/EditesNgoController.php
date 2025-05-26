@@ -109,7 +109,6 @@ class EditesNgoController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-
     public function UpdateMoreInformation(NgoUpdatedMoreInformationRequest $request)
     {
         $request->validated();
@@ -161,7 +160,7 @@ class EditesNgoController extends Controller
         // Deactivate previous status
         $status =  NgoStatus::where('ngo_id', $validatedData['ngo_id'])->where('is_active', 1)->value('status_type_id');
 
-        if ($status === StatusTypeEnum::registered->value || $status === StatusTypeEnum::blocked->value) {
+        if ($status === StatusTypeEnum::registered->value || $status === StatusTypeEnum::block->value) {
             $newStatus = NgoStatus::create([
                 'status_type_id' => $validatedData['status_type_id'],
                 'ngo_id' => $validatedData['ngo_id'],

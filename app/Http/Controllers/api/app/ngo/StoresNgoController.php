@@ -13,27 +13,22 @@ use App\Models\NgoTran;
 use App\Models\Setting;
 use App\Models\Document;
 use App\Models\Agreement;
-use App\Models\CheckList;
 use App\Models\NgoStatus;
 use App\Enums\CountryEnum;
 use App\Enums\SettingEnum;
 use App\Enums\LanguageEnum;
 use App\Enums\NotifierEnum;
 use App\Models\AddressTran;
-use App\Enums\PermissionEnum;
-use App\Models\NgoPermission;
-use App\Enums\CheckListTypeEnum;
+use App\Models\StatusTrans;
+use App\Models\AgreementStatus;
+use App\Enums\Status\StatusEnum;
 use App\Enums\Type\TaskTypeEnum;
 use App\Models\AgreementDirector;
 use App\Models\AgreementDocument;
-use App\Enums\Statuses\StatusEnum;
-use App\Enums\Type\StatusTypeEnum;
 use App\Traits\Helper\HelperTrait;
 use Illuminate\Support\Facades\DB;
-use App\Models\PendingTaskDocument;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
-use App\Models\AgreementRepresenter;
 use Illuminate\Support\Facades\Hash;
 use App\Enums\CheckList\CheckListEnum;
 use App\Http\Requests\app\ngo\NgoRegisterRequest;
@@ -42,8 +37,6 @@ use App\Repositories\Storage\StorageRepositoryInterface;
 use App\Repositories\Approval\ApprovalRepositoryInterface;
 use App\Repositories\Director\DirectorRepositoryInterface;
 use App\Http\Requests\app\ngo\StoreSignedRegisterFormRequest;
-use App\Models\AgreementStatus;
-use App\Models\StatusTrans;
 use App\Repositories\PendingTask\PendingTaskRepositoryInterface;
 use App\Repositories\Notification\NotificationRepositoryInterface;
 use App\Repositories\Representative\RepresentativeRepositoryInterface;
@@ -133,7 +126,7 @@ class StoresNgoController extends Controller
             'userable_type' => $this->getModelName(get_class($authUser)),
             "is_active" => true,
             "status_id" => StatusEnum::active->value,
-            "comment" => "Newly Created"
+            "comment" => "Intial"
         ]);
 
         // **Fix agreement creation**
@@ -205,9 +198,17 @@ class StoresNgoController extends Controller
             null
         );
         // If everything goes well, commit the transaction
+        AgreementStatus::create([
+            'agreement_id' => $agreement->id,
+            'userable_id' => $authUser->id,
+            'userable_type' => $this->getModelName(get_class($authUser)),
+            "is_active" => true,
+            'status_id' => StatusEnum::registration_incomplete->value,
+            'comment' => 'Wating for document upload.',
+        ]);
         DB::commit();
 
-        $status = StatusTrans::where('status_id', StatusEnum::active->value)
+        $status = StatusTrans::where('status_id', StatusEnum::registration_incomplete->value)
             ->where('language_name', $locale)
             ->select('name')->first();
         return response()->json(
@@ -218,7 +219,7 @@ class StoresNgoController extends Controller
                     "profile" => $newNgo->profile,
                     "abbr" => $newNgo->abbr,
                     "registration_no" => $newNgo->registration_no,
-                    "status_id" => StatusEnum::active->value,
+                    "status_id" => StatusEnum::registration_incomplete->value,
                     "status" => $status->name,
                     "type_id" => $validatedData['ngo_type_id'],
                     "establishment_date" => null,
@@ -361,12 +362,12 @@ class StoresNgoController extends Controller
         // Make prevous state to false
         AgreementStatus::where('agreement_id', $agreement->id,)->update(['is_active' => false]);
         AgreementStatus::create([
-            'agreement_id' => $id,
+            'agreement_id' => $agreement->id,
             'userable_id' => $authUser->id,
             'userable_type' => $this->getModelName(get_class($authUser)),
             "is_active" => true,
-            'status_id' => StatusEnum::register_form_completed,
-            'comment' => 'Register Form Complete',
+            'status_id' => StatusEnum::document_upload_required->value,
+            'comment' => 'Wating for document upload.',
         ]);
 
         $directorDocumentsId = [];
@@ -519,8 +520,8 @@ class StoresNgoController extends Controller
             'userable_id' => $authUser->id,
             'userable_type' => $this->getModelName(get_class($authUser)),
             "is_active" => true,
-            'status_id' => StatusEnum::signed_register_form_submitted->value,
-            'comment' => 'Signed Register Form Submitted',
+            'status_id' => StatusEnum::pending_approval->value,
+            'comment' => 'Register document uploaded',
         ]);
         DB::commit();
         return response()->json(

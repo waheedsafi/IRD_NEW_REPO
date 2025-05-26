@@ -5,14 +5,10 @@ namespace App\Http\Controllers\api\auth;
 use Exception;
 use App\Models\Ngo;
 use App\Models\Email;
-use App\Enums\RoleEnum;
-use App\Models\Address;
-use App\Models\Contact;
-use App\Models\NgoTran;
 use App\Models\NgoStatus;
 use Sway\Utils\StringUtils;
 use Illuminate\Http\Request;
-use App\Enums\Type\StatusTypeEnum;
+use App\Enums\Status\StatusEnum;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -102,7 +98,7 @@ class NgoAuthController extends Controller
             // Get the auth user
             $ngo = $loggedIn['user'];
             $ngoStatus = NgoStatus::where("ngo_id", $ngo->id)->first();
-            if ($ngoStatus->status_type_id == StatusTypeEnum::blocked->value) {
+            if ($ngoStatus->status_id == StatusEnum::block->value) {
                 return response()->json([
                     'message' => __('app_translation.account_is_block'),
                 ], 401, [], JSON_UNESCAPED_UNICODE);

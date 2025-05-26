@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreign('ngo_id')->references('id')->on('ngos')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
-            $table->unsignedBigInteger('status_type_id');
+            $table->unsignedBigInteger('status_id');
             $table->foreign('status_id')->references('id')->on('statuses')
                 ->onUpdate('cascade')
                 ->onDelete('no action');

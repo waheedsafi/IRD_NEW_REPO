@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create('agreement_statuses', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('agreement_id');
-            $table->boolean('is_active')->default(false);
-            $table->foreign('ngo_id')->references('id')->on('ngos')
+            $table->foreign('agreement_id')->references('id')->on('agreements')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
+            $table->boolean('is_active')->default(false);
             $table->unsignedBigInteger('status_id');
-            $table->foreign('status_type_id')->references('id')->on('statuses')
+            $table->foreign('status_id')->references('id')->on('statuses')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
             $table->string('comment', 128);

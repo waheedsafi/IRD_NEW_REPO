@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\api\auth;
 
+use Exception;
 use App\Models\User;
 use App\Models\Email;
+use Sway\Utils\StringUtils;
 use Illuminate\Http\Request;
-use App\Enums\Type\StatusTypeEnum;
+use App\Enums\Status\StatusEnum;
+use App\Traits\Helper\HelperTrait;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
@@ -14,9 +17,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Repositories\User\UserRepositoryInterface;
 use App\Http\Requests\template\user\UpdateProfilePasswordRequest;
-use App\Traits\Helper\HelperTrait;
-use Exception;
-use Sway\Utils\StringUtils;
+use App\Models\UserStatus;
 
 class UserAuthController extends Controller
 {
@@ -47,7 +48,6 @@ class UserAuthController extends Controller
             })->select(
                 'u.id',
                 "u.profile",
-                "u.status",
                 "u.grant_permission",
                 'u.full_name',
                 'u.username',
@@ -70,7 +70,6 @@ class UserAuthController extends Controller
                     "username" => $user->username,
                     'email' => $user->email,
                     "profile" => $user->profile,
-                    "status" => (bool) $user->status,
                     "grant" => (bool) $user->grant_permission,
                     "role" => ["role" => $user->role_id, "name" => $user->role_name],
                     'contact' => $user->contact,
@@ -102,9 +101,10 @@ class UserAuthController extends Controller
         if ($loggedIn) {
             // Get the auth user
             $user = $loggedIn['user'];
-            if ($user->status == StatusTypeEnum::blocked) {
+            $ngoStatus = UserStatus::where("user_id", $user->id)->first();
+            if ($ngoStatus->status_id == StatusEnum::block->value) {
                 return response()->json([
-                    'message' => __('app_translation.account_is_lock'),
+                    'message' => __('app_translation.account_is_block'),
                 ], 401, [], JSON_UNESCAPED_UNICODE);
             }
 
@@ -122,7 +122,6 @@ class UserAuthController extends Controller
                 })->select(
                     'u.id',
                     "u.profile",
-                    "u.status",
                     "u.grant_permission",
                     'u.full_name',
                     'u.username',
@@ -147,7 +146,6 @@ class UserAuthController extends Controller
                         "username" => $user->username,
                         'email' => $credentials['email'],
                         "profile" => $user->profile,
-                        "status" => (bool) $user->status,
                         "grant" => (bool) $user->grant_permission,
                         "role" => ["role" => $user->role_id, "name" => $user->role_name],
                         'contact' => $user->contact,
