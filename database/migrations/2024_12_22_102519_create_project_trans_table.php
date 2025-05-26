@@ -20,20 +20,20 @@ return new class extends Migration
             $table->string('language_name');
             $table->foreign('language_name')->references('name')->on('languages')->onUpdate('cascade')
                 ->onDelete('cascade');
-            $table->string('preamble');
-            $table->string('health_experience');
-            $table->string('goals');
-            $table->string('objectives');
-            $table->string('expected_outcome');
-            $table->string('expected_impact');
-            $table->string('subject');
-            $table->string('main_activities');
-            $table->string('introduction');
-            $table->string('operational_plan');
-            $table->string('mission');
-            $table->string('vission');
-
-
+            $table->text('preamble');
+            $table->text('health_experience');
+            $table->text('goals');
+            $table->text('objectives');
+            $table->text('expected_outcome');
+            $table->text('expected_impact');
+            $table->text('subject');
+            $table->text('main_activities');
+            $table->text('introduction');
+            $table->text('operational_plan');
+            $table->text('mission');
+            $table->text('vission');
+            $table->text('terminologies');
+            $table->text('prev_proj_activi');
             $table->timestamps();
         });
     }

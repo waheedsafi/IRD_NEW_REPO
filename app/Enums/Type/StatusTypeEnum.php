@@ -11,4 +11,7 @@ enum StatusTypeEnum: int
     case blocked = 5;
     case registration_expired = 6;
     case registration_extended = 7;
+    case waiting_for_project_documents = 8;
+    case waiting_for_project_schedule = 9;
+    case The_project_is_pending_approval = 10;
 }

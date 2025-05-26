@@ -22,6 +22,10 @@ return new class extends Migration
             $table->foreign('status_type_id')->references('id')->on('status_types')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
+            $table->unsignedBigInteger('agreement_id');
+            $table->foreign('agreement_id')->references('id')->on('agreements')
+                ->onUpdate('cascade')
+                ->onDelete('no action');
             $table->string('comment', 128);
             $table->string('userable_type');
             $table->unsignedBigInteger('userable_id');
