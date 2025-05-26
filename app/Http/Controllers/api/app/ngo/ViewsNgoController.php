@@ -252,7 +252,7 @@ class ViewsNgoController extends Controller
         // 1. Get ngo information
         $query = $this->ngoRepository->ngo($ngo_id);  // Start with the base query
         $this->ngoRepository->statusJoin($query)
-            ->statusTypeTransJoin($query, $locale)
+            ->statusTransJoin($query, $locale)
             ->emailJoin($query)
             ->contactJoin($query);
         $ngo = $query->select(
@@ -261,7 +261,7 @@ class ViewsNgoController extends Controller
             'c.value as contact',
             'e.value as email',
             'ns.status_id',
-            'stt.name as status_type',
+            'stt.name as status',
         )->first();
         if (!$ngo) {
             return response()->json([
@@ -274,7 +274,7 @@ class ViewsNgoController extends Controller
             "username" => $ngo->username,
             "contact" => $ngo->contact,
             "email" => $ngo->email,
-            "status" => $ngo->status_type,
+            "status" => $ngo->status,
         ];
         return response()->json([
             'ngo' => $result,
