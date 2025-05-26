@@ -34,6 +34,7 @@ return new class extends Migration
             $table->text('vission');
             $table->text('terminologies');
             $table->text('prev_proj_activi');
+            $table->string('name');
             $table->timestamps();
         });
     }
