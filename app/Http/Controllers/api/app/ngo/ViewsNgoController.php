@@ -44,7 +44,7 @@ class ViewsNgoController extends Controller
             })
             ->join('agreements as a', function ($join) {
                 $join->on('a.ngo_id', '=', 'n.id')
-                    ->where('a.end_date', null);
+                    ->whereRaw('a.id = (select max(ns2.id) from agreements as ns2 where ns2.ngo_id = n.id)');
             })
             ->join('agreement_statuses as ags', function ($join) {
                 $join->on('ags.agreement_id', '=', 'a.id')
@@ -283,21 +283,27 @@ class ViewsNgoController extends Controller
         $locale = App::getLocale();
         // 1. Get ngo information
         $ngo = DB::table('ngos as n')->where('n.id', $ngo_id)
-            ->join('ngo_statuses as ns', function ($join) {
-                $join->on('ns.ngo_id', '=', 'n.id')
-                    ->where('ns.is_active', true);
-            })->join('status_trans as stt', function ($join) use ($locale) {
-                $join->on('stt.status_id', '=', 'ns.status_id')
-                    ->where('stt.language_name', $locale);
-            })->join('emails as e', 'e.id', '=', 'n.email_id')
+            ->join('agreements as a', function ($join) {
+                $join->on('a.ngo_id', '=', 'n.id')
+                    ->whereRaw('a.id = (select max(ns2.id) from agreements as ns2 where ns2.ngo_id = n.id)');
+            })
+            ->join('agreement_statuses as ags', function ($join) {
+                $join->on('ags.agreement_id', '=', 'a.id')
+                    ->where('ags.is_active', true);
+            })
+            ->join('status_trans as st', function ($join) use ($locale) {
+                $join->on('st.status_id', '=', 'ags.status_id')
+                    ->where('st.language_name', $locale);
+            })
+            ->join('emails as e', 'e.id', '=', 'n.email_id')
             ->join('contacts as c', 'c.id', '=', 'n.contact_id')
             ->select(
                 'n.profile',
                 'n.username',
                 'c.value as contact',
                 'e.value as email',
-                'ns.status_id',
-                'stt.name as status_type',
+                'st.status_id',
+                'st.name as status',
             )->first();
         if (!$ngo) {
             return response()->json([
@@ -310,7 +316,7 @@ class ViewsNgoController extends Controller
             "username" => $ngo->username,
             "contact" => $ngo->contact,
             "email" => $ngo->email,
-            "status" => $ngo->status_type,
+            "status" => $ngo->status,
         ];
         return response()->json([
             'ngo' => $result,
