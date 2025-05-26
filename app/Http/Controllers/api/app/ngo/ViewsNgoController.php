@@ -42,13 +42,17 @@ class ViewsNgoController extends Controller
                 $join->on('nt.ngo_id', '=', 'n.id')
                     ->where('nt.language_name', $locale);
             })
-            ->join('ngo_statuses as ns', function ($join) {
-                $join->on('ns.ngo_id', '=', 'n.id')
-                    ->where('ns.is_active', true);
+            ->join('agreements as a', function ($join) {
+                $join->on('a.ngo_id', '=', 'n.id')
+                    ->where('a.end_date', null);
             })
-            ->join('status_trans as stt', function ($join) use ($locale) {
-                $join->on('stt.status_id', '=', 'ns.status_id')
-                    ->where('stt.language_name', $locale);
+            ->join('agreement_statuses as ags', function ($join) {
+                $join->on('ags.agreement_id', '=', 'a.id')
+                    ->where('ags.is_active', true);
+            })
+            ->join('status_trans as st', function ($join) use ($locale) {
+                $join->on('st.status_id', '=', 'ags.status_id')
+                    ->where('st.language_name', $locale);
             })
             ->join('ngo_type_trans as ntt', function ($join) use ($locale) {
                 $join->on('ntt.ngo_type_id', '=', 'n.ngo_type_id')
@@ -61,8 +65,8 @@ class ViewsNgoController extends Controller
                 'n.profile',
                 'n.registration_no',
                 'n.date_of_establishment as establishment_date',
-                'stt.status_id',
-                'stt.name as status',
+                'st.status_id',
+                'st.name as status',
                 'nt.name',
                 'ntt.ngo_type_id as type_id',
                 'ntt.value as type',
@@ -168,17 +172,25 @@ class ViewsNgoController extends Controller
     public function currentStatus($ngo_id)
     {
         $locale = App::getLocale();
-        $query = $this->ngoRepository->ngo($ngo_id);  // Start with the base query
-        $this->ngoRepository->statusJoin($query, $ngo_id, $locale);
-        $status = $query->select('ns.status_type_id')
-            ->first();
-        if (!$status) {
+        $result = DB::table('ngos as n')
+            ->where('n.id', '=', $ngo_id)
+            ->join('agreements as a', function ($join) {
+                $join->on('a.ngo_id', '=', 'n.id')
+                    ->whereRaw('a.id = (select max(ns2.id) from agreements as ns2 where ns2.ngo_id = n.id)');
+            })
+            ->join('agreement_statuses as ags', function ($join) {
+                $join->on('ags.agreement_id', '=', 'a.id')
+                    ->where('ags.is_active', true);
+            })->select(
+                'ags.status_id',
+            )->first();
+        if (!$result) {
             return response()->json([
                 'message' => __('app_translation.ngo_status_not_found'),
             ], 404);
         }
 
-        return response()->json($status, 200, [], JSON_UNESCAPED_UNICODE);
+        return response()->json($result, 200, [], JSON_UNESCAPED_UNICODE);
     }
 
     public function ngoDetail($ngo_id)
@@ -239,8 +251,28 @@ class ViewsNgoController extends Controller
     public function statuses($id)
     {
         $locale = App::getLocale();
-
-        $result = $this->ngoRepository->statuses($id, $locale);
+        $result = DB::table('ngos as n')
+            ->where('n.id', '=', $id)
+            ->join('agreements as a', function ($join) {
+                $join->on('a.ngo_id', '=', 'n.id');
+            })
+            ->join('agreement_statuses as ags', function ($join) {
+                $join->on('ags.agreement_id', '=', 'a.id')
+                    ->where('ags.is_active', true);
+            })
+            ->join('status_trans as st', function ($join) use ($locale) {
+                $join->on('st.status_id', '=', 'ags.status_id')
+                    ->where('st.language_name', $locale);
+            })->select(
+                'n.id as ngo_id',
+                'ns.id',
+                'ns.comment',
+                'st.status_id',
+                'st.name',
+                'ns.userable_type',
+                'ns.is_active',
+                'ns.created_at',
+            )->get();
 
         return response()->json([
             'statuses' => $result,
@@ -250,19 +282,23 @@ class ViewsNgoController extends Controller
     {
         $locale = App::getLocale();
         // 1. Get ngo information
-        $query = $this->ngoRepository->ngo($ngo_id);  // Start with the base query
-        $this->ngoRepository->statusJoin($query)
-            ->statusTransJoin($query, $locale)
-            ->emailJoin($query)
-            ->contactJoin($query);
-        $ngo = $query->select(
-            'n.profile',
-            'n.username',
-            'c.value as contact',
-            'e.value as email',
-            'ns.status_id',
-            'stt.name as status',
-        )->first();
+        $ngo = DB::table('ngos as n')->where('n.id', $ngo_id)
+            ->join('ngo_statuses as ns', function ($join) {
+                $join->on('ns.ngo_id', '=', 'n.id')
+                    ->where('ns.is_active', true);
+            })->join('status_trans as stt', function ($join) use ($locale) {
+                $join->on('stt.status_id', '=', 'ns.status_id')
+                    ->where('stt.language_name', $locale);
+            })->join('emails as e', 'e.id', '=', 'n.email_id')
+            ->join('contacts as c', 'c.id', '=', 'n.contact_id')
+            ->select(
+                'n.profile',
+                'n.username',
+                'c.value as contact',
+                'e.value as email',
+                'ns.status_id',
+                'stt.name as status_type',
+            )->first();
         if (!$ngo) {
             return response()->json([
                 'message' => __('app_translation.ngo_not_found'),

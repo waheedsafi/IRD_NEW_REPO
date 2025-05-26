@@ -154,6 +154,9 @@ class TestController extends Controller
     }
     public function index(Request $request)
     {
+        $locale = App::getLocale(); // Current locale/language
+        $ngo_id = 4;
+
 
         $columns =  Schema::getColumnListing('users');
         $formattedColumns = array_map(fn($column) => ['name' => $column], $columns);
@@ -174,10 +177,7 @@ class TestController extends Controller
         }
         return;
         $now = Carbon::now('UTC');
-        $status_type_id = [
-            StatusTypeEnum::registered->value,
-            StatusTypeEnum::blocked->value
-        ];
+        $status_type_id = [];
         $expiredAgreements = DB::table('agreements as a')
             ->select('a.ngo_id', DB::raw('MAX(a.end_date) as max_end_date'), DB::raw('MAX(a.id) as max_id'))
             ->where('a.end_date', '<', $now->toIso8601String())
@@ -190,7 +190,6 @@ class TestController extends Controller
             ->pluck('a.ngo_id');
         return $expiredAgreements;
 
-        $locale = App::getLocale(); // Current locale/language
         $ngo_id = 4;
         $userModel = $this->getModelName(User::class);
         $ngoModel = $this->getModelName(Ngo::class);
