@@ -44,8 +44,17 @@ class DeletesNgoController extends Controller
             $task_type,
             $id
         );
+        $locale = App::getLocale();
+        $data = $this->ngoRepository->startRegisterFormInfo($id, $locale);
+        if (!$data) {
+            return response()->json([
+                'message' => __('app_translation.ngo_not_found'),
+            ], 404);
+        }
+
         return response()->json([
             "message" => __('app_translation.success'),
+            'ngo' => $data,
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }

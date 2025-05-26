@@ -26,6 +26,8 @@ Route::prefix('v1')->middleware(["multiAuthorized:" . 'user:api,ngo:api'])->grou
   Route::post('/ngo/extend/form/complete', [ExtendNgoController::class, 'extendNgoAgreement']);
   Route::post('/ngo/store/signed/register/form', [StoresNgoController::class, 'StoreSignedRegisterForm']);
   Route::get('/ngo/header-info/{id}', [ViewsNgoController::class, 'headerInfo']);
+  Route::post('/destroy/ngo/task/content/{id}', [DeletesNgoController::class, 'destroyPendingTask']);
+
   Route::post('/ngo/change/password', [EditesNgoController::class, 'changePassword'])->middleware(["userHasSubEditPermission:" . PermissionEnum::ngo->value . "," . SubPermissionEnum::ngo_update_account_password->value]);
 });
 Route::prefix('v1')->middleware(["authorized:" . 'user:api'])->group(function () {
@@ -38,5 +40,4 @@ Route::prefix('v1')->middleware(["authorized:" . 'user:api'])->group(function ()
   // Uknown
   Route::get('/ngos/pending-task/{id}', [ViewsNgoController::class, 'pendingTask']);
   // Pending Task
-  Route::post('/destroy/ngo/task/content/{id}', [DeletesNgoController::class, 'destroyPendingTask']);
 });
