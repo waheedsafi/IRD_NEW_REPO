@@ -28,6 +28,7 @@ use App\Models\SettingTimeUnit;
 use Illuminate\Database\Seeder;
 use App\Enums\Type\StatusTypeEnum;
 use App\Models\Status;
+use App\Models\SettingTrans;
 use Illuminate\Support\Facades\DB;
 use Database\Seeders\CountrySeeder;
 use Database\Seeders\CheckListSeeder;
@@ -635,13 +636,22 @@ class DatabaseSeeder extends Seeder
 
         $setting = Setting::factory()->create([
             "id" => SettingEnum::registeration_expire_time->value,
-            "name" => "Register Expiration Deadline",
             "value" => "365", // days
         ]);
-
-        SettingTimeUnit::factory()->create([
-            "time_unit_id" => TimeUnitEnum::day->value,
+        SettingTrans::factory()->create([
             "setting_id" => $setting->id,
+            "value" => "Register Expiration Deadline",
+            "language_name" => "en",
+        ]);
+        SettingTrans::factory()->create([
+            "setting_id" => $setting->id,
+            "value" => "مهلت ثبت نام",
+            "language_name" => "fa",
+        ]);
+        SettingTrans::factory()->create([
+            "setting_id" => $setting->id,
+            "value" => "د نوم لیکنې د پای نیټه",
+            "language_name" => "ps",
         ]);
     }
     protected function gender()

@@ -15,6 +15,7 @@ use App\Enums\Type\StatusTypeEnum;
 use App\Traits\Helper\HelperTrait;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\app\ngo\NgoInfoUpdateRequest;
 use App\Http\Requests\app\ngo\NgoUpdatedMoreInformationRequest;
 
@@ -187,5 +188,26 @@ class EditesNgoController extends Controller
                 'message' => __('app_translation.unauthorized')
             ], 422, [], JSON_UNESCAPED_UNICODE);
         }
+    }
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            "confirm_password" => ["required", "min:8", "max:45"],
+            "new_password" => ["required", "min:8", "max:45"],
+        ]);
+        $ngo = Ngo::where('id', $request->ngo_id)->first();
+        if (!$ngo) {
+            return response()->json([
+                'message' => __('app_translation.ngo_not_found'),
+            ], 404, [], JSON_UNESCAPED_UNICODE);
+        }
+        DB::beginTransaction();
+
+        $ngo->password = Hash::make($request->new_password);
+        $ngo->save();
+        DB::commit();
+        return response()->json([
+            'message' => __('app_translation.success'),
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }

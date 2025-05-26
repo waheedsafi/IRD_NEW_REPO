@@ -164,6 +164,37 @@ trait HelperTrait
             ]);
         }
     }
+    public function approvedNgoPermissions($ngo_id)
+    {
+        NgoPermission::create([
+            "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
+            "ngo_id" => $ngo_id,
+            "permission" => PermissionEnum::reports->value,
+        ]);
+
+        $ngoPermission = NgoPermission::create([
+            "visible" => true,
+            "view" => true,
+            "edit" => true,
+            "delete" => true,
+            "add" => true,
+            "ngo_id" => $ngo_id,
+            "permission" => PermissionEnum::projects->value,
+        ]);
+        foreach (SubPermissionEnum::PROJECT as $id => $role) {
+            NgoPermissionSub::factory()->create([
+                "edit" => true,
+                "delete" => true,
+                "add" => true,
+                "view" => true,
+                "ngo_permission_id" => $ngoPermission->id,
+                "sub_permission_id" => $id,
+            ]);
+        }
+    }
     public function storeUserLog($request, $userable_id, $userable_type, $action)
     {
         $userAgent = $request->header('User-Agent');
