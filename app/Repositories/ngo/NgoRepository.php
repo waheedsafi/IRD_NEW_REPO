@@ -290,10 +290,10 @@ class NgoRepository implements NgoRepositoryInterface
         });
         return $this;
     }
-    public function statusTypeTransJoin($query, $locale)
+    public function statusTransJoin($query, $locale)
     {
-        $query->join('status_type_trans as stt', function ($join) use ($locale) {
-            $join->on('stt.status_type_id', '=', 'ns.status_type_id')
+        $query->join('status_trans as stt', function ($join) use ($locale) {
+            $join->on('stt.status_id', '=', 'ns.status_id')
                 ->where('stt.language_name', $locale);
         });
         return $this;

@@ -248,8 +248,9 @@ class ViewsNgoController extends Controller
 
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
-    public function statuses($id)
+    public function agreementStatuses($id)
     {
+
         $locale = App::getLocale();
         $result = DB::table('ngos as n')
             ->where('n.id', '=', $id)
@@ -272,6 +273,33 @@ class ViewsNgoController extends Controller
                 'ns.userable_type',
                 'ns.is_active',
                 'ns.created_at',
+            )->get();
+
+        return response()->json([
+            'statuses' => $result,
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+    public function statuses($id)
+    {
+        $locale = App::getLocale();
+        $result = DB::table('ngos as n')
+            ->where('n.id', '=', $id)
+            ->join('ngo_statuses as ngs', function ($join) {
+                $join->on('ngs.ngo_id', '=', 'n.id');
+                // ->where('ngs.is_active', true);
+            })
+            ->join('status_trans as st', function ($join) use ($locale) {
+                $join->on('st.status_id', '=', 'ngs.status_id')
+                    ->where('st.language_name', $locale);
+            })->select(
+                'n.id as ngo_id',
+                'ngs.id',
+                'ngs.comment',
+                'ngs.status_id',
+                'st.name',
+                'ngs.userable_type',
+                'ngs.is_active',
+                'ngs.created_at',
             )->get();
 
         return response()->json([
@@ -302,6 +330,8 @@ class ViewsNgoController extends Controller
                 'n.username',
                 'c.value as contact',
                 'e.value as email',
+                'ns.status_id',
+                'stt.name as status',
                 'st.status_id',
                 'st.name as status',
             )->first();

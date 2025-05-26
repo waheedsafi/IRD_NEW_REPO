@@ -55,7 +55,7 @@ interface NgoRepositoryInterface
      * @param string $locale
      * @return \App\Repositories\ngo\NgoRepositoryInterface|\Illuminate\Database\Query\Builder
      */
-    public function statusTypeTransJoin($query, $locale);
+    public function statusTransJoin($query, $locale);
     /**
      * Retrieve NGO TypeTrans Translation data.
      * cast is ntt

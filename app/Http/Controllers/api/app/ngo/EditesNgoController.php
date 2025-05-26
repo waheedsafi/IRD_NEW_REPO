@@ -11,6 +11,7 @@ use App\Models\NgoStatus;
 use App\Enums\LanguageEnum;
 use App\Models\AddressTran;
 use Illuminate\Http\Request;
+use App\Enums\Status\StatusEnum;
 use App\Enums\Type\StatusTypeEnum;
 use App\Traits\Helper\HelperTrait;
 use Illuminate\Support\Facades\DB;
@@ -152,42 +153,57 @@ class EditesNgoController extends Controller
         // Validate request
         $validatedData = $request->validate([
             'ngo_id' => 'required|integer',
-            'status_type_id' => 'required|integer',
-            'comment' => 'required|string'
+            'status_id' => 'required|integer',
+            'comment' => 'required|string',
         ]);
+
         $authUser = $request->user();
 
-        // Deactivate previous status
-        $status =  NgoStatus::where('ngo_id', $validatedData['ngo_id'])->where('is_active', 1)->value('status_type_id');
+        // Fetch the currently active status for this NGO
+        $previousStatus = NgoStatus::where('ngo_id', $validatedData['ngo_id'])
+            ->where('is_active', true)
+            ->first();
 
-        if ($status === StatusTypeEnum::registered->value || $status === StatusTypeEnum::block->value) {
+        // Check if the current active status allows transition
+        if (
+            $previousStatus &&
+            ($previousStatus->status_id === StatusEnum::active->value ||
+                $previousStatus->status_id === StatusEnum::block->value)
+        ) {
+
+            // Deactivate the old status
+            $previousStatus->is_active = false;
+            $previousStatus->save();
+
+            // Create a new status entry
             $newStatus = NgoStatus::create([
-                'status_type_id' => $validatedData['status_type_id'],
+                'status_id' => $validatedData['status_id'],
                 'ngo_id' => $validatedData['ngo_id'],
                 'comment' => $validatedData['comment'],
-                'is_active' => 1,
+                'is_active' => true,
                 'userable_id' => $authUser->id,
                 'userable_type' => $this->getModelName(get_class($authUser)),
             ]);
-            $status->is_active = 0;
-            $status->save();
 
-            // Prepare response data
+            // Prepare response
             $data = [
                 'ngo_status_id' => $newStatus->id,
-                'is_active' => 1,
+                'is_active' => true,
                 'created_at' => $newStatus->created_at,
             ];
+
             return response()->json([
                 'message' => __('app_translation.success'),
                 'status' => $data
             ], 200, [], JSON_UNESCAPED_UNICODE);
         } else {
+            // Not authorized to change status
             return response()->json([
                 'message' => __('app_translation.unauthorized')
             ], 422, [], JSON_UNESCAPED_UNICODE);
         }
     }
+
     public function changePassword(Request $request)
     {
         $request->validate([
