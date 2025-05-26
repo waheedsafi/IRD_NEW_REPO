@@ -11,20 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('donor_statuses', function (Blueprint $table) {
+        Schema::create('status_trans', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('donor_id');
-            $table->boolean('is_active')->default(false);
-            $table->foreign('donor_id')->references('id')->on('donors')
-                ->onUpdate('cascade')
-                ->onDelete('no action');
+            $table->string('name');
             $table->unsignedBigInteger('status_id');
-            $table->foreign('status_type_id')->references('id')->on('statuses')
+            $table->foreign('status_id')->references('id')->on('statuses')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
-            $table->string('comment', 128);
-            $table->foreignId('user_id')
-                ->constrained()
+            $table->string('language_name');
+            $table->foreign('language_name')->references('name')->on('languages')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
             $table->timestamps();
@@ -36,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('donor_statuses');
+        Schema::dropIfExists('status_trans');
     }
 };

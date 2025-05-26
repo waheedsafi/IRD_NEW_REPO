@@ -11,19 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ngo_statuses', function (Blueprint $table) {
+        Schema::create('agreement_statuses', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('ngo_id');
+            $table->unsignedBigInteger('agreement_id');
             $table->boolean('is_active')->default(false);
             $table->foreign('ngo_id')->references('id')->on('ngos')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
-            $table->unsignedBigInteger('status_type_id');
-            $table->foreign('status_id')->references('id')->on('statuses')
-                ->onUpdate('cascade')
-                ->onDelete('no action');
-            $table->unsignedBigInteger('agreement_id');
-            $table->foreign('agreement_id')->references('id')->on('agreements')
+            $table->unsignedBigInteger('status_id');
+            $table->foreign('status_type_id')->references('id')->on('statuses')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
             $table->string('comment', 128);
@@ -38,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ngo_statuses');
+        Schema::dropIfExists('agreement_statuses');
     }
 };
