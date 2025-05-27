@@ -17,7 +17,6 @@ Route::prefix('v1')->middleware(["multiAuthorized:" . 'user:api,ngo:api'])->grou
   Route::get('/ngo/status/{id}', [ViewsNgoController::class, 'currentStatus']);
   Route::get('/ngo/details/{id}', [ViewsNgoController::class, 'ngoDetail'])->middleware(["userHasSubViewPermission:" . PermissionEnum::ngo->value . "," . SubPermissionEnum::ngo_information->value]);
   Route::post('/ngo/update-info', [EditesNgoController::class, 'updateInfo'])->middleware(["userHasSubEditPermission:" . PermissionEnum::ngo->value . "," . SubPermissionEnum::ngo_information->value]);
-  Route::get('/ngo/statuses/{id}', [ViewsNgoController::class, 'statuses'])->middleware(["userHasSubViewPermission:" . PermissionEnum::ngo->value . "," . SubPermissionEnum::ngo_status->value]);
   Route::post('/ngo/more-information/updated', [EditesNgoController::class, 'UpdateMoreInformation'])->middleware(["userHasSubEditPermission:" . PermissionEnum::ngo->value . "," . SubPermissionEnum::ngo_more_information->value]);
   Route::get('/ngo/more-information/{id}', [ViewsNgoController::class, 'moreInformation'])->middleware(["userHasSubViewPermission:" . PermissionEnum::ngo->value . "," . SubPermissionEnum::ngo_more_information->value]);
   Route::get('/ngo/start/register/form/{id}', [ViewsNgoController::class, 'startRegisterForm']);
@@ -32,7 +31,6 @@ Route::prefix('v1')->middleware(["multiAuthorized:" . 'user:api,ngo:api'])->grou
 });
 Route::prefix('v1')->middleware(["authorized:" . 'user:api'])->group(function () {
   // change ngo status route
-  Route::post('/ngo/change-status', [EditesNgoController::class, 'changeStatus'])->middleware(["userHasSubAddPermission:" . PermissionEnum::ngo->value . "," . SubPermissionEnum::ngo_status->value]);
   Route::get('/ngos/record/count', [ViewsNgoController::class, "ngoCount"])->middleware(["userHasMainViewPermission:" . PermissionEnum::ngo->value]);
   Route::get('/ngos', [ViewsNgoController::class, 'ngos'])->middleware(["userHasMainViewPermission:" . PermissionEnum::ngo->value]);
   Route::post('/ngo/store', [StoresNgoController::class, 'store'])->middleware(["userHasMainAddPermission:" . PermissionEnum::ngo->value]);
