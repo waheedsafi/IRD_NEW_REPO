@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\api\app\project;
+namespace App\Http\Controllers\api\app\projects;
 
 use App\Enums\pdfFooter\PdfFooterEnum;
 use App\Http\Controllers\Controller;

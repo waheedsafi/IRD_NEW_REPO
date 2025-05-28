@@ -110,10 +110,6 @@ class RolePermissionSeeder extends Seeder
             "role" => RoleEnum::admin,
             "permission" => "donor"
         ]);
-        RolePermission::factory()->create([
-            "role" => RoleEnum::admin,
-            "permission" => "projects"
-        ]);
         $rolePer = RolePermission::factory()->create([
             "role" => RoleEnum::admin,
             "permission" => "management/news"
@@ -154,10 +150,6 @@ class RolePermissionSeeder extends Seeder
         RolePermission::factory()->create([
             "role" => RoleEnum::user,
             "permission" => "donor"
-        ]);
-        RolePermission::factory()->create([
-            "role" => RoleEnum::user,
-            "permission" => "projects"
         ]);
         $rolePer = RolePermission::factory()->create([
             "role" => RoleEnum::user,
@@ -247,7 +239,13 @@ class RolePermissionSeeder extends Seeder
     public function rolePermissionSubNgo($role_permission_id, $user_role)
     {
         foreach (SubPermissionEnum::NGO as $id => $role) {
-            if ($id == SubPermissionEnum::ngo_update_account_password && $user_role != RoleEnum::super->value) {
+            if ($id == SubPermissionEnum::ngo_status->value && $user_role != RoleEnum::super->value) {
+                continue;
+            }
+            if ($id == SubPermissionEnum::ngo_agreement_status->value && $user_role != RoleEnum::super->value) {
+                continue;
+            }
+            if ($id == SubPermissionEnum::ngo_update_account_password->value && $user_role != RoleEnum::super->value) {
                 continue;
             }
             RolePermissionSub::factory()->create([

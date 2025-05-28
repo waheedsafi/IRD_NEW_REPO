@@ -1,16 +1,26 @@
 <?php
 
-namespace App\Http\Controllers\api\app\project\project;
+namespace App\Http\Controllers\api\app\projects;
 
 use Illuminate\Http\Request;
+use App\Enums\Type\TaskTypeEnum;
 use App\Traits\Helper\FilterTrait;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
+use App\Repositories\PendingTask\PendingTaskRepositoryInterface;
 
 class ProjectController extends Controller
 {
     use FilterTrait;
+    protected $pendingTaskRepository;
+
+    public function __construct(
+        PendingTaskRepositoryInterface $pendingTaskRepository,
+    ) {
+        $this->pendingTaskRepository = $pendingTaskRepository;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -61,7 +71,40 @@ class ProjectController extends Controller
             'project' => $result
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
+    public function startRegisterForm(Request $request, $ngo_id)
+    {
+        $locale = App::getLocale();
 
+        $pendingTaskContent = $this->pendingTaskRepository->pendingTask($request, TaskTypeEnum::project_registeration->value, $ngo_id);
+        if ($pendingTaskContent['content']) {
+            return response()->json([
+                'message' => __('app_translation.success'),
+                'content' => $pendingTaskContent['content']
+            ], 200);
+        }
+
+        return response()->json([
+            [],
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+    public function destroyPendingTask(Request $request, $id)
+    {
+        $request->validate([
+            'task_type' => "required"
+        ]);
+        $authUser = $request->user();
+        $task_type = $request->task_type;
+
+        $this->pendingTaskRepository->destroyPendingTask(
+            $authUser,
+            $task_type,
+            $id
+        );
+
+        return response()->json([
+            "message" => __('app_translation.success'),
+        ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
     /**
      * Show the form for creating a new resource.
      */
@@ -69,7 +112,7 @@ class ProjectController extends Controller
     {
         //
 
-        
+
     }
 
     /**

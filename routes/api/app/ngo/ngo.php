@@ -11,7 +11,7 @@ use App\Http\Controllers\api\app\ngo\DeletesNgoController;
 use App\Http\Controllers\api\app\ngo\ExtendNgoController;
 
 Route::prefix('v1')->group(function () {
-  Route::get('public/ngos', [ViewsNgoController::class, 'publicNgos']);
+  Route::get('ngos/public', [ViewsNgoController::class, 'publicNgos']);
 });
 Route::prefix('v1')->middleware(["multiAuthorized:" . 'user:api,ngo:api'])->group(function () {
   Route::get('/ngo/status/{id}', [ViewsNgoController::class, 'currentStatus']);

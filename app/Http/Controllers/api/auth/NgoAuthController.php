@@ -55,7 +55,7 @@ class NgoAuthController extends Controller
                 "c.value as contact",
                 "n.is_editable",
                 "n.created_at",
-                "ns.status_type_id",
+                "ns.status_id",
                 "r.name as role_name"
             )->first();
 
@@ -72,7 +72,7 @@ class NgoAuthController extends Controller
                     "is_editable" => $authNgo->is_editable,
                     "created_at" => $authNgo->created_at,
                     "role" => ["role" => $authNgo->role_id, "name" => $authNgo->role_name],
-                    "status_type_id" => $authNgo->status_type_id
+                    "status_id" => $authNgo->status_id
                 ],
             ],
             200,
@@ -97,7 +97,9 @@ class NgoAuthController extends Controller
         if ($loggedIn) {
             // Get the auth user
             $ngo = $loggedIn['user'];
-            $ngoStatus = NgoStatus::where("ngo_id", $ngo->id)->first();
+            $ngoStatus = NgoStatus::where("ngo_id", $ngo->id)
+                ->where('is_active', true)
+                ->first();
             if ($ngoStatus->status_id == StatusEnum::block->value) {
                 return response()->json([
                     'message' => __('app_translation.account_is_block'),
@@ -114,10 +116,6 @@ class NgoAuthController extends Controller
                 ->join('contacts as c', function ($join) {
                     $join->on('n.contact_id', '=', 'c.id');
                 })
-                ->join('ngo_statuses as ns', function ($join) {
-                    $join->on('ns.ngo_id', '=', 'n.id')
-                        ->where('ns.is_active', true);
-                })
                 ->join('roles as r', function ($join) {
                     $join->on('n.role_id', '=', 'r.id');
                 })
@@ -131,7 +129,6 @@ class NgoAuthController extends Controller
                     "n.role_id",
                     "n.is_editable",
                     "n.created_at",
-                    "ns.status_type_id",
                     "r.name as role_name"
                 )->first();
 
@@ -151,7 +148,7 @@ class NgoAuthController extends Controller
                         "is_editable" => $authNgo->is_editable,
                         "created_at" => $authNgo->created_at,
                         "role" => ["role" => $authNgo->role_id, "name" => $authNgo->role_name],
-                        "status_type_id" => $authNgo->status_type_id
+                        "status_id" => $ngoStatus->status_id
                     ],
                 ],
                 200,

@@ -50,4 +50,5 @@ return [
     "approval_not_found" => "تأیید یافت نشد",
     "allowed_file_types" => "انواع فایل های مجاز: ",
     "file_size_error" => "اندازه فایل باید بین این اندازه باشد: ",
+    "register_form_alre_submi" => "فرم ثبت نام قبلاً ارسال شده است.",
 ];

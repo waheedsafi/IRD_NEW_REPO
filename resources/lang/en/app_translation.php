@@ -52,4 +52,5 @@ return [
     "approval_not_found" => "Approval not found",
     "allowed_file_types" => "Allowed file types: ",
     "file_size_error" => "File size must be between this size: ",
+    "register_form_alre_submi" => "Registration form already submitted.",
 ];

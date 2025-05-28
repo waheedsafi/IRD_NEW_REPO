@@ -12,8 +12,12 @@ use App\Models\Document;
 use App\Models\Agreement;
 use App\Models\NgoStatus;
 use App\Enums\SettingEnum;
+use App\Enums\LanguageEnum;
 use App\Enums\NotifierEnum;
 use Illuminate\Http\Request;
+use App\Models\NgoStatusTrans;
+use App\Models\AgreementStatus;
+use App\Enums\Status\StatusEnum;
 use App\Models\ApprovalDocument;
 use App\Models\AgreementDocument;
 use App\Enums\Type\StatusTypeEnum;
@@ -96,15 +100,22 @@ class ApprovalController extends Controller
                     $approval->responder_id = $authUser->id;
                     $approval->respond_comment = $request->respond_comment;
                     $approval->completed = true;
-                    NgoStatus::where('ngo_id', $ngo->id)->update(['is_active' => false]);
-                    NgoStatus::create([
-                        'ngo_id' => $ngo->id,
+
+                    AgreementStatus::where('agreement_id', $agreement->id)->update(['is_active' => false]);
+                    $agreementStatus = AgreementStatus::create([
+                        'agreement_id' => $agreement->id,
                         'userable_id' => $authUser->id,
                         'userable_type' => $this->getModelName(get_class($authUser)),
                         "is_active" => true,
-                        'status_type_id' => StatusTypeEnum::registered->value,
-                        'comment' => 'Signed Register Form Approved',
+                        'status_id' => StatusEnum::registered->value,
                     ]);
+
+                    $this->storeNgoAgreementWithTrans($agreementStatus->id, [
+                        'pashto' => 'لاسلیک شوی د نوم لیکنې فورمه تصویب شوه.',
+                        'farsi' => 'فرم ثبت امضا شده تایید شد.',
+                        'english' => 'Signed Register Form Approved.'
+                    ]);
+
                     // 1. Assign Approval Document value to agreement and document
                     $approvalDocuments = ApprovalDocument::where('approval_id', $approval_id)
                         ->get();
@@ -173,15 +184,21 @@ class ApprovalController extends Controller
                     $approval->respond_comment = $request->respond_comment;
                     $approval->completed = true;
 
-                    NgoStatus::where('ngo_id', $ngo->id)->update(['is_active' => false]);
-                    NgoStatus::create([
-                        'ngo_id' => $ngo->id,
+                    AgreementStatus::where('agreement_id', $agreement->id)->update(['is_active' => false]);
+                    $agreementStatus = AgreementStatus::create([
+                        'agreement_id' => $agreement->id,
                         'userable_id' => $authUser->id,
                         'userable_type' => $this->getModelName(get_class($authUser)),
                         "is_active" => true,
-                        'status_type_id' => StatusTypeEnum::register_form_completed->value,
-                        'comment' => 'Register Form rejected',
+                        'status_id' => StatusEnum::document_upload_required->value,
                     ]);
+
+                    $this->storeNgoAgreementWithTrans($agreementStatus->id, [
+                        'pashto' => 'لاسلیک شوی د نوم لیکنې فورمه رد شوه.',
+                        'farsi' => 'فرم ثبت امضا شده رد شد.',
+                        'english' => 'Signed Register Form rejected.'
+                    ]);
+
                     // 3. Send Notification
                     $this->notificationRepository->SendNotification($request, [
                         "userable_type" => User::class,

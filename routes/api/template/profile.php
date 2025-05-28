@@ -9,9 +9,9 @@ Route::prefix('v1')->middleware(["authorized:" . 'user:api'])->group(function ()
     Route::post('/user/profile/info/update', [ProfileController::class, 'updateUserProfileInfo']);
 });
 Route::prefix('v1')->middleware(["authorized:" . 'ngo:api'])->group(function () {
-    Route::post('/ngo/profile/picture-update', [ProfileController::class, 'updateNgoPicture']);
-    Route::post('/ngo/profile/info/update', [ProfileController::class, 'updateNgoProfileInfo']);
-    Route::get('/ngo/profile/info/{id}', [ProfileController::class, 'ngoProfileInfo']);
+    Route::put('/ngos/picture', [ProfileController::class, 'updateNgoPicture']);
+    Route::post('/ngos/profile', [ProfileController::class, 'updateNgoProfileInfo']);
+    Route::get('/ngos/profile/{id}', [ProfileController::class, 'ngoProfileInfo']);
 });
 
 Route::prefix('v1')->middleware(["authorized:" . 'donor:api'])->group(function () {

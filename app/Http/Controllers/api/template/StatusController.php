@@ -122,13 +122,17 @@ class StatusController extends Controller
                 $join->on('ags.agreement_id', '=', 'a.id')
                     ->where('ags.is_active', true);
             })
+            ->join('agreement_status_trans as ast', function ($join) use ($locale) {
+                $join->on('ast.agreement_status_id', '=', 'ags.id')
+                    ->where('ast.language_name', $locale);
+            })
             ->join('status_trans as st', function ($join) use ($locale) {
                 $join->on('st.status_id', '=', 'ags.status_id')
                     ->where('st.language_name', $locale);
             })->select(
                 'n.id as ngo_id',
                 'ags.id',
-                'ags.comment',
+                'ast.comment',
                 'ags.status_id',
                 'st.name',
                 'ags.userable_type',

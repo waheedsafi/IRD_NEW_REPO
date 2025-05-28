@@ -198,13 +198,18 @@ class StoresNgoController extends Controller
             null
         );
         // If everything goes well, commit the transaction
-        AgreementStatus::create([
+        $agreementStatus = AgreementStatus::create([
             'agreement_id' => $agreement->id,
             'userable_id' => $authUser->id,
             'userable_type' => $this->getModelName(get_class($authUser)),
             "is_active" => true,
             'status_id' => StatusEnum::registration_incomplete->value,
-            'comment' => 'Wating for document upload.',
+        ]);
+
+        $this->storeNgoAgreementWithTrans($agreementStatus->id, [
+            'pashto' => 'د موسسه یوزر په بریالیتوب سره جوړ شو.',
+            'farsi' => 'کاربر موسسه با موفقیت ایجاد شد.',
+            'english' => 'Ngo user created successfully.'
         ]);
         DB::commit();
 
@@ -253,7 +258,16 @@ class StoresNgoController extends Controller
             ], 409);
         }
 
-        // 2. CheckListEnum:: NGO exist
+        $agreementStatus = AgreementStatus::where('agreement_id', $agreement->id)
+            ->where('is_active', true)
+            ->first();
+        // 2. Allow If agreement is in 
+        if ($agreementStatus && $agreementStatus->status_id != StatusEnum::registration_incomplete->value) {
+            return response()->json([
+                'message' => __('app_translation.register_form_alre_submi'),
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+        }
+        // 3. CheckListEnum:: NGO exist
         $ngo = Ngo::find($id);
         if (!$ngo) {
             return response()->json([
@@ -261,7 +275,7 @@ class StoresNgoController extends Controller
             ], 200, [], JSON_UNESCAPED_UNICODE);
         }
 
-        // 3. Ensure task exists before proceeding
+        // 4. Ensure task exists before proceeding
         $task = $this->pendingTaskRepository->pendingTaskExist(
             $authUser,
             TaskTypeEnum::ngo_registeration->value,
@@ -361,13 +375,18 @@ class StoresNgoController extends Controller
 
         // Make prevous state to false
         AgreementStatus::where('agreement_id', $agreement->id,)->update(['is_active' => false]);
-        AgreementStatus::create([
+        $agreementStatus = AgreementStatus::create([
             'agreement_id' => $agreement->id,
             'userable_id' => $authUser->id,
             'userable_type' => $this->getModelName(get_class($authUser)),
             "is_active" => true,
             'status_id' => StatusEnum::document_upload_required->value,
-            'comment' => 'Wating for document upload.',
+        ]);
+
+        $this->storeNgoAgreementWithTrans($agreementStatus->id, [
+            'pashto' => 'موږ د اسنادو د پورته کولو په تمه یو.',
+            'farsi' => 'منتظر آپلود مدارک هستیم.',
+            'english' => 'Waiting for document upload.'
         ]);
 
         $directorDocumentsId = [];
@@ -514,14 +533,19 @@ class StoresNgoController extends Controller
         $agreement->start_date = $start_date;
         $agreement->save();
         // Update ngo status
-        AgreementStatus::where('agreement_id', $agreement->id)->update(['is_active' => false]);
-        AgreementStatus::create([
+        AgreementStatus::where('agreement_id', $agreement->id,)->update(['is_active' => false]);
+        $agreementStatus = AgreementStatus::create([
             'agreement_id' => $agreement->id,
             'userable_id' => $authUser->id,
             'userable_type' => $this->getModelName(get_class($authUser)),
             "is_active" => true,
             'status_id' => StatusEnum::pending_approval->value,
-            'comment' => 'Register document uploaded',
+        ]);
+
+        $this->storeNgoAgreementWithTrans($agreementStatus->id, [
+            'pashto' => 'سند د تصویب لپاره په تمه دی.',
+            'farsi' => 'سند در انتظار تأیید است.',
+            'english' => 'Document is pending for approval.'
         ]);
         DB::commit();
         return response()->json(

@@ -14,13 +14,17 @@ class NgoRepository implements NgoRepositoryInterface
     public function ngoProfileInfo($ngo_id, $locale)
     {
         $ngo = $this->generalQuery($ngo_id, $locale)
-            ->join('ngo_statuses as ns', function ($join) {
-                $join->on('ns.ngo_id', '=', 'n.id')
-                    ->where('ns.is_active', true);
+            ->join('agreements as ag', function ($join) {
+                $join->on('ag.ngo_id', '=', 'n.id')
+                    ->whereRaw('ag.id = (select max(ns2.id) from agreements as ns2 where ns2.ngo_id = n.id)');
             })
-            ->join('status_type_trans as stt', function ($join) use ($locale) {
-                $join->on('stt.status_type_id', '=', 'ns.status_type_id')
-                    ->where('stt.language_name', $locale);
+            ->join('agreement_statuses as ags', function ($join) {
+                $join->on('ags.agreement_id', '=', 'ag.id')
+                    ->where('ags.is_active', true);
+            })
+            ->join('status_trans as st', function ($join) use ($locale) {
+                $join->on('st.status_id', '=', 'ags.status_id')
+                    ->where('st.language_name', $locale);
             })
             ->select(
                 'n.id',
@@ -34,8 +38,8 @@ class NgoRepository implements NgoRepositoryInterface
                 'dt.district_id',
                 'pt.value as province',
                 'pt.province_id',
-                'ns.status_type_id',
-                'stt.name as status_type',
+                'st.name as agreement_status',
+                'st.status_id as agreement_status_id',
                 // Aggregating the name by conditional filtering for each language
                 DB::raw("MAX(CASE WHEN nt.language_name = 'ps' THEN nt.name END) as name_pashto"),
                 DB::raw("MAX(CASE WHEN nt.language_name = 'fa' THEN nt.name END) as name_farsi"),
@@ -56,8 +60,8 @@ class NgoRepository implements NgoRepositoryInterface
                 'pt.value',
                 'dt.district_id',
                 'pt.province_id',
-                'ns.status_type_id',
-                'stt.name',
+                'st.status_id',
+                "st.name"
             )
             ->first();
 
@@ -76,8 +80,8 @@ class NgoRepository implements NgoRepositoryInterface
             "area_english" => $ngo->area_english,
             "area_pashto" => $ngo->area_pashto,
             "area_farsi" => $ngo->area_farsi,
-            "status_type_id" => $ngo->status_type_id,
-            "status_type" => $ngo->status_type,
+            "agreement_status_id" => $ngo->agreement_status_id,
+            "agreement_status" => $ngo->agreement_status,
         ];
     }
     public function startRegisterFormInfo($ngo_id, $locale)

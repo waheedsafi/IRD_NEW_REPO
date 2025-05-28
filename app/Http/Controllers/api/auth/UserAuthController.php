@@ -101,8 +101,10 @@ class UserAuthController extends Controller
         if ($loggedIn) {
             // Get the auth user
             $user = $loggedIn['user'];
-            $ngoStatus = UserStatus::where("user_id", $user->id)->first();
-            if ($ngoStatus->status_id == StatusEnum::block->value) {
+            $userStatus = UserStatus::where("user_id", $user->id)
+                ->where('is_active', true)
+                ->first();
+            if ($userStatus->status_id == StatusEnum::block->value) {
                 return response()->json([
                     'message' => __('app_translation.account_is_block'),
                 ], 401, [], JSON_UNESCAPED_UNICODE);

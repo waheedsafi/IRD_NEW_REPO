@@ -14,6 +14,7 @@ use App\Enums\CountryEnum;
 use App\Enums\LanguageEnum;
 use App\Models\AddressTran;
 use Illuminate\Support\Carbon;
+use App\Enums\Status\StatusEnum;
 use App\Enums\Type\TaskTypeEnum;
 use App\Models\AgreementDirector;
 use App\Models\AgreementDocument;
@@ -156,13 +157,18 @@ class ExtendNgoController extends Controller
         $agreement->agreement_no = 'AG' . '-' . Carbon::now()->year . '-' . $agreement->id;
         $agreement->save();
         NgoStatus::where('agreement_id', $agreement->id)->update(['is_active' => false]);
-        NgoStatus::create([
+        $ngoStatus = NgoStatus::create([
             'agreement_id' => $agreement->id,
             'userable_id' => $authUser->id,
             'userable_type' => $this->getModelName(get_class($authUser)),
             'is_active' => true,
-            'status_id' => StatusEnum::register_form_completed->value,
+            'status_id' => StatusEnum::document_upload_required->value,
             'comment' => 'Extend Form Complete',
+        ]);
+        $this->storeNgoAgreementWithTrans($ngoStatus->id, [
+            'pashto' => 'لاسلیک شوی د نوم لیکنې فورمه رد شوه.',
+            'farsi' => 'فرم ثبت امضا شده رد شد.',
+            'english' => 'Signed Register Form rejected.'
         ]);
 
         // Step.3 Ensure task exists before proceeding

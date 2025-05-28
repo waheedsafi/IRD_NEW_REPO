@@ -3,15 +3,18 @@
 namespace App\Traits\Helper;
 
 use App\Models\CheckList;
+use App\Enums\LanguageEnum;
 use Illuminate\Support\Str;
+use Sway\Utils\StringUtils;
 use App\Models\UserLoginLog;
 use App\Enums\PermissionEnum;
-use App\Models\NgoPermission;
-use App\Enums\SubPermissionEnum;
 use App\Jobs\LogUserLoginJob;
+use App\Models\NgoPermission;
+use App\Models\NgoStatusTrans;
+use App\Enums\SubPermissionEnum;
+use App\Models\AgreementStatusTrans;
 use App\Models\NgoPermissionSub;
 use Illuminate\Http\UploadedFile;
-use Sway\Utils\StringUtils;
 
 trait HelperTrait
 {
@@ -151,6 +154,9 @@ trait HelperTrait
             if ($id == SubPermissionEnum::ngo_status->value) {
                 continue;
             }
+            if ($id == SubPermissionEnum::ngo_agreement_status->value) {
+                continue;
+            }
             if ($id == SubPermissionEnum::ngo_update_account_password->value) {
                 continue;
             }
@@ -209,5 +215,15 @@ trait HelperTrait
             $browser,
             $device,
         );
+    }
+    public function storeNgoAgreementWithTrans($agreement_status_id, $comment)
+    {
+        foreach (LanguageEnum::LANGUAGES as $code => $name) {
+            AgreementStatusTrans::create([
+                'agreement_status_id' => $agreement_status_id,
+                'comment' => $comment[$name],
+                "language_name" => $code,
+            ]);
+        }
     }
 }
