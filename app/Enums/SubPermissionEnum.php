@@ -86,4 +86,13 @@ enum SubPermissionEnum: int
         74 => "pic",
         75 => "technical_sup"
     ];
+
+
+        // donor
+    case donor_information = 76;
+    case donor_about = 77;
+    public const Donor = [
+        78 => "edit_donor",
+
+    ];
 }

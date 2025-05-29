@@ -34,9 +34,9 @@ class ProjectController extends Controller
         $query = DB::table('projects as pro')
             ->join('project_trans as prot', function ($join) use ($locale) {
                 $join->on('pro.id', '=', 'prot.project_id')
-                    ->where('prot.language_id', $locale);
+                    ->where('prot.language_name', $locale);
             })
-            ->join('donor_trans dont', function ($join) use ($locale) {
+            ->leftJoin('donor_trans  as dont', function ($join) use ($locale) {
                 $join->on('dont.donor_id', 'pro.donor_id')
                     ->where('dont.language_name', $locale);
             })
@@ -54,6 +54,7 @@ class ProjectController extends Controller
 
 
             );
+
 
 
         $this->applyDate($query, $request, 'pro.created_at', 'pro.created_at');
@@ -129,6 +130,7 @@ class ProjectController extends Controller
     public function show(string $id)
     {
         //
+
     }
 
     /**
