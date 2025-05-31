@@ -34,7 +34,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('profile')->nullable();
             $table->boolean('is_editable')->default(true);
-            $table->rememberToken();
+            $table->rememberToken()->nullable();
             $table->timestamps();
         });
     }
