@@ -92,7 +92,6 @@ enum SubPermissionEnum: int
     case donor_information = 76;
     case donor_about = 77;
     public const Donor = [
-        78 => "edit_donor",
-
+        78 => "edit_donor"
     ];
 }

@@ -75,11 +75,7 @@ class DonorController extends Controller
     //
     public function store(DonorRegisterRequest $request)
     {
-
-
-
         $validatedData = $request->validated();
-        $authUser = $request->user();
         $locale = App::getLocale();
 
         // Create email
@@ -121,14 +117,9 @@ class DonorController extends Controller
             'email_id' => $email->id,
             'username' => $request->username,
             'contact_id' => $contact->id,
-            'profile' => '',
+            'profile' => null,
             "password" => Hash::make($validatedData['password']),
         ]);
-
-
-
-
-
 
 
         foreach (LanguageEnum::LANGUAGES as $code => $name) {
@@ -148,9 +139,6 @@ class DonorController extends Controller
         }
 
         // Create permissions
-        // $this->ngoPermissions($newDonor->id);
-
-
 
 
         DB::commit();
@@ -366,5 +354,25 @@ class DonorController extends Controller
         return response()->json([
             'message' => __('app_translation.success'),
         ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    public function projectStatistics()
+    {
+        // $statistics = DB::select("
+        // SELECT
+        //  COUNT(*) AS count,
+        //     (SELECT COUNT(*) FROM ngos WHERE DATE(created_at) = CURDATE()) AS todayCount,
+        //     (SELECT COUNT(*) FROM ngos n JOIN ngo_statuses ns ON n.id = ns.ngo_id WHERE ns.status_id = ?) AS activeCount,
+        //  (SELECT COUNT(*) FROM ngos n JOIN ngo_statuses ns ON n.id = ns.ngo_id WHERE ns.status_id = ? AND ns.status_id != ? ) AS unRegisteredCount
+        // FROM ngos
+        //     ", [StatusEnum::registered->value, StatusEnum::registered->value, StatusEnum::block->value]);
+        // return response()->json([
+        //     'counts' => [
+        //         "count" => $statistics[0]->count,
+        //         "todayCount" => $statistics[0]->todayCount,
+        //         "activeCount" => $statistics[0]->activeCount,
+        //         "unRegisteredCount" =>  $statistics[0]->unRegisteredCount
+        //     ],
+        // ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }
