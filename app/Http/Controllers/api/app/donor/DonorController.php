@@ -25,8 +25,6 @@ use App\Http\Requests\app\donor\DonorUpdateRequest;
 
 class DonorController extends Controller
 {
-
-
     use FilterTrait;
 
     public function index(Request $request)
@@ -60,17 +58,34 @@ class DonorController extends Controller
             'abbr' => 'don.abbr'
         ];
         $this->applyFilters($query, $request, $allowColumn);
-
         $this->applySearch($query, $request, $allowColumn);
-
-        $result = $query->paginate($perPage, ['*'], 'page', $page);
-
 
         $result = $query->paginate($perPage, ['*'], 'page', $page);
 
         return response()->json([
             'donor' => $result
         ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+    public function nameWithId(Request $request)
+    {
+        $locale = App::getLocale();
+
+        $result = DB::table('donors as don')
+            ->join('donor_trans as dont', function ($join) use ($locale) {
+                $join->on('don.id', '=', 'dont.donor_id')
+                    ->where('dont.language_name', $locale);
+            })
+            ->select(
+                'don.id',
+                'don.username as name',
+            )->get();
+
+        return response()->json(
+            $result,
+            200,
+            [],
+            JSON_UNESCAPED_UNICODE
+        );
     }
     //
     public function store(DonorRegisterRequest $request)
