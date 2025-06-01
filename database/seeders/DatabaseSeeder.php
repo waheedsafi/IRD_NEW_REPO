@@ -8,6 +8,7 @@ use App\Models\NgoType;
 use App\Models\NidType;
 use App\Models\Setting;
 use App\Enums\StaffEnum;
+use App\Models\Currency;
 use App\Models\Language;
 use App\Models\NewsType;
 use App\Models\Priority;
@@ -17,16 +18,17 @@ use App\Enums\SettingEnum;
 use App\Models\StatusType;
 use App\Enums\PriorityEnum;
 use App\Enums\TimeUnitEnum;
+use App\Models\CurrencyTran;
 use App\Models\NgoTypeTrans;
 use App\Models\NidTypeTrans;
 use App\Models\SettingTrans;
 use App\Models\NewsTypeTrans;
 use App\Models\PriorityTrans;
+use App\Models\TimeUnitTrans;
 use App\Enums\Type\NgoTypeEnum;
 use Illuminate\Database\Seeder;
 use App\Enums\Status\StatusEnum;
 use App\Enums\Type\StatusTypeEnum;
-use App\Models\TimeUnitTrans;
 use Illuminate\Support\Facades\DB;
 use Database\Seeders\CountrySeeder;
 use Database\Seeders\CheckListSeeder;
@@ -83,12 +85,69 @@ class DatabaseSeeder extends Seeder
 
         $this->ngoTypes();
         $this->settings();
+        $this->currency();
         $this->newsTypes();
         $this->priorityTypes();
         $this->nidTypes();
         $this->staffTypes();
         $this->call(AboutSeeder::class);
         $this->call(ApprovalSeeder::class);
+    }
+    public function currency()
+    {
+        $currencies = [
+            [
+                'abbr' => 'AFN',
+                'symbol' => '؋',
+                'translations' => [
+                    'en' => 'Afghani',
+                    'ps' => 'افغانی',
+                    'fa' => 'افغانی',
+                ],
+            ],
+            [
+                'abbr' => 'USD',
+                'symbol' => '$',
+                'translations' => [
+                    'en' => 'US Dollar',
+                    'ps' => 'ډالر',
+                    'fa' => 'دالر',
+                ],
+            ],
+            [
+                'abbr' => 'EUR',
+                'symbol' => '€',
+                'translations' => [
+                    'en' => 'Euro',
+                    'ps' => 'یورو',
+                    'fa' => 'یورو',
+                ],
+            ],
+            [
+                'abbr' => 'GBP',
+                'symbol' => '£',
+                'translations' => [
+                    'en' => 'Pound',
+                    'ps' => 'پوند',
+                    'fa' => 'پوند',
+                ],
+            ],
+        ];
+
+        foreach ($currencies as $currency) {
+            $curr = Currency::create([
+                'abbr' => $currency['abbr'],
+                'symbol' => $currency['symbol'],
+            ]);
+
+            foreach ($currency['translations'] as $lang => $value) {
+                CurrencyTran::create([
+                    'currency_id' => $curr->id,
+                    'name' => $value,
+                    'language_name' => $lang,
+                ]);
+            }
+        }
     }
     public function ngoTypes()
     {

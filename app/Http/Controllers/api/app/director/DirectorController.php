@@ -112,9 +112,9 @@ class DirectorController extends Controller
             ->where('d.ngo_id', $id)
             ->where('d.is_active', true)
             ->join('director_trans as dirt', 'dirt.director_id', '=', 'd.id')
-            ->join('country_trans as ct', function ($join) use ($locale) {
-                $join->on('ct.country_id', '=', 'd.country_id')
-                    ->where('ct.language_name', $locale);
+            ->join('nationality_trans as nt', function ($join) use ($locale) {
+                $join->on('nt.nationality_id', '=', 'd.nationality_id')
+                    ->where('nt.language_name', $locale);
             })
             ->join('contacts as c', 'c.id', '=', 'd.contact_id')
             ->join('emails as e', 'e.id', '=', 'd.email_id')
@@ -149,8 +149,8 @@ class DirectorController extends Controller
                 'e.value as email',
                 'dt.value as district',
                 'dt.district_id',
-                'ct.country_id',
-                'ct.value as country',
+                'nt.nationality_id',
+                'nt.value as nationality',
                 // Aggregating the name by conditional filtering for each language
                 DB::raw("MAX(CASE WHEN dirt.language_name = 'ps' THEN dirt.name END) as name_pashto"),
                 DB::raw("MAX(CASE WHEN dirt.language_name = 'fa' THEN dirt.name END) as name_farsi"),
@@ -178,8 +178,8 @@ class DirectorController extends Controller
                 'e.value',
                 'dt.value',
                 'dt.district_id',
-                'ct.country_id',
-                'ct.value',
+                'nt.nationality_id',
+                'nt.value',
             )
             ->first();
         $gender = $director->name_en;
@@ -197,7 +197,7 @@ class DirectorController extends Controller
             'surname_english' => $director->surname_english,
             'surname_pashto' => $director->surname_pashto,
             'surname_farsi' => $director->surname_farsi,
-            'nationality' => ['name' => $director->country, 'id' => $director->country_id],
+            'nationality' => ['name' => $director->nationality, 'id' => $director->nationality_id],
             'contact' => $director->contact,
             'email' => $director->email,
             'gender' => ['name' => $gender, 'id' => $director->gender_id],

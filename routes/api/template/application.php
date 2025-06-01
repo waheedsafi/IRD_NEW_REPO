@@ -10,4 +10,5 @@ Route::prefix('v1')->group(function () {
     Route::get('/nationalities', [ApplicationController::class, "nationalities"]);
     Route::get('/nid/types', [ApplicationController::class, "nidTypes"]);
     Route::get('/genders', [ApplicationController::class, "genders"]);
+    Route::get('/currencies', [ApplicationController::class, "currencies"]);
 });
