@@ -74,7 +74,27 @@ class DonorController extends Controller
             'donor' => $result
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
+
     //
+    public function list()
+    {
+        $locale = App::getLocale();
+
+        $query = DB::table('donor_trans as dont')
+            ->where('dont.language_name', $locale)
+            ->select(
+                'dont.donor_id as id',
+                'dont.name as name'
+            )->get();
+
+
+        return response()->json(
+            $query,
+            200,
+            [],
+            JSON_UNESCAPED_UNICODE
+        );
+    }
     public function store(DonorRegisterRequest $request)
     {
         $validatedData = $request->validated();
