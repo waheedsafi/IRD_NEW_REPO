@@ -13,20 +13,16 @@ enum SubPermissionEnum: int
         2 => "update_account_password",
         3 => "permissions"
     ];
-        // settings
-    case setting_language = 21;
-    case setting_job = 22;
-    case setting_destination = 23;
-    case setting_checklist = 24;
-    case setting_news_type = 25;
-    case setting_priority = 26;
-    public const SETTINGS = [
-        21 => "language",
-        22 => "job",
-        23 => "destination",
-        24 => "checklist",
-        25 => "news_type",
-        26 => "priority",
+        // configurations
+    case configurations_job = 21;
+    case configurations_checklist = 22;
+    case configurations_news_type = 23;
+    case configurations_priority = 24;
+    public const CONFIGURATIONS = [
+        21 => "job",
+        22 => "checklist",
+        23 => "news_type",
+        24 => "priority",
     ];
         // Approval
     case pending_approval = 31;

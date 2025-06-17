@@ -82,7 +82,6 @@ class JobAndUserSeeder extends Seeder
             'role_id' =>  RoleEnum::super,
             'contact_id' =>  $contact->id,
             'job_id' =>  $job->id,
-            'destination_id' =>  1,
         ]);
         UserStatus::create([
             "user_id" => $user->id,
@@ -98,7 +97,6 @@ class JobAndUserSeeder extends Seeder
             'grant_permission' =>  true,
             'role_id' =>  RoleEnum::user,
             'job_id' =>  $job->id,
-            'destination_id' =>  16,
         ]);
         UserStatus::create([
             "user_id" => $user->id,
@@ -114,7 +112,6 @@ class JobAndUserSeeder extends Seeder
             'grant_permission' =>  true,
             'role_id' =>  RoleEnum::debugger,
             'job_id' =>  $job->id,
-            'destination_id' =>  1,
         ]);
         UserStatus::create([
             "user_id" => $user->id,
@@ -130,7 +127,6 @@ class JobAndUserSeeder extends Seeder
             'grant_permission' =>  true,
             'role_id' =>  RoleEnum::admin,
             'job_id' =>  $job->id,
-            'destination_id' =>  16,
         ]);
         UserStatus::create([
             "user_id" => $user->id,

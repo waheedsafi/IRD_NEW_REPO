@@ -42,10 +42,7 @@ class UserAuthController extends Controller
             ->leftJoin('contacts as c', 'c.id', '=', 'u.contact_id')
             ->join('emails as e', 'e.id', '=', 'u.email_id')
             ->join('roles as r', 'r.id', '=', 'u.role_id')
-            ->join('destination_trans as dt', function ($join) use ($locale) {
-                $join->on('dt.destination_id', '=', 'u.destination_id')
-                    ->where('dt.language_name', $locale);
-            })->select(
+            ->select(
                 'u.id',
                 "u.profile",
                 "u.grant_permission",
@@ -56,7 +53,6 @@ class UserAuthController extends Controller
                 'e.value as email',
                 'r.name as role_name',
                 'u.role_id',
-                'dt.value as destination',
                 "mjt.value as job",
                 "u.created_at"
             )
@@ -73,7 +69,6 @@ class UserAuthController extends Controller
                     "grant" => (bool) $user->grant_permission,
                     "role" => ["role" => $user->role_id, "name" => $user->role_name],
                     'contact' => $user->contact,
-                    "destination" => $user->destination,
                     "job" => $user->job,
                     "created_at" => $user->created_at,
                 ],
@@ -118,10 +113,7 @@ class UserAuthController extends Controller
                 })
                 ->leftJoin('contacts as c', 'c.id', '=', 'u.contact_id')
                 ->join('roles as r', 'r.id', '=', 'u.role_id')
-                ->join('destination_trans as dt', function ($join) use ($locale) {
-                    $join->on('dt.destination_id', '=', 'u.destination_id')
-                        ->where('dt.language_name', $locale);
-                })->select(
+                ->select(
                     'u.id',
                     "u.profile",
                     "u.grant_permission",
@@ -131,7 +123,6 @@ class UserAuthController extends Controller
                     'u.contact_id',
                     'r.name as role_name',
                     'u.role_id',
-                    'dt.value as destination',
                     "mjt.value as job",
                     "u.created_at",
                 )
@@ -151,7 +142,6 @@ class UserAuthController extends Controller
                         "grant" => (bool) $user->grant_permission,
                         "role" => ["role" => $user->role_id, "name" => $user->role_name],
                         'contact' => $user->contact,
-                        "destination" => $user->destination,
                         "job" => $user->job,
                         "created_at" => $user->created_at,
                     ],

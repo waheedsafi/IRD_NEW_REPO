@@ -71,7 +71,6 @@ class DatabaseSeeder extends Seeder
         $this->languages();
         $this->gender();
         $this->call(CountrySeeder::class);
-        $this->call(DestinationSeederSecond::class);
         $this->call(RoleSeeder::class);
         $this->call(PermissionSeeder::class);
         $this->call(SubPermissionSeeder::class);

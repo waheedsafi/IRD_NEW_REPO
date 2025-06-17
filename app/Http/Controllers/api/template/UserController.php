@@ -7,14 +7,12 @@ use App\Models\Email;
 use App\Enums\RoleEnum;
 use App\Models\Contact;
 use App\Models\ModelJob;
-use App\Models\Destination;
 use Illuminate\Http\Request;
 use App\Traits\Helper\HelperTrait;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
-use function PHPUnit\Framework\isEmpty;
 use App\Repositories\User\UserRepositoryInterface;
 use App\Http\Requests\template\user\UpdateUserRequest;
 use App\Http\Requests\template\user\UserRegisterRequest;
@@ -49,10 +47,7 @@ class UserController extends Controller
             ->leftJoin('contacts as c', 'c.id', '=', 'u.contact_id')
             ->join('emails as e', 'e.id', '=', 'u.email_id')
             ->join('roles as r', 'r.id', '=', 'u.role_id')
-            ->leftjoin('destination_trans as dt', function ($join) use ($locale) {
-                $join->on('dt.destination_id', '=', 'u.destination_id')
-                    ->where('dt.language_name', $locale);
-            })
+
             ->leftjoin('model_job_trans as mjt', function ($join) use ($locale) {
                 $join->on('mjt.model_job_id', '=', 'u.job_id')
                     ->where('mjt.language_name', $locale);
@@ -65,7 +60,6 @@ class UserController extends Controller
                 "u.created_at",
                 "e.value AS email",
                 "c.value AS contact",
-                "dt.value as destination",
                 "mjt.value as job"
             );
 
@@ -97,10 +91,7 @@ class UserController extends Controller
             ->leftJoin('contacts as c', 'c.id', '=', 'u.contact_id')
             ->join('emails as e', 'e.id', '=', 'u.email_id')
             ->join('roles as r', 'r.id', '=', 'u.role_id')
-            ->join('destination_trans as dt', function ($join) use ($locale) {
-                $join->on('dt.destination_id', '=', 'u.destination_id')
-                    ->where('dt.language_name', $locale);
-            })->select(
+            ->select(
                 'u.id',
                 "u.profile",
                 "u.status",
@@ -112,10 +103,8 @@ class UserController extends Controller
                 'e.value as email',
                 'r.name as role_name',
                 'u.role_id',
-                'dt.value as destination',
                 "mjt.value as job",
                 "u.created_at",
-                "u.destination_id",
                 "u.job_id"
             )
             ->first();
@@ -137,7 +126,6 @@ class UserController extends Controller
                     "grant" => $user->grant_permission == 1,
                     "role" => ['id' => $user->role_id, 'name' => $user->role_name],
                     'contact' => $user->contact,
-                    "destination" => ["id" => $user->destination_id, "name" => $user->destination],
                     "job" => ["id" => $user->job_id, "name" => $user->job],
                     "created_at" => $user->created_at,
                 ],
@@ -205,7 +193,6 @@ class UserController extends Controller
             "password" => Hash::make($request->password),
             "role_id" => $request->role,
             "job_id" => $request->job_id,
-            "destination_id" => $request->destination_id,
             "contact_id" => $contact ? $contact->id : $contact,
             "profile" => null,
             "status" => $request->status,
@@ -235,7 +222,6 @@ class UserController extends Controller
                 'email' => $request->email,
                 "profile" => $newUser->profile,
                 "status" => $newUser->status,
-                "destination" => $request->destination,
                 "job" => $request->job,
                 "created_at" => $newUser->created_at,
             ],
@@ -295,7 +281,6 @@ class UserController extends Controller
             $user->username = $request->username;
             $user->role_id = $request->role;
             $user->job_id = $request->job;
-            $user->destination_id = $request->destination;
             $user->status = $request->status === "true" ? true : false;
             $user->grant_permission = $request->grant === "true" ? true : false;
             $user->save();
@@ -467,7 +452,6 @@ class UserController extends Controller
             'created_at' => 'u.created_at',
             'status' => 'u.status',
             'job' => 'mjt.value',
-            'destination' => 'dt.value'
         ];
         if (in_array($sort, array_keys($allowedColumns))) {
             $query->orderBy($allowedColumns[$sort], $order);
