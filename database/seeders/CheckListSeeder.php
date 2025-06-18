@@ -307,205 +307,118 @@ class CheckListSeeder extends Seeder
     }
     protected function projectRegisterationCheckList()
     {
-        // 1.
-        $checklist = CheckList::create([
-            'check_list_type_id' => CheckListTypeEnum::projectRegister,
-            'acceptable_extensions' => "pdf,jpeg,png,jpg",
-            'acceptable_mimes' => "application/pdf,image/jpeg,image/png,image/jpg",
-            'accept' => ".pdf,.jpeg,.png,.jpg",
-            'description' => "",
-            'file_size' => 2048,
-            'user_id' => RoleEnum::super,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "Ministry of Economic Work Permit",
-            'language_name' => LanguageEnum::default,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "جواز کار وزارت اقتصاد",
-            'language_name' => LanguageEnum::farsi,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "د اقتصاد وزارت څخه د کار جواز",
-            'language_name' => LanguageEnum::pashto,
-        ]);
-        // 2.
-        $checklist = CheckList::create([
-            'check_list_type_id' => CheckListTypeEnum::projectRegister,
-            'acceptable_extensions' => "pdf,jpeg,png,jpg",
-            'acceptable_mimes' => "application/pdf,image/jpeg,image/png,image/jpg",
-            'accept' => ".pdf,.jpeg,.png,.jpg",
-            'description' => "",
-            'file_size' => 2048,
-            'user_id' => RoleEnum::super,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "Articles of Association",
-            'language_name' => LanguageEnum::default,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "اساس نامه",
-            'language_name' => LanguageEnum::farsi,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "اساس نامه",
-            'language_name' => LanguageEnum::pashto,
-        ]);
-        // 3.
-        $checklist = CheckList::create([
-            'check_list_type_id' => CheckListTypeEnum::projectRegister,
-            'acceptable_extensions' => "pdf,jpeg,png,jpg",
-            'acceptable_mimes' => "application/pdf,image/jpeg,image/png,image/jpg",
-            'accept' => ".pdf,.jpeg,.png,.jpg",
-            'description' => "",
-            'file_size' => 2048,
-            'user_id' => RoleEnum::super,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "Project introduction letter from the Ministry of Economy",
-            'language_name' => LanguageEnum::default,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "مکتوب معرفی پروژه از وزارت اقتصاد",
-            'language_name' => LanguageEnum::farsi,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "د اقتصاد وزارت له خوا د پروژې د معرفي کولو لیک",
-            'language_name' => LanguageEnum::pashto,
-        ]);
-        // 4.
-        $checklist = CheckList::create([
-            'check_list_type_id' => CheckListTypeEnum::projectRegister,
-            'acceptable_extensions' => "pdf,jpeg,png,jpg",
-            'acceptable_mimes' => "application/pdf,image/jpeg,image/png,image/jpg",
-            'accept' => ".pdf,.jpeg,.png,.jpg",
-            'description' => "",
-            'file_size' => 2048,
-            'user_id' => RoleEnum::super,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "NGO & Donor Contract Letter",
-            'language_name' => LanguageEnum::default,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "نامه قرارداد موسسه و دونر",
-            'language_name' => LanguageEnum::farsi,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "د موسسه او دونر ترمنځ د قرارداد لیک",
-            'language_name' => LanguageEnum::pashto,
-        ]);
-        // 5.
-        $checklist = CheckList::create([
-            'check_list_type_id' => CheckListTypeEnum::projectRegister,
-            'acceptable_extensions' => "pdf,jpeg,png,jpg",
-            'acceptable_mimes' => "application/pdf,image/jpeg,image/png,image/jpg",
-            'accept' => ".pdf,.jpeg,.png,.jpg",
-            'description' => "",
-            'file_size' => 2048,
-            'user_id' => RoleEnum::super,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "Project Presentation",
-            'language_name' => LanguageEnum::default,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "پرزنتیشن پروژه",
-            'language_name' => LanguageEnum::farsi,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "د پروژې پریزنټیشن",
-            'language_name' => LanguageEnum::pashto,
-        ]);
-        // 6.
-        $checklist = CheckList::create([
-            'check_list_type_id' => CheckListTypeEnum::projectRegister,
-            'acceptable_extensions' => "pdf,jpeg,png,jpg",
-            'acceptable_mimes' => "application/pdf,image/jpeg,image/png,image/jpg",
-            'accept' => ".pdf,.jpeg,.png,.jpg",
-            'description' => "",
-            'file_size' => 4048,
-            'user_id' => RoleEnum::super,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "Memorandum of Understanding (English)",
-            'language_name' => LanguageEnum::default,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "تفاهم نامه (انگلیسی)",
-            'language_name' => LanguageEnum::farsi,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "تفاهم نامه (انگلیسی)",
-            'language_name' => LanguageEnum::pashto,
-        ]);
-        // 7.
-        $checklist = CheckList::create([
-            'check_list_type_id' => CheckListTypeEnum::projectRegister,
-            'acceptable_extensions' => "pdf,jpeg,png,jpg",
-            'acceptable_mimes' => "application/pdf,image/jpeg,image/png,image/jpg",
-            'accept' => ".pdf,.jpeg,.png,.jpg",
-            'description' => "",
-            'file_size' => 4048,
-            'user_id' => RoleEnum::super,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "Memorandum of Understanding (Farsi)",
-            'language_name' => LanguageEnum::default,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "تفاهم نامه (فارسی)",
-            'language_name' => LanguageEnum::farsi,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "تفاهم نامه (فارسی)",
-            'language_name' => LanguageEnum::pashto,
-        ]);
-        // 8.
-        $checklist = CheckList::create([
-            'check_list_type_id' => CheckListTypeEnum::projectRegister,
-            'acceptable_extensions' => "pdf,jpeg,png,jpg",
-            'acceptable_mimes' => "application/pdf,image/jpeg,image/png,image/jpg",
-            'accept' => ".pdf,.jpeg,.png,.jpg",
-            'description' => "",
-            'file_size' => 4048,
-            'user_id' => RoleEnum::super,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "Memorandum of Understanding (Pashto)",
-            'language_name' => LanguageEnum::default,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "تفاهم نامه (پشتو)",
-            'language_name' => LanguageEnum::farsi,
-        ]);
-        CheckListTrans::create([
-            'check_list_id' => $checklist->id,
-            'value' => "تفاهم نامه (پشتو)",
-            'language_name' => LanguageEnum::pashto,
-        ]);
+        $items = [
+            [
+                'id' => CheckListEnum::project_work_permit,
+                'value_default' => 'Ministry of Economic Work Permit',
+                'value_farsi' => 'جواز کار وزارت اقتصاد',
+                'value_pashto' => 'د اقتصاد وزارت څخه د کار جواز',
+                'file_size' => 2048,
+                'acceptable_extensions' => 'pdf,jpeg,png,jpg',
+                'acceptable_mimes' => 'application/pdf,image/jpeg,image/png,image/jpg',
+                'accept' => '.pdf,.jpeg,.png,.jpg',
+            ],
+            [
+                'id' => CheckListEnum::project_articles_of_association,
+                'value_default' => 'Articles of Association',
+                'value_farsi' => 'اساس نامه',
+                'value_pashto' => 'اساس نامه',
+                'file_size' => 2048,
+                'acceptable_extensions' => 'pdf,jpeg,png,jpg',
+                'acceptable_mimes' => 'application/pdf,image/jpeg,image/png,image/jpg',
+                'accept' => '.pdf,.jpeg,.png,.jpg',
+            ],
+            [
+                'id' => CheckListEnum::project_intro_letter,
+                'value_default' => 'Project introduction letter from the Ministry of Economy',
+                'value_farsi' => 'مکتوب معرفی پروژه از وزارت اقتصاد',
+                'value_pashto' => 'د اقتصاد وزارت له خوا د پروژې د معرفي کولو لیک',
+                'file_size' => 2048,
+                'acceptable_extensions' => 'pdf,jpeg,png,jpg',
+                'acceptable_mimes' => 'application/pdf,image/jpeg,image/png,image/jpg',
+                'accept' => '.pdf,.jpeg,.png,.jpg',
+            ],
+            [
+                'id' => CheckListEnum::ngo_donor_contract_letter,
+                'value_default' => 'NGO & Donor Contract Letter',
+                'value_farsi' => 'نامه قرارداد موسسه و دونر',
+                'value_pashto' => 'د موسسه او دونر ترمنځ د قرارداد لیک',
+                'file_size' => 2048,
+                'acceptable_extensions' => 'pdf,jpeg,png,jpg',
+                'acceptable_mimes' => 'application/pdf,image/jpeg,image/png,image/jpg',
+                'accept' => '.pdf,.jpeg,.png,.jpg',
+            ],
+            [
+                'id' => CheckListEnum::project_presentation,
+                'value_default' => 'Project Presentation',
+                'value_farsi' => 'پرزنتیشن پروژه',
+                'value_pashto' => 'د پروژې پریزنټیشن',
+                'file_size' => 2048,
+                'acceptable_extensions' => 'pdf,jpeg,png,jpg',
+                'acceptable_mimes' => 'application/pdf,image/jpeg,image/png,image/jpg',
+                'accept' => '.pdf,.jpeg,.png,.jpg',
+            ],
+            [
+                'id' => CheckListEnum::mou_english,
+                'value_default' => 'Memorandum of Understanding (English)',
+                'value_farsi' => 'تفاهم نامه (انگلیسی)',
+                'value_pashto' => 'تفاهم نامه (انگلیسی)',
+                'file_size' => 4048,
+                'acceptable_extensions' => 'pdf,jpeg,png,jpg',
+                'acceptable_mimes' => 'application/pdf,image/jpeg,image/png,image/jpg',
+                'accept' => '.pdf,.jpeg,.png,.jpg',
+            ],
+            [
+                'id' => CheckListEnum::mou_farsi,
+                'value_default' => 'Memorandum of Understanding (Farsi)',
+                'value_farsi' => 'تفاهم نامه (فارسی)',
+                'value_pashto' => 'تفاهم نامه (فارسی)',
+                'file_size' => 4048,
+                'acceptable_extensions' => 'pdf,jpeg,png,jpg',
+                'acceptable_mimes' => 'application/pdf,image/jpeg,image/png,image/jpg',
+                'accept' => '.pdf,.jpeg,.png,.jpg',
+            ],
+            [
+                'id' => CheckListEnum::mou_pashto,
+                'value_default' => 'Memorandum of Understanding (Pashto)',
+                'value_farsi' => 'تفاهم نامه (پشتو)',
+                'value_pashto' => 'تفاهم نامه (پشتو)',
+                'file_size' => 4048,
+                'acceptable_extensions' => 'pdf,jpeg,png,jpg',
+                'acceptable_mimes' => 'application/pdf,image/jpeg,image/png,image/jpg',
+                'accept' => '.pdf,.jpeg,.png,.jpg',
+            ],
+        ];
+
+        foreach ($items as $item) {
+            $checklist = CheckList::create([
+                'id' => $item['id'],
+                'check_list_type_id' => CheckListTypeEnum::projectRegister,
+                'acceptable_extensions' => $item['acceptable_extensions'],
+                'acceptable_mimes' => $item['acceptable_mimes'],
+                'accept' => $item['accept'],
+                'description' => '',
+                'file_size' => $item['file_size'],
+                'user_id' => RoleEnum::super,
+            ]);
+
+            CheckListTrans::create([
+                'check_list_id' => $checklist->id,
+                'value' => $item['value_default'],
+                'language_name' => LanguageEnum::default,
+            ]);
+
+            CheckListTrans::create([
+                'check_list_id' => $checklist->id,
+                'value' => $item['value_farsi'],
+                'language_name' => LanguageEnum::farsi,
+            ]);
+
+            CheckListTrans::create([
+                'check_list_id' => $checklist->id,
+                'value' => $item['value_pashto'],
+                'language_name' => LanguageEnum::pashto,
+            ]);
+        }
     }
 }
