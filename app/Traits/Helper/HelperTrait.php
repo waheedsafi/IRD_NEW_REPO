@@ -132,15 +132,6 @@ trait HelperTrait
     }
     public function ngoPermissions($ngo_id)
     {
-        NgoPermission::create([
-            "view" => true,
-            "edit" => true,
-            "delete" => true,
-            "add" => true,
-            "ngo_id" => $ngo_id,
-            "permission" => PermissionEnum::dashboard->value,
-        ]);
-
         $ngoPermission = NgoPermission::create([
             "visible" => false,
             "view" => true,

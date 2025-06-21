@@ -28,3 +28,6 @@ Route::prefix('v1')->middleware(["authorized:" . 'user:api'])->group(function ()
 
   // ->middleware(["userHasMainViewPermission:" . PermissionEnum::donor->value]);
 });
+Route::prefix('v1')->middleware(["multiAuthorized:" . 'user:api,ngo:api'])->group(function () {
+  Route::get('/donors/names/list', [DonorController::class, 'nameWithId']);
+});

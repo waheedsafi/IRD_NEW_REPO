@@ -14,13 +14,13 @@ class SubPermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        // $this->subUserPermissions();
-        // $this->subNgoPermissions();
-        // $this->subSettingPermissions();
-        // $this->subAboutPermissions();
-        // $this->subApprovalPermissions();
-        // $this->subActivityPermissions();
-        // $this->subProjectPermissions();
+        $this->subUserPermissions();
+        $this->subNgoPermissions();
+        $this->subConfigurationsPermissions();
+        $this->subAboutPermissions();
+        $this->subApprovalPermissions();
+        $this->subActivityPermissions();
+        $this->subProjectPermissions();
         $this->subDonorPermissions();
     }
     public function subUserPermissions()
@@ -64,12 +64,12 @@ class SubPermissionSeeder extends Seeder
             ]);
         }
     }
-    public function subSettingPermissions()
+    public function subConfigurationsPermissions()
     {
-        foreach (SubPermissionEnum::SETTINGS as $id => $role) {
+        foreach (SubPermissionEnum::CONFIGURATIONS as $id => $role) {
             SubPermission::factory()->create([
                 "id" => $id,
-                "permission" => PermissionEnum::settings->value,
+                "permission" => PermissionEnum::configurations->value,
                 "name" => $role,
             ]);
         }

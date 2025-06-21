@@ -8,12 +8,14 @@ use App\Models\Country;
 use App\Models\District;
 use App\Models\Province;
 use App\Enums\LanguageEnum;
+use App\Models\CurrencyTran;
 use App\Models\NidTypeTrans;
 use Illuminate\Http\Request;
 use App\Models\NationalityTrans;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 
 class ApplicationController extends Controller
 {
@@ -88,5 +90,24 @@ class ApplicationController extends Controller
             ->where('language_name', $locale)
             ->get();
         return response()->json($nidtype);
+    }
+
+    public function currencies()
+    {
+        $locale = App::getLocale();
+        $currency = DB::table('currencies as c')
+            ->join('currency_trans as ct', function ($join) use ($locale) {
+                $join->on('ct.currency_id', '=', 'c.id')
+                    ->where('ct.language_name', $locale);
+            })
+            ->select('currency_id as id', 'name', 'symbol')
+            ->get();
+
+        return  response()->json(
+            $currency,
+            200,
+            [],
+            JSON_UNESCAPED_UNICODE
+        );
     }
 }

@@ -13,10 +13,9 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         // Icons
-        $dashboard = 'icons/home.svg';
         $users = 'icons/users-group.svg';
         $chart = 'icons/chart.svg';
-        $settings = 'icons/settings.svg';
+        $configurations = 'icons/configurations.svg';
         $logs = 'icons/logs.svg';
         $audit = 'icons/audits.svg';
         $projects = 'icons/projects.svg';
@@ -27,11 +26,6 @@ class PermissionSeeder extends Seeder
         $approval = 'icons/approval.svg';
         $activity = 'icons/activity.svg';
 
-        Permission::factory()->create([
-            "name" => "dashboard",
-            "icon" => $dashboard,
-            "priority" => 1,
-        ]);
         Permission::factory()->create([
             "name" => "ngo",
             "icon" => $ngo,
@@ -78,8 +72,8 @@ class PermissionSeeder extends Seeder
             "priority" => 9,
         ]);
         Permission::factory()->create([
-            "name" => "settings",
-            "icon" => $settings,
+            "name" => "configurations",
+            "icon" => $configurations,
             "priority" => 10,
         ]);
         Permission::factory()->create([
