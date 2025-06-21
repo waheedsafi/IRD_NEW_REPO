@@ -86,7 +86,7 @@ class ApplicationController extends Controller
     public function nidTypes()
     {
         $locale = App::getLocale();
-        $nidtype =  NidTypeTrans::select('value as name', 'nid_type_id as id', 'symbol')
+        $nidtype =  NidTypeTrans::select('value as name', 'nid_type_id as id')
             ->where('language_name', $locale)
             ->get();
         return response()->json($nidtype);
