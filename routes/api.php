@@ -11,8 +11,6 @@ require __DIR__ . '/api/template/media.php';
 require __DIR__ . '/api/template/profile.php';
 require __DIR__ . '/api/template/application.php';
 require __DIR__ . '/api/template/log.php';
-require __DIR__ . '/api/template/destination.php';
-require __DIR__ . '/api/template/destinationType.php';
 require __DIR__ . '/api/template/audit.php';
 require __DIR__ . '/api/template/location.php';
 require __DIR__ . '/api/template/priority.php';
