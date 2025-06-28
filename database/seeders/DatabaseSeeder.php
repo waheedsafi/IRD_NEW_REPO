@@ -75,7 +75,6 @@ class DatabaseSeeder extends Seeder
         $this->call(PermissionSeeder::class);
         $this->call(SubPermissionSeeder::class);
         $this->call(RolePermissionSeeder::class);
-        $this->statusType();
         $this->status();
         $this->call(JobAndUserSeeder::class);
         $this->call(CheckListSeeder::class);
@@ -338,123 +337,10 @@ class DatabaseSeeder extends Seeder
             "nid_type_id" => $nid->id
         ]);
     }
-    public function statusType()
-    {
-        $statustype =  StatusType::factory()->create([
-            'id' => StatusTypeEnum::ngo,
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'en',
-            'name' => 'NGO'
-
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'fa',
-            'name' => 'موسسه'
-
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'ps',
-            'name' => 'موسسه'
-
-        ]);
-
-        $statustype =  StatusType::factory()->create([
-            'id' => StatusTypeEnum::donor,
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'en',
-            'name' => 'Donor'
-
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'fa',
-            'name' => 'دونر'
-
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'ps',
-            'name' => 'دونر'
-
-        ]);
-
-        $statustype =  StatusType::factory()->create([
-            'id' => StatusTypeEnum::project,
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'en',
-            'name' => 'Project'
-
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'fa',
-            'name' => 'حالت پروژه'
-
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'ps',
-            'name' => 'پروژی'
-
-        ]);
-
-        $statustype = StatusType::factory()->create([
-            'id' => StatusTypeEnum::agreement,
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'en',
-            'name' => 'Agreement'
-
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'fa',
-            'name' => 'تفاهم نامه '
-
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'ps',
-            'name' => 'تړون لیک '
-
-        ]);
-
-        $statustype = StatusType::factory()->create([
-            'id' => StatusTypeEnum::general,
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'en',
-            'name' => 'General'
-
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'fa',
-            'name' => 'عمومی'
-
-        ]);
-        DB::table('status_type_trans')->insert([
-            'status_type_id' => $statustype->id,
-            'language_name' => 'ps',
-            'name' => 'عمومی'
-
-        ]);
-    }
     public function status()
     {
         $statustype =  Status::create([
             'id' => StatusEnum::active,
-            'status_type_id' => StatusTypeEnum::general->value
         ]);
         DB::table('status_trans')->insert([
             'status_id' => $statustype->id,
@@ -475,7 +361,6 @@ class DatabaseSeeder extends Seeder
         ]);
         $statustype =  Status::create([
             'id' => StatusEnum::block,
-            'status_type_id' => StatusTypeEnum::general->value
         ]);
         DB::table('status_trans')->insert([
             'status_id' => $statustype->id,
@@ -496,7 +381,6 @@ class DatabaseSeeder extends Seeder
         ]);
         $statustype =  Status::create([
             'id' => StatusEnum::document_upload_required,
-            'status_type_id' => StatusTypeEnum::general->value
         ]);
         DB::table('status_trans')->insert([
             'status_id' => $statustype->id,
@@ -517,7 +401,6 @@ class DatabaseSeeder extends Seeder
         ]);
         $statustype =  Status::create([
             'id' => StatusEnum::pending_approval,
-            'status_type_id' => StatusTypeEnum::general->value
         ]);
         DB::table('status_trans')->insert([
             'status_id' => $statustype->id,
@@ -538,7 +421,6 @@ class DatabaseSeeder extends Seeder
         ]);
         $statustype =  Status::create([
             'id' => StatusEnum::rejected,
-            'status_type_id' => StatusTypeEnum::general->value
         ]);
         DB::table('status_trans')->insert([
             'status_id' => $statustype->id,
@@ -559,7 +441,6 @@ class DatabaseSeeder extends Seeder
         ]);
         $statustype =  Status::create([
             'id' => StatusEnum::expired,
-            'status_type_id' => StatusTypeEnum::general->value
         ]);
         DB::table('status_trans')->insert([
             'status_id' => $statustype->id,
@@ -580,7 +461,6 @@ class DatabaseSeeder extends Seeder
         ]);
         $statustype =  Status::create([
             'id' => StatusEnum::extended,
-            'status_type_id' => StatusTypeEnum::general->value
         ]);
         DB::table('status_trans')->insert([
             'status_id' => $statustype->id,
@@ -601,7 +481,6 @@ class DatabaseSeeder extends Seeder
         ]);
         $statustype =  Status::create([
             'id' => StatusEnum::approved,
-            'status_type_id' => StatusTypeEnum::general->value
         ]);
         DB::table('status_trans')->insert([
             'status_id' => $statustype->id,
@@ -622,7 +501,6 @@ class DatabaseSeeder extends Seeder
         ]);
         $statustype =  Status::create([
             'id' => StatusEnum::registered,
-            'status_type_id' => StatusTypeEnum::general->value
         ]);
         DB::table('status_trans')->insert([
             'status_id' => $statustype->id,
@@ -643,7 +521,6 @@ class DatabaseSeeder extends Seeder
         ]);
         $statustype =  Status::create([
             'id' => StatusEnum::registration_incomplete,
-            'status_type_id' => StatusTypeEnum::ngo->value
         ]);
         DB::table('status_trans')->insert([
             'status_id' => $statustype->id,
@@ -664,7 +541,6 @@ class DatabaseSeeder extends Seeder
         ]);
         $statustype =  Status::create([
             'id' => StatusEnum::waiting_for_project_schedule,
-            'status_type_id' => StatusTypeEnum::project->value
         ]);
         DB::table('status_trans')->insert([
             'status_id' => $statustype->id,
@@ -685,7 +561,6 @@ class DatabaseSeeder extends Seeder
         ]);
         $statustype =  Status::create([
             'id' => StatusEnum::project_has_comment,
-            'status_type_id' => StatusTypeEnum::project->value
         ]);
         DB::table('status_trans')->insert([
             'status_id' => $statustype->id,

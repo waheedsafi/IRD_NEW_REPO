@@ -16,12 +16,12 @@ enum CheckListEnum: int
 
 
         // project checklist 
-    case project_work_permit = 11;              // Ministry of Economic Work Permit
-    case project_intro_letter = 12;              // Project introduction letter from Ministry of Economy
-    case ngo_donor_contract_letter = 13;         // NGO & Donor Contract Letter
-    case project_presentation = 14;              // Project Presentation
-    case mou_english = 15;                        // Memorandum of Understanding (English)
-    case mou_farsi = 16;                          // Memorandum of Understanding (Farsi)
-    case mou_pashto = 17;
-    case project_articles_of_association = 18;
+    case moe_project_introduction_letter = 11;              // Project introduction letter from Ministry of Economy
+    case project_articles_of_association = 12;
+    case project_presentation = 13;              // Project Presentation
+    case ngo_and_donor_contract = 14;         // NGO & Donor Contract Letter
+    case mou_en = 15;                        // Memorandum of Understanding (English)
+    case mou_fa = 16;                          // Memorandum of Understanding (Farsi)
+    case mou_ps = 17;
+    case project_ministry_of_economy_work_permit = 18;
 }

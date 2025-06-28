@@ -9,16 +9,13 @@ use App\Models\Agreement;
 use App\Enums\LanguageEnum;
 use App\Models\Representer;
 use App\Models\RepresenterTran;
+use App\Enums\Status\StatusEnum;
 use App\Enums\Type\TaskTypeEnum;
 use App\Models\AgreementDocument;
-use App\Enums\Type\StatusTypeEnum;
 use App\Traits\Helper\HelperTrait;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
-use App\Models\AgreementRepresenter;
-use App\Models\RepresentorDocuments;
-use App\Enums\CheckList\CheckListEnum;
 use App\Repositories\Storage\StorageRepositoryInterface;
 use App\Http\Requests\app\representor\StoreRepresentorRequest;
 use App\Http\Requests\app\representor\UpdateRepresentorRequest;
@@ -183,10 +180,9 @@ class RepresentorController extends Controller
             ], 200, [], JSON_UNESCAPED_UNICODE);
         }
         if (
-            $ngo->status_type_id == StatusTypeEnum::signed_register_form_submitted->value ||
-            $ngo->status_type_id == StatusTypeEnum::register_form_not_completed->value ||
-            $ngo->status_type_id == StatusTypeEnum::registration_expired->value ||
-            $ngo->status_type_id == StatusTypeEnum::registration_extended->value
+            $ngo->status_type_id != StatusEnum::expired->value ||
+            $ngo->status_type_id != StatusEnum::registered->value ||
+            $ngo->status_type_id != StatusEnum::extended->value
         ) {
             return response()->json([
                 'message' => __('app_translation.unauthorized')
@@ -194,7 +190,7 @@ class RepresentorController extends Controller
         }
         $agreement = null;
         // 1. Get current agreement
-        if ($ngo->status_type_id == StatusTypeEnum::registered->value) {
+        if ($ngo->status_type_id == StatusEnum::registered->value) {
             $agreement = Agreement::where('ngo_id', $ngo_id)
                 ->latest('end_date')
                 ->first();
@@ -301,10 +297,9 @@ class RepresentorController extends Controller
             ], 200, [], JSON_UNESCAPED_UNICODE);
         }
         if (
-            $ngo->status_type_id == StatusTypeEnum::signed_register_form_submitted->value ||
-            $ngo->status_type_id == StatusTypeEnum::register_form_not_completed->value ||
-            $ngo->status_type_id == StatusTypeEnum::registration_expired->value ||
-            $ngo->status_type_id == StatusTypeEnum::registration_extended->value
+            $ngo->status_type_id != StatusEnum::expired->value ||
+            $ngo->status_type_id != StatusEnum::registered->value ||
+            $ngo->status_type_id != StatusEnum::extended->value
         ) {
             return response()->json([
                 'message' => __('app_translation.unauthorized')
@@ -312,7 +307,7 @@ class RepresentorController extends Controller
         }
         $agreement = null;
         // 1. Get current agreement
-        if ($ngo->status_type_id == StatusTypeEnum::registered->value) {
+        if ($ngo->status_type_id == StatusEnum::registered->value) {
             $agreement = Agreement::where('ngo_id', $ngo_id)
                 ->latest('end_date')
                 ->first();

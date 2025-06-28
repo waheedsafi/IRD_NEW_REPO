@@ -10,7 +10,6 @@ use App\Http\Controllers\api\app\checklist\CheckListController;
 Route::prefix('v1')->middleware(["multiAuthorized:" . 'user:api,ngo:api'])->group(function () {
   Route::get('checklists', [CheckListController::class, 'checklists']);
   Route::get('ngo/checklist/types', [CheckListController::class, 'checklistTypes']);
-  Route::get('/checklist-project-register', [CheckListController::class, 'projectRegister']);
   Route::get('ngo/register/checklist', [CheckListController::class, 'ngoRegister']);
   Route::get('ngo/register/abroad/director-checklist', [CheckListController::class, 'ngoRegisterAbroadDirector']);
   Route::get('ngo/extend/checklist', [CheckListController::class, 'ngoExtend']);
@@ -19,6 +18,8 @@ Route::prefix('v1')->middleware(["multiAuthorized:" . 'user:api,ngo:api'])->grou
   Route::get('ngo/common-checklist/{id}', [CheckListController::class, 'commonChecklist']);
   Route::get('ngo/register/signed/form/checklist', [CheckListController::class, 'missingRegisterSignedForm']);
   Route::get('ngo/validation/checklist/{id}', [CheckListController::class, 'validationChecklist']);
+
+  Route::get('checklists/project-registeration', [CheckListController::class, 'projectRegisteration']);
 });
 
 Route::prefix('v1')->middleware(["authorized:" . 'user:api'])->group(function () {

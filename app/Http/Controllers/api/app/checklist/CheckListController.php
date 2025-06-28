@@ -26,7 +26,7 @@ class CheckListController extends Controller
             CheckListEnum::ngo_register_form_ps->value,
         ];
         return response()->json([
-            'checklist' => $this->getChecklistsWithExclude($exclude, CheckListTypeEnum::ngoRegister->value)
+            'checklist' => $this->getChecklistsWithExclude($exclude, CheckListTypeEnum::ngo_registeration->value)
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
     public function ngoRegisterAbroadDirector()
@@ -38,7 +38,7 @@ class CheckListController extends Controller
             CheckListEnum::ngo_register_form_ps->value,
         ];
         return response()->json([
-            'checklist' => $this->getChecklistsWithExclude($exclude, CheckListTypeEnum::ngoRegister->value)
+            'checklist' => $this->getChecklistsWithExclude($exclude, CheckListTypeEnum::ngo_registeration->value)
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
     public function ngoExtend(Request $request)
@@ -59,7 +59,7 @@ class CheckListController extends Controller
         }
 
         return response()->json([
-            'checklist' => $this->getChecklistsWithExclude($exclude, CheckListTypeEnum::ngoRegister->value),
+            'checklist' => $this->getChecklistsWithExclude($exclude, CheckListTypeEnum::ngo_registeration->value),
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
     public function ngoExtendAbroadDirector(Request $request)
@@ -79,17 +79,19 @@ class CheckListController extends Controller
             array_push($exclude, CheckListEnum::ngo_representor_letter->value);
         }
         return response()->json([
-            'checklist' => $this->getChecklistsWithExclude($exclude, CheckListTypeEnum::ngoRegister->value)
+            'checklist' => $this->getChecklistsWithExclude($exclude, CheckListTypeEnum::ngo_registeration->value)
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
-    public function projectRegister()
+    public function projectRegisteration()
     {
         $exclude = [
-            CheckListEnum::project_work_permit->value,
+            CheckListEnum::mou_en->value,
+            CheckListEnum::mou_fa->value,
+            CheckListEnum::mou_ps->value,
             CheckListEnum::project_presentation->value,
         ];
         return response()->json([
-            'checklist' => $this->getChecklistsWithExclude($exclude, CheckListTypeEnum::projectRegister->value)
+            'checklist' => $this->getChecklistsWithExclude($exclude, CheckListTypeEnum::project_registeration->value)
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
@@ -407,7 +409,7 @@ class CheckListController extends Controller
             CheckListEnum::ngo_register_form_ps->value
         ];
         return response()->json([
-            'checklist' => $this->getChecklistsWithInclude($includes)
+            'checklist' => $this->getChecklistsWithInclude($includes, CheckListTypeEnum::ngo_registeration->value)
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
     public function getChecklistsWithExclude($exclude, $type)
@@ -431,12 +433,12 @@ class CheckListController extends Controller
             ->orderBy('cl.id')
             ->get();
     }
-    public function getChecklistsWithInclude($include)
+    public function getChecklistsWithInclude($include, $type)
     {
         $locale = App::getLocale();
         return DB::table('check_lists as cl')
             ->where('cl.active', true)
-            ->where('cl.check_list_type_id', CheckListTypeEnum::ngoRegister->value)
+            ->where('cl.check_list_type_id', $type)
             ->whereIn('cl.id', $include)
             ->join('check_list_trans as clt', 'clt.check_list_id', '=', 'cl.id')
             ->where('clt.language_name', $locale)

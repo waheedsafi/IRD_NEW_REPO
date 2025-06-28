@@ -23,13 +23,13 @@ class CheckListSeeder extends Seeder
         //
         $this->CheckListType();
         $this->ngoRegisterationCheckList();
-        $this->projectRegisterationCheckList();
+        $this->projectCheckList();
     }
 
     protected function CheckListType()
     {
         $checklist = CheckListType::create([
-            'id' => CheckListTypeEnum::ngoRegister,
+            'id' => CheckListTypeEnum::ngo_registeration,
         ]);
         CheckListTypeTrans::create([
             'value' => "NGO Register",
@@ -49,7 +49,7 @@ class CheckListSeeder extends Seeder
         ]);
         // Project
         $checklist = CheckListType::create([
-            'id' => CheckListTypeEnum::projectRegister,
+            'id' => CheckListTypeEnum::project_registeration,
         ]);
         CheckListTypeTrans::create([
             'value' => "Project Register",
@@ -66,13 +66,49 @@ class CheckListSeeder extends Seeder
             'check_list_type_id' => $checklist->id,
             'language_name' => LanguageEnum::pashto,
         ]);
+        $checklist = CheckListType::create([
+            'id' => CheckListTypeEnum::ngo_agreement_extend,
+        ]);
+        CheckListTypeTrans::create([
+            'value' => "Agreement extend",
+            'check_list_type_id' => $checklist->id,
+            'language_name' => LanguageEnum::default,
+        ]);
+        CheckListTypeTrans::create([
+            'value' => "تمدید توافقنامه",
+            'check_list_type_id' => $checklist->id,
+            'language_name' => LanguageEnum::farsi,
+        ]);
+        CheckListTypeTrans::create([
+            'value' => "د تړون نوي کول",
+            'check_list_type_id' => $checklist->id,
+            'language_name' => LanguageEnum::pashto,
+        ]);
+        $checklist = CheckListType::create([
+            'id' => CheckListTypeEnum::project_extend,
+        ]);
+        CheckListTypeTrans::create([
+            'value' => "Project extend",
+            'check_list_type_id' => $checklist->id,
+            'language_name' => LanguageEnum::default,
+        ]);
+        CheckListTypeTrans::create([
+            'value' => "تمدید پروژه",
+            'check_list_type_id' => $checklist->id,
+            'language_name' => LanguageEnum::farsi,
+        ]);
+        CheckListTypeTrans::create([
+            'value' => "د پروژې غځول",
+            'check_list_type_id' => $checklist->id,
+            'language_name' => LanguageEnum::pashto,
+        ]);
     }
 
     protected function ngoRegisterationCheckList()
     {
         $checklist = CheckList::create([
             'id' => CheckListEnum::director_nid,
-            'check_list_type_id' => CheckListTypeEnum::ngoRegister,
+            'check_list_type_id' => CheckListTypeEnum::ngo_registeration,
             'acceptable_extensions' => "pdf,jpeg,png,jpg",
             'acceptable_mimes' => "application/pdf,image/jpeg,image/png,image/jpg",
             'accept' => ".pdf,.jpeg,.png,.jpg",
@@ -98,7 +134,7 @@ class CheckListSeeder extends Seeder
         // 1.
         $checklist = CheckList::create([
             "id" => CheckListEnum::director_work_permit,
-            'check_list_type_id' => CheckListTypeEnum::ngoRegister,
+            'check_list_type_id' => CheckListTypeEnum::ngo_registeration,
             'acceptable_extensions' => "pdf,jpeg,png,jpg",
             'acceptable_mimes' => "application/pdf,image/jpeg,image/png,image/jpg",
             'accept' => ".pdf,.jpeg,.png,.jpg",
@@ -124,7 +160,7 @@ class CheckListSeeder extends Seeder
         // 2.
         $checklist = CheckList::create([
             'id' => CheckListEnum::ministry_of_economy_work_permit,
-            'check_list_type_id' => CheckListTypeEnum::ngoRegister,
+            'check_list_type_id' => CheckListTypeEnum::ngo_registeration,
             'acceptable_extensions' => "pdf,jpeg,png,jpg",
             'acceptable_mimes' => "application/pdf,image/jpeg,image/png,image/jpg",
             'accept' => ".pdf,.jpeg,.png,.jpg",
@@ -152,7 +188,7 @@ class CheckListSeeder extends Seeder
 
         $checklist = CheckList::create([
             'id' => CheckListEnum::articles_of_association,
-            'check_list_type_id' => CheckListTypeEnum::ngoRegister,
+            'check_list_type_id' => CheckListTypeEnum::ngo_registeration,
             'acceptable_extensions' => "pdf,jpeg,png,jpg",
             'acceptable_mimes' => "application/pdf,image/jpeg,image/png,image/jpg",
             'accept' => ".pdf,.jpeg,.png,.jpg",
@@ -178,7 +214,7 @@ class CheckListSeeder extends Seeder
         // 4.
         $checklist = CheckList::create([
             "id" => CheckListEnum::ngo_representor_letter,
-            'check_list_type_id' => CheckListTypeEnum::ngoRegister,
+            'check_list_type_id' => CheckListTypeEnum::ngo_registeration,
             'acceptable_extensions' => "pdf,jpeg,png,jpg",
             'acceptable_mimes' => "application/pdf,image/jpeg,image/png,image/jpg",
             'accept' => ".pdf,.jpeg,.png,.jpg",
@@ -203,7 +239,7 @@ class CheckListSeeder extends Seeder
         ]);
         //5.
         $checklist = CheckList::create([
-            'check_list_type_id' => CheckListTypeEnum::ngoRegister,
+            'check_list_type_id' => CheckListTypeEnum::ngo_registeration,
             'acceptable_extensions' => "pdf,jpeg,png,jpg",
             'acceptable_mimes' => "application/pdf,image/jpeg,image/png,image/jpg",
             'accept' => ".pdf,.jpeg,.png,.jpg",
@@ -229,7 +265,7 @@ class CheckListSeeder extends Seeder
         // 5.
         $checklist = CheckList::create([
             'id' => CheckListEnum::ngo_register_form_en,
-            'check_list_type_id' => CheckListTypeEnum::ngoRegister,
+            'check_list_type_id' => CheckListTypeEnum::ngo_registeration,
             'acceptable_extensions' => "pdf,jpeg,png,jpg",
             'acceptable_mimes' => "application/pdf,image/jpeg,image/png,image/jpg",
             'accept' => ".pdf,.jpeg,.png,.jpg",
@@ -255,7 +291,7 @@ class CheckListSeeder extends Seeder
         // 6.
         $checklist = CheckList::create([
             'id' => CheckListEnum::ngo_register_form_ps,
-            'check_list_type_id' => CheckListTypeEnum::ngoRegister,
+            'check_list_type_id' => CheckListTypeEnum::ngo_registeration,
             'acceptable_extensions' => "pdf,jpeg,png,jpg",
             'acceptable_mimes' => "application/pdf,image/jpeg,image/png,image/jpg",
             'accept' => ".pdf,.jpeg,.png,.jpg",
@@ -281,7 +317,7 @@ class CheckListSeeder extends Seeder
         // 7.
         $checklist = CheckList::create([
             'id' => CheckListEnum::ngo_register_form_fa,
-            'check_list_type_id' => CheckListTypeEnum::ngoRegister,
+            'check_list_type_id' => CheckListTypeEnum::ngo_registeration,
             'acceptable_extensions' => "pdf,jpeg,png,jpg",
             'acceptable_mimes' => "application/pdf,image/jpeg,image/png,image/jpg",
             'accept' => ".pdf,.jpeg,.png,.jpg",
@@ -305,14 +341,14 @@ class CheckListSeeder extends Seeder
             'language_name' => LanguageEnum::pashto,
         ]);
     }
-    protected function projectRegisterationCheckList()
+    protected function projectCheckList()
     {
         $items = [
             [
-                'id' => CheckListEnum::project_work_permit,
-                'value_default' => 'Ministry of Economic Work Permit',
-                'value_farsi' => 'جواز کار وزارت اقتصاد',
-                'value_pashto' => 'د اقتصاد وزارت څخه د کار جواز',
+                'id' => CheckListEnum::moe_project_introduction_letter,
+                'value_default' => 'Project introduction letter from ministry of economy',
+                'value_farsi' => 'مکتوب معرفی پروژه از وزارت اقتصاد',
+                'value_pashto' => 'د اقتصاد وزارت له خوا د پروژې د معرفي کولو لیک',
                 'file_size' => 2048,
                 'acceptable_extensions' => 'pdf,jpeg,png,jpg',
                 'acceptable_mimes' => 'application/pdf,image/jpeg,image/png,image/jpg',
@@ -329,28 +365,8 @@ class CheckListSeeder extends Seeder
                 'accept' => '.pdf,.jpeg,.png,.jpg',
             ],
             [
-                'id' => CheckListEnum::project_intro_letter,
-                'value_default' => 'Project introduction letter from the Ministry of Economy',
-                'value_farsi' => 'مکتوب معرفی پروژه از وزارت اقتصاد',
-                'value_pashto' => 'د اقتصاد وزارت له خوا د پروژې د معرفي کولو لیک',
-                'file_size' => 2048,
-                'acceptable_extensions' => 'pdf,jpeg,png,jpg',
-                'acceptable_mimes' => 'application/pdf,image/jpeg,image/png,image/jpg',
-                'accept' => '.pdf,.jpeg,.png,.jpg',
-            ],
-            [
-                'id' => CheckListEnum::ngo_donor_contract_letter,
-                'value_default' => 'NGO & Donor Contract Letter',
-                'value_farsi' => 'نامه قرارداد موسسه و دونر',
-                'value_pashto' => 'د موسسه او دونر ترمنځ د قرارداد لیک',
-                'file_size' => 2048,
-                'acceptable_extensions' => 'pdf,jpeg,png,jpg',
-                'acceptable_mimes' => 'application/pdf,image/jpeg,image/png,image/jpg',
-                'accept' => '.pdf,.jpeg,.png,.jpg',
-            ],
-            [
                 'id' => CheckListEnum::project_presentation,
-                'value_default' => 'Project Presentation',
+                'value_default' => 'Project presentation',
                 'value_farsi' => 'پرزنتیشن پروژه',
                 'value_pashto' => 'د پروژې پریزنټیشن',
                 'file_size' => 2048,
@@ -359,7 +375,17 @@ class CheckListSeeder extends Seeder
                 'accept' => '.pdf,.jpeg,.png,.jpg',
             ],
             [
-                'id' => CheckListEnum::mou_english,
+                'id' => CheckListEnum::ngo_and_donor_contract,
+                'value_default' => 'NGO & Donor Contract',
+                'value_farsi' => 'قرارداد موسسه و دونر',
+                'value_pashto' => ' موسسه او دونر قرارداد',
+                'file_size' => 2048,
+                'acceptable_extensions' => 'pdf,jpeg,png,jpg',
+                'acceptable_mimes' => 'application/pdf,image/jpeg,image/png,image/jpg',
+                'accept' => '.pdf,.jpeg,.png,.jpg',
+            ],
+            [
+                'id' => CheckListEnum::mou_en,
                 'value_default' => 'Memorandum of Understanding (English)',
                 'value_farsi' => 'تفاهم نامه (انگلیسی)',
                 'value_pashto' => 'تفاهم نامه (انگلیسی)',
@@ -369,7 +395,7 @@ class CheckListSeeder extends Seeder
                 'accept' => '.pdf,.jpeg,.png,.jpg',
             ],
             [
-                'id' => CheckListEnum::mou_farsi,
+                'id' => CheckListEnum::mou_fa,
                 'value_default' => 'Memorandum of Understanding (Farsi)',
                 'value_farsi' => 'تفاهم نامه (فارسی)',
                 'value_pashto' => 'تفاهم نامه (فارسی)',
@@ -379,10 +405,20 @@ class CheckListSeeder extends Seeder
                 'accept' => '.pdf,.jpeg,.png,.jpg',
             ],
             [
-                'id' => CheckListEnum::mou_pashto,
+                'id' => CheckListEnum::mou_ps,
                 'value_default' => 'Memorandum of Understanding (Pashto)',
                 'value_farsi' => 'تفاهم نامه (پشتو)',
                 'value_pashto' => 'تفاهم نامه (پشتو)',
+                'file_size' => 4048,
+                'acceptable_extensions' => 'pdf,jpeg,png,jpg',
+                'acceptable_mimes' => 'application/pdf,image/jpeg,image/png,image/jpg',
+                'accept' => '.pdf,.jpeg,.png,.jpg',
+            ],
+            [
+                'id' => CheckListEnum::project_ministry_of_economy_work_permit,
+                'value_default' => 'Project work permit from  ministry of economy',
+                'value_farsi' => 'جواز کار پروژه از وزارت اقتصاد',
+                'value_pashto' => 'د اقتصاد وزارت څخه د پروژې د کار جواز',
                 'file_size' => 4048,
                 'acceptable_extensions' => 'pdf,jpeg,png,jpg',
                 'acceptable_mimes' => 'application/pdf,image/jpeg,image/png,image/jpg',
@@ -393,7 +429,7 @@ class CheckListSeeder extends Seeder
         foreach ($items as $item) {
             $checklist = CheckList::create([
                 'id' => $item['id'],
-                'check_list_type_id' => CheckListTypeEnum::projectRegister,
+                'check_list_type_id' => CheckListTypeEnum::project_registeration,
                 'acceptable_extensions' => $item['acceptable_extensions'],
                 'acceptable_mimes' => $item['acceptable_mimes'],
                 'accept' => $item['accept'],
