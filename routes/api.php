@@ -28,6 +28,7 @@ require __DIR__ . '/api/app/agreement/agreement.php';
 require __DIR__ . '/api/app/ngo/ngoType.php';
 require __DIR__ . '/api/app/ngo/registerationForm.php';
 require __DIR__ . '/api/app/project/project.php';
+require __DIR__ . '/api/app/project/projectManager.php';
 require __DIR__ . '/api/app/project/projectPdf.php';
 require __DIR__ . '/api/app/dashboard/dashboard.php';
 

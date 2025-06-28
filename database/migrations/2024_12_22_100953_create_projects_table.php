@@ -34,10 +34,7 @@ return new class extends Migration
             $table->foreign('country_id')->references('id')->on('countries')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
-            $table->unsignedBigInteger('representer_id')->nullable();
-            $table->foreign('representer_id')->references('id')->on('representers')
-                ->onUpdate('cascade')
-                ->onDelete('no action');
+
             $table->timestamps();
         });
     }
