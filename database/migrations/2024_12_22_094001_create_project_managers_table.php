@@ -22,6 +22,10 @@ return new class extends Migration
             $table->foreign('contact_id')->references('id')->on('contacts')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
+            $table->unsignedBigInteger('ngo_id');
+            $table->foreign('ngo_id')->references('id')->on('ngos')
+                ->onUpdate('cascade')
+                ->onDelete('no action');
             $table->timestamps();
         });
     }
