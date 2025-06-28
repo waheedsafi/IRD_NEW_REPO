@@ -17,7 +17,6 @@ return new class extends Migration
             $table->foreign('email_id')->references('id')->on('emails')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
-
             $table->unsignedBigInteger('contact_id');
             $table->foreign('contact_id')->references('id')->on('contacts')
                 ->onUpdate('cascade')
