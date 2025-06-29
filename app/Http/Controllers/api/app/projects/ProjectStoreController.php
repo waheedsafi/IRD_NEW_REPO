@@ -9,12 +9,16 @@ use App\Enums\LanguageEnum;
 use App\Models\ProjectTran;
 use App\Models\Representer;
 use Illuminate\Http\Request;
+use App\Models\ProjectDetail;
 use App\Models\ProjectManager;
 use App\Enums\Type\TaskTypeEnum;
+use App\Models\ProjectDetailTran;
 use App\Models\ProjectManagerTran;
 use App\Models\ProjectRepresenter;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Models\ProjectDistrictDetail;
+use App\Models\ProjectDistrictDetailTran;
 use App\Http\Requests\app\project\ProjectStoreRequest;
 use App\Repositories\Storage\StorageRepositoryInterface;
 use App\Repositories\PendingTask\PendingTaskRepositoryInterface;
@@ -147,17 +151,59 @@ class ProjectStoreController extends Controller
         }
 
 
-        // 3. Ensure task exists before proceeding
-        $task = $this->pendingTaskRepository->pendingTaskExist(
-            $authUser,
-            TaskTypeEnum::project_registeration,
-            $user_id
-        );
-        if (!$task) {
-            return response()->json([
-                'message' => __('app_translation.task_not_found'),
-            ], 404, [], JSON_UNESCAPED_UNICODE);
+        foreach ($request->centers_list as $center) {
+            $projectDetail = ProjectDetail::create([
+                'project_id' => $project->id, // pass it externally
+                'province_id' => $center['province']['id'],
+                'budget' => $center['budget'],
+                'direct_beneficiaries' => $center['direct_benefi'],
+                'in_direct_beneficiaries' => $center['in_direct_benefi'],
+            ]);
+
+            foreach (LanguageEnum::LANGUAGES as $code => $lang) {
+                ProjectDetailTran::create([
+                    'project_detail_id' => $projectDetail->id,
+                    'language_name' => $code,
+                    'health_center' => json_encode(['name' => $center["health_centers_$lang"]]),
+                    'address' => $center["address_$lang"],
+                    'health_worker' => json_encode(['count' => $center["health_worker_$lang"]]),
+                    'managment_worker' => json_encode(['count' => $center["fin_admin_employees_$lang"]]),
+                ]);
+            }
+
+            foreach ($center['district'] as $district) {
+                $districtDetail = ProjectDistrictDetail::create([
+                    'project_detail_id' => $projectDetail->id,
+                    'district_id' => $district['id'],
+                ]);
+
+                $villageData = $center['villages'][$district['id']] ?? [];
+
+                foreach (LanguageEnum::LANGUAGES as $code => $lang) {
+
+
+                    ProjectDistrictDetailTran::create([
+                        'project_district_detail_id' => $districtDetail->id,
+                        'language_name' => $code,
+                        'villages' => json_encode([
+                            ['name' => $villageData["village_$lang"] ?? '']
+                        ]),
+                    ]);
+                }
+            }
         }
+
+        // // 3. Ensure task exists before proceeding
+        // $task = $this->pendingTaskRepository->pendingTaskExist(
+        //     $authUser,
+        //     TaskTypeEnum::project_registeration,
+        //     $user_id
+        // );
+        // if (!$task) {
+        //     return response()->json([
+        //         'message' => __('app_translation.task_not_found'),
+        //     ], 404, [], JSON_UNESCAPED_UNICODE);
+        // }
 
         DB::commit();
 
