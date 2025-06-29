@@ -47,8 +47,8 @@ class ProjectStoreRequest extends FormRequest
             "project_name_farsi" =>  'required|string|max:128|min:5',
             "project_name_pashto" => 'required|string|max:128|min:5',
             // Dates
-            'start_date' => 'required|date|before:end_date',
-            'end_date'   => 'required|date|after:start_date',
+            'start_date' => 'required|before:end_date',
+            'end_date'   => 'required|after:start_date',
 
             'budget' => 'required|numeric|min:0',
 

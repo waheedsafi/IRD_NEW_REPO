@@ -88,7 +88,7 @@ class PermissionSeeder extends Seeder
             "priority" => 11,
         ]);
         Permission::factory()->create([
-            "name" => "calendar",
+            "name" => "schedules",
             "icon" => $calendar,
             "priority" => 12,
         ]);

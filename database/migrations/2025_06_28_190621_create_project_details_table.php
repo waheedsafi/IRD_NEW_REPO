@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('project_details', function (Blueprint $table) {
             $table->id();
-            $table->string('budget');
-            $table->string('direct_beneficiaries');
-            $table->string('in_direct_beneficiaries');
+            $table->decimal('budget', 15, 2);
+            $table->integer('direct_beneficiaries');
+            $table->integer('in_direct_beneficiaries');
             $table->unsignedBigInteger('project_id');
             $table->foreign('project_id')->references('id')->on('projects')
                 ->onUpdate('cascade')

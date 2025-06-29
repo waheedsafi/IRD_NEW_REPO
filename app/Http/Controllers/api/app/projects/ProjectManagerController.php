@@ -9,12 +9,8 @@ use Illuminate\Support\Facades\App;
 
 class ProjectManagerController extends Controller
 {
-    //
-
-    public function index() {}
-    public function managers($ngoId)
+    public function names($ngoId)
     {
-
         $locale = App::getLocale();
         $query =    DB::table('project_managers as pm')
             ->where('pm.ngo_id', $ngoId)

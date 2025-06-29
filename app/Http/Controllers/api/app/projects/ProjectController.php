@@ -26,7 +26,6 @@ class ProjectController extends Controller
      */
     public function index(Request $request)
     {
-        //
         $perPage = $request->input('per_page', 10); // Number of records per page
         $page = $request->input('page', 1); // Current page
         $locale = App::getLocale();
@@ -47,20 +46,13 @@ class ProjectController extends Controller
                 'pro.end_date',
                 'pro.donor_registration_no',
                 'prot.name as title',
-                'dont.name as donar',
+                'dont.name as donor',
                 'pro.created_at'
-
-
-
-
             );
-
-
-
         $this->applyDate($query, $request, 'pro.created_at', 'pro.created_at');
         $allowColumn = [
             'title' => 'prot.title',
-            'donor' => 'dont.donar'
+            'donor' => 'dont.donor'
         ];
         $this->applyFilters($query, $request, $allowColumn);
 
@@ -69,7 +61,7 @@ class ProjectController extends Controller
         $result = $query->paginate($perPage, ['*'], 'page', $page);
 
         return response()->json([
-            'project' => $result
+            'projects' => $result
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
     public function startRegisterForm(Request $request, $ngo_id)
@@ -106,54 +98,28 @@ class ProjectController extends Controller
             "message" => __('app_translation.success'),
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function ngoProjects(Request $request)
     {
-        //
+        $authNgo = $request->user();
 
+        $result = DB::table('projects')
+            ->leftJoin('project_details', 'projects.id', '=', 'project_details.project_id')
+            ->where('projects.ngo_id', $authNgo->id)
+            ->select(
+                DB::raw('COUNT(DISTINCT projects.id) as total_projects'),
+                DB::raw('COALESCE(SUM(project_details.budget), 0) as total_budget'),
+                DB::raw('COALESCE(SUM(project_details.direct_beneficiaries), 0) as total_direct_beneficiaries'),
+                DB::raw('COALESCE(SUM(project_details.in_direct_beneficiaries), 0) as total_in_direct_beneficiaries')
+            )
+            ->first();
 
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return response()->json([
+            'counts' => [
+                'total_projects' => $result->total_projects,
+                'total_budget' => $result->total_budget,
+                'total_direct_beneficiaries' => $result->total_direct_beneficiaries,
+                'total_in_direct_beneficiaries' => $result->total_in_direct_beneficiaries,
+            ],
+        ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 }

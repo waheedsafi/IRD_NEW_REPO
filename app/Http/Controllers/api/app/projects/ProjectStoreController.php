@@ -40,14 +40,12 @@ class ProjectStoreController extends Controller
     }
 
 
-    public function create(ProjectStoreRequest $request)
+    public function store(ProjectStoreRequest $request)
     {
         $authUser = $request->user();
         $user_id = $authUser->id;
 
         DB::beginTransaction();
-
-
         $project_manager = null;
 
         // If no project_manager_id is provided, create new
