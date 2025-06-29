@@ -25,6 +25,7 @@ class PermissionSeeder extends Seeder
         $managementNews = 'icons/management-news.svg';
         $approval = 'icons/approval.svg';
         $activity = 'icons/activity.svg';
+        $calendar = 'icons/calendar.svg';
 
         Permission::factory()->create([
             "name" => "ngo",
@@ -85,6 +86,11 @@ class PermissionSeeder extends Seeder
             "name" => "activity",
             "icon" => $activity,
             "priority" => 11,
+        ]);
+        Permission::factory()->create([
+            "name" => "calendar",
+            "icon" => $calendar,
+            "priority" => 12,
         ]);
     }
 }

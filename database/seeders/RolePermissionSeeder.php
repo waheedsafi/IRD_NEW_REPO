@@ -76,6 +76,10 @@ class RolePermissionSeeder extends Seeder
             "permission" => "activity"
         ]);
         $this->rolePermissionSubActivity($rolePer->id);
+        $rolePer = RolePermission::factory()->create([
+            "role" => RoleEnum::super,
+            "permission" => "schedules"
+        ]);
     }
     public function adminPermissions()
     {
@@ -116,6 +120,10 @@ class RolePermissionSeeder extends Seeder
             "permission" => "approval"
         ]);
         $this->rolePermissionSubApproval($rolePer->id);
+        $rolePer = RolePermission::factory()->create([
+            "role" => RoleEnum::admin,
+            "permission" => "schedules"
+        ]);
     }
     public function userPermissions()
     {
@@ -153,6 +161,10 @@ class RolePermissionSeeder extends Seeder
             "permission" => "approval"
         ]);
         $this->rolePermissionSubApproval($rolePer->id);
+        $rolePer = RolePermission::factory()->create([
+            "role" => RoleEnum::user,
+            "permission" => "schedules"
+        ]);
     }
     public function debuggerPermissions()
     {
