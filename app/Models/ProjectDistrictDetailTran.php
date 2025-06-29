@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ProjectRepresenter extends Model
+class ProjectDistrictDetailTran extends Model
 {
     //
     protected $guarded = [];
