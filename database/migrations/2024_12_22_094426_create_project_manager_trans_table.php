@@ -17,12 +17,10 @@ return new class extends Migration
             $table->foreign('project_manager_id')->references('id')->on('project_managers')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
-
             $table->string('language_name');
             $table->foreign('language_name')->references('name')->on('languages')->onUpdate('cascade')
                 ->onDelete('cascade');
-
-            $table->string('fullname', 128);
+            $table->string('full_name', 128);
             $table->timestamps();
         });
     }

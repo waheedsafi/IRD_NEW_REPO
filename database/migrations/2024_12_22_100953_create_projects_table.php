@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('approved_date', 32);
             $table->string('total_budget', 32);
             $table->string('donor_registration_no', 64);
+            $table->string('registration_no', 64);
             $table->unsignedBigInteger('currency_id');
             $table->foreign('currency_id')->references('id')->on('currencies')
                 ->onUpdate('cascade')

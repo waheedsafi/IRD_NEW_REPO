@@ -540,44 +540,64 @@ class DatabaseSeeder extends Seeder
             'name' => 'نوم لیکنه نیمګړې ده.'
         ]);
         $statustype =  Status::create([
-            'id' => StatusEnum::waiting_for_project_schedule,
+            'id' => StatusEnum::pending_for_schedule,
         ]);
         DB::table('status_trans')->insert([
             'status_id' => $statustype->id,
             'language_name' => 'en',
-            'name' => 'Waiting for project schedule'
+            'name' => 'Pending for schedule'
 
         ]);
         DB::table('status_trans')->insert([
             'status_id' => $statustype->id,
             'language_name' => 'fa',
-            'name' => 'پروژه منتظر زمانبندی است'
+            'name' => 'منتظر زمانبندی است'
 
         ]);
         DB::table('status_trans')->insert([
             'status_id' => $statustype->id,
             'language_name' => 'ps',
-            'name' => 'پروژه د مهالویش په تمه ده.'
+            'name' => 'د مهالویش په تمه ده.'
         ]);
         $statustype =  Status::create([
-            'id' => StatusEnum::project_has_comment,
+            'id' => StatusEnum::has_comment,
         ]);
         DB::table('status_trans')->insert([
             'status_id' => $statustype->id,
             'language_name' => 'en',
-            'name' => 'Project has comment'
+            'name' => 'Has comment'
 
         ]);
         DB::table('status_trans')->insert([
             'status_id' => $statustype->id,
             'language_name' => 'fa',
-            'name' => 'پروژه نظرات دارد'
+            'name' => 'نظرات دارد'
 
         ]);
         DB::table('status_trans')->insert([
             'status_id' => $statustype->id,
             'language_name' => 'ps',
-            'name' => 'پروژه تبصره لري'
+            'name' => 'تبصره لري'
+        ]);
+        $statustype =  Status::create([
+            'id' => StatusEnum::scheduled,
+        ]);
+        DB::table('status_trans')->insert([
+            'status_id' => $statustype->id,
+            'language_name' => 'en',
+            'name' => 'Scheduled'
+
+        ]);
+        DB::table('status_trans')->insert([
+            'status_id' => $statustype->id,
+            'language_name' => 'fa',
+            'name' => 'زمانبندی شد'
+
+        ]);
+        DB::table('status_trans')->insert([
+            'status_id' => $statustype->id,
+            'language_name' => 'ps',
+            'name' => 'مهالویش شو'
         ]);
     }
     public function staffTypes()

@@ -18,6 +18,7 @@ enum StatusEnum: int
     case registration_incomplete = 10;
 
         // Project
-    case waiting_for_project_schedule = 11;
-    case project_has_comment = 12;
+    case pending_for_schedule = 11;
+    case has_comment = 12;
+    case scheduled = 13;
 }
