@@ -21,6 +21,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ProjectDistrictDetail;
 use App\Models\ProjectDistrictDetailTran;
 use App\Http\Requests\app\project\ProjectStoreRequest;
+use App\Models\CurrencyTran;
 use App\Models\ProjectDocument;
 use App\Repositories\Storage\StorageRepositoryInterface;
 use App\Repositories\Approval\ApprovalRepositoryInterface;
@@ -28,6 +29,7 @@ use App\Repositories\Director\DirectorRepositoryInterface;
 use App\Repositories\PendingTask\PendingTaskRepositoryInterface;
 use App\Repositories\Notification\NotificationRepositoryInterface;
 use App\Repositories\Representative\RepresentativeRepositoryInterface;
+use Illuminate\Support\Facades\App;
 
 class ProjectStoreController extends Controller
 {
@@ -218,9 +220,9 @@ class ProjectStoreController extends Controller
                     ProjectDistrictDetailTran::create([
                         'project_district_detail_id' => $districtDetail->id,
                         'language_name' => $code,
-                        'villages' => json_encode([
-                            [$villageData["village_$lang"] ?? '']
-                        ]),
+                        'villages' => json_encode(
+                            $villageData["village_$lang" ?? '']
+                        ),
                     ]);
                 }
             }
@@ -259,59 +261,28 @@ class ProjectStoreController extends Controller
             TaskTypeEnum::project_registeration,
             $user_id
         );
-
+        $project_name = $request->project_name_english;
+        $locale = App::getLocale();
+        if ($locale === 'fa') {
+            $project_name = $request->project_name_farsi;
+        }
+        if ($locale === 'ps') {
+            $project_name = $request->project_name_pashto;
+        }
+        $data = [
+            'id' => $project->id,
+            'budget' => $request->budget,
+            'start_date' => $request->start_date,
+            'currency' => $request->currency->name,
+            'end_date' => $request->end_date,
+            'donor_registration_no' => $request->donor_register_no,
+            'project_name' => $project_name,
+            'donor' => $request->donor->name,
+            'created_at' => $project->created_at,
+        ];
         return response()->json([
             'message' => 'Project created successfully.',
-            'project_id' => $project->id,
+            'project' => $data,
         ], 201);
-    }
-
-
-    private function stroeDetail($request, $project)
-    {
-        foreach ($request->centers_list as $center) {
-            // Save to project_details
-            $projectDetail = ProjectDetail::create([
-                'budget' => $center['budget'],
-                'direct_beneficiaries' => $center['direct_benefi'],
-                'in_direct_beneficiaries' => $center['in_direct_benefi'],
-                'project_id' => $project->id, // Assuming from request
-                'province_id' => $center['province']['id'],
-            ]);
-
-            // Save translations
-            $languages = ['english', 'farsi', 'pashto'];
-            foreach ($languages as $lang) {
-                ProjectDetailTran::create([
-                    'project_detail_id' => $projectDetail->id,
-                    'health_center' => json_encode([$center["health_centers_$lang"]]),
-                    'address' => $center["address_$lang"],
-                    'health_worker' => json_encode([$center["health_worker_$lang"]]),
-                    'managment_worker' => json_encode([$center["fin_admin_employees_$lang"]]),
-                    'language_name' => $lang,
-                ]);
-            }
-
-            // Save each district
-            foreach ($center['district'] as $district) {
-                $districtDetail = ProjectDistrictDetail::create([
-                    'project_detail_id' => $projectDetail->id,
-                    'district_id' => $district['id'],
-                ]);
-
-                // Save district translations
-                foreach ($languages as $lang) {
-                    $villages = array_map(function ($v) use ($lang) {
-                        return $v["village_$lang"];
-                    }, $center['villages']);
-
-                    ProjectDistrictDetailTran::create([
-                        'project_district_detail_id' => $districtDetail->id,
-                        'language_name' => $lang,
-                        'villages' => json_encode($villages),
-                    ]);
-                }
-            }
-        }
     }
 }

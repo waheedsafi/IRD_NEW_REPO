@@ -21,7 +21,7 @@ class ProjectStoreRequest extends FormRequest
         if ($jsonData) {
             $decodedData = json_decode($jsonData, true);
 
-            Log::info($decodedData);
+            // Log::info($decodedData);
 
             // If the JSON is valid, merge the decoded data into the request
             if (json_last_error() === JSON_ERROR_NONE) {
