@@ -5,37 +5,55 @@ namespace App\Http\Controllers\api\app\projects;
 use App\Models\Email;
 use App\Models\Contact;
 use App\Models\Project;
+use App\Models\Document;
 use App\Enums\LanguageEnum;
 use App\Models\ProjectTran;
 use App\Models\Representer;
-use Illuminate\Http\Request;
 use App\Models\ProjectDetail;
 use App\Models\ProjectManager;
 use App\Enums\Type\TaskTypeEnum;
 use App\Models\ProjectDetailTran;
 use App\Models\ProjectManagerTran;
 use App\Models\ProjectRepresenter;
+use App\Traits\Helper\HelperTrait;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Models\ProjectDistrictDetail;
 use App\Models\ProjectDistrictDetailTran;
 use App\Http\Requests\app\project\ProjectStoreRequest;
+use App\Models\ProjectDocument;
 use App\Repositories\Storage\StorageRepositoryInterface;
+use App\Repositories\Approval\ApprovalRepositoryInterface;
+use App\Repositories\Director\DirectorRepositoryInterface;
 use App\Repositories\PendingTask\PendingTaskRepositoryInterface;
+use App\Repositories\Notification\NotificationRepositoryInterface;
+use App\Repositories\Representative\RepresentativeRepositoryInterface;
 
 class ProjectStoreController extends Controller
 {
     //
 
+    use HelperTrait;
     protected $pendingTaskRepository;
+    protected $notificationRepository;
+    protected $approvalRepository;
+    protected $directorRepository;
+    protected $representativeRepository;
     protected $storageRepository;
 
     public function __construct(
         PendingTaskRepositoryInterface $pendingTaskRepository,
+        NotificationRepositoryInterface $notificationRepository,
+        ApprovalRepositoryInterface $approvalRepository,
+        DirectorRepositoryInterface $directorRepository,
+        RepresentativeRepositoryInterface $representativeRepository,
         StorageRepositoryInterface $storageRepository
-
     ) {
         $this->pendingTaskRepository = $pendingTaskRepository;
+        $this->notificationRepository = $notificationRepository;
+        $this->approvalRepository = $approvalRepository;
+        $this->directorRepository = $directorRepository;
+        $this->representativeRepository = $representativeRepository;
         $this->storageRepository = $storageRepository;
     }
 
@@ -45,12 +63,25 @@ class ProjectStoreController extends Controller
         $authUser = $request->user();
         $user_id = $authUser->id;
 
+
+
+
         DB::beginTransaction();
         $project_manager = null;
 
         // If no project_manager_id is provided, create new
         if (!$request->project_manager_id) {
             // 1. Email Check
+
+
+            $request->validate([
+
+                'pro_manager_name_english' => 'required|string',
+                'pro_manager_name_farsi'   => 'required|string',
+                'pro_manager_name_pashto'  => 'required|string',
+                'pro_manager_contact'      => 'required|string|max:20',
+                'pro_manager_email'        => 'required|email',
+            ]);
             $email = Email::where('value', $request->pro_manager_email)->first();
             if ($email) {
                 return response()->json([
@@ -108,8 +139,12 @@ class ProjectStoreController extends Controller
             'donor_id' => $request->donor['id'],
             'project_manager_id' => $project_manager->id,
             'country_id' => 2, // hardcoded — optional improvement: make dynamic
-            'representer_id' => $representer->id,
+            'registration_no' => '',
+            'ngo_id' => $user_id,
+
         ]);
+        $project->registration_no = 'IRD-P-' . $project->id;
+        $project->save();
         ProjectRepresenter::create([
             'project_id' => $project->id,
             'representer_id' => $representer->id,
@@ -118,20 +153,20 @@ class ProjectStoreController extends Controller
         // Store Project Translations
         $translationFields = [
             'preamble'           => 'preamble',
-            'health_experience'  => 'prev_proj_activi',
-            'goals'              => 'project_goals',
-            'objectives'         => 'project_object',
+            'health_experience'  => 'exper_in_health',
+            'goals'              => 'goals',
+            'objectives'         => 'objective',
             'expected_outcome'   => 'expected_outcome',
             'expected_impact'    => 'expected_impact',
             'subject'   => 'subject', //
             'main_activities'    => 'main_activities',
             'introduction'       => 'project_intro',
-            'operational_plan'   => 'operational_plan',
+            'operational_plan'   => 'action_plan',
             'mission'   => 'mission', //
             'vission'   => 'vission', //
-            'terminologies' => 'termin',
+            'terminologies' => 'abbreviat',
             'name' => 'project_name',
-            'prev_proj_activi' => 'prev_proj_activi'
+            'prev_proj_activi' => 'exper_in_health'
         ];
 
         foreach (LanguageEnum::LANGUAGES as $code => $lang) {
@@ -162,10 +197,10 @@ class ProjectStoreController extends Controller
                 ProjectDetailTran::create([
                     'project_detail_id' => $projectDetail->id,
                     'language_name' => $code,
-                    'health_center' => json_encode(['name' => $center["health_centers_$lang"]]),
+                    'health_center' => json_encode($center["health_centers_$lang"]),
                     'address' => $center["address_$lang"],
-                    'health_worker' => json_encode(['count' => $center["health_worker_$lang"]]),
-                    'managment_worker' => json_encode(['count' => $center["fin_admin_employees_$lang"]]),
+                    'health_worker' => json_encode($center["health_worker_$lang"]),
+                    'managment_worker' => json_encode($center["fin_admin_employees_$lang"]),
                 ]);
             }
 
@@ -184,30 +219,99 @@ class ProjectStoreController extends Controller
                         'project_district_detail_id' => $districtDetail->id,
                         'language_name' => $code,
                         'villages' => json_encode([
-                            ['name' => $villageData["village_$lang"] ?? '']
+                            [$villageData["village_$lang"] ?? '']
                         ]),
                     ]);
                 }
             }
         }
 
-        // // 3. Ensure task exists before proceeding
-        // $task = $this->pendingTaskRepository->pendingTaskExist(
-        //     $authUser,
-        //     TaskTypeEnum::project_registeration,
-        //     $user_id
-        // );
-        // if (!$task) {
-        //     return response()->json([
-        //         'message' => __('app_translation.task_not_found'),
-        //     ], 404, [], JSON_UNESCAPED_UNICODE);
-        // }
+        $task = $this->pendingTaskRepository->pendingTaskExist(
+            $request->user(),
+            TaskTypeEnum::project_registeration->value,
+            $user_id
+        );
+        if (!$task) {
+            return response()->json([
+                'message' => __('app_translation.task_not_found')
+            ], 404);
+        }
+        $documentsId = [];
+        $this->storageRepository->projectDocumentStore($project->id, $user_id, $task->id, function ($documentData) use (&$documentsId) {
+            $checklist_id = $documentData['check_list_id'];
+            $document = Document::create([
+                'actual_name' => $documentData['actual_name'],
+                'size' => $documentData['size'],
+                'path' => $documentData['path'],
+                'type' => $documentData['type'],
+                'check_list_id' => $checklist_id,
+            ]);
+            array_push($documentsId, $document->id);
+            ProjectDocument::create([
+                'document_id' => $document->id,
+                'project_id' => $documentData['project_id'],
+            ]);
+        });
 
         DB::commit();
+        $this->pendingTaskRepository->destroyPendingTask(
+            $request->user(),
+            TaskTypeEnum::project_registeration,
+            $user_id
+        );
 
         return response()->json([
             'message' => 'Project created successfully.',
             'project_id' => $project->id,
         ], 201);
+    }
+
+
+    private function stroeDetail($request, $project)
+    {
+        foreach ($request->centers_list as $center) {
+            // Save to project_details
+            $projectDetail = ProjectDetail::create([
+                'budget' => $center['budget'],
+                'direct_beneficiaries' => $center['direct_benefi'],
+                'in_direct_beneficiaries' => $center['in_direct_benefi'],
+                'project_id' => $project->id, // Assuming from request
+                'province_id' => $center['province']['id'],
+            ]);
+
+            // Save translations
+            $languages = ['english', 'farsi', 'pashto'];
+            foreach ($languages as $lang) {
+                ProjectDetailTran::create([
+                    'project_detail_id' => $projectDetail->id,
+                    'health_center' => json_encode([$center["health_centers_$lang"]]),
+                    'address' => $center["address_$lang"],
+                    'health_worker' => json_encode([$center["health_worker_$lang"]]),
+                    'managment_worker' => json_encode([$center["fin_admin_employees_$lang"]]),
+                    'language_name' => $lang,
+                ]);
+            }
+
+            // Save each district
+            foreach ($center['district'] as $district) {
+                $districtDetail = ProjectDistrictDetail::create([
+                    'project_detail_id' => $projectDetail->id,
+                    'district_id' => $district['id'],
+                ]);
+
+                // Save district translations
+                foreach ($languages as $lang) {
+                    $villages = array_map(function ($v) use ($lang) {
+                        return $v["village_$lang"];
+                    }, $center['villages']);
+
+                    ProjectDistrictDetailTran::create([
+                        'project_district_detail_id' => $districtDetail->id,
+                        'language_name' => $lang,
+                        'villages' => json_encode($villages),
+                    ]);
+                }
+            }
+        }
     }
 }
