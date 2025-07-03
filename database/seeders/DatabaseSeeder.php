@@ -90,6 +90,7 @@ class DatabaseSeeder extends Seeder
         $this->staffTypes();
         $this->call(AboutSeeder::class);
         $this->call(ApprovalSeeder::class);
+        $this->call(ScheduleSeeder::class);
     }
     public function currency()
     {
