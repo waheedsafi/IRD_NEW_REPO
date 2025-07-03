@@ -30,7 +30,11 @@ class ProjectController extends Controller
         $page = $request->input('page', 1); // Current page
         $locale = App::getLocale();
 
+        $authUser = $request->user();
+        $user_id = $authUser->id;
+
         $query = DB::table('projects as pro')
+            ->where('pro.ngo_id', $user_id)
             ->join('project_trans as prot', function ($join) use ($locale) {
                 $join->on('pro.id', '=', 'prot.project_id')
                     ->where('prot.language_name', $locale);
@@ -39,13 +43,18 @@ class ProjectController extends Controller
                 $join->on('dont.donor_id', 'pro.donor_id')
                     ->where('dont.language_name', $locale);
             })
+            ->leftJoin('currency_trans as curt', function ($join) use ($locale) {
+                $join->on('pro.currency_id', 'curt.currency_id')
+                    ->where('curt.language_name', $locale);
+            })
             ->select(
                 'pro.id',
-                'pro.total_budget',
+                'pro.total_budget as budget',
                 'pro.start_date',
+                'curt.name as currency',
                 'pro.end_date',
                 'pro.donor_registration_no',
-                'prot.name as title',
+                'prot.name as project_name',
                 'dont.name as donor',
                 'pro.created_at'
             );

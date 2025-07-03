@@ -20,7 +20,7 @@ class ProjectManagerController extends Controller
             })
             ->select(
                 'pm.id',
-                'pmt.full_name as name'
+                'pmt.fullname as name'
             )->get();
 
         return response()->json(

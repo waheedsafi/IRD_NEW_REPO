@@ -72,6 +72,17 @@ trait HelperTrait
     {
         return unlink(storage_path() . "/app/{$filePath}");
     }
+    // project paht part start 
+
+    public function projectRegisterFolder($ngo_id, $project_id, $check_list_id)
+    {
+        return storage_path() . "/app/private/ngos/ngo_{$ngo_id}/projects/project_{$project_id}/checlist_{$check_list_id}/";
+    }
+    public function projectRegisterDBPath($ngo_id, $project_id, $check_list_id, $fileName)
+    {
+        return "ngos/ngo_{$ngo_id}/projects/project_{$project_id}/checlist_{$check_list_id}/" . $fileName;
+    }
+
     public function ngoRegisterFolder($ngo_id, $agreement_id, $check_list_id)
     {
         return storage_path() . "/app/private/ngos/ngo_{$ngo_id}/register/agreement_{$agreement_id}/checlist_{$check_list_id}/";

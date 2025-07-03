@@ -15,4 +15,5 @@ interface StorageRepositoryInterface
      * @return boolean
      */
     public function documentStore($agreement_id, $ngo_id, $pending_task_id, ?callable $callback);
+    public function projectDocumentStore($project_id, $ngo_id, $pending_task_id, ?callable $callback);
 }

@@ -21,6 +21,8 @@ class ProjectStoreRequest extends FormRequest
         if ($jsonData) {
             $decodedData = json_decode($jsonData, true);
 
+            // Log::info($decodedData);
+
             // If the JSON is valid, merge the decoded data into the request
             if (json_last_error() === JSON_ERROR_NONE) {
                 $this->merge($decodedData);
@@ -92,11 +94,11 @@ class ProjectStoreRequest extends FormRequest
 
             // project manager
 
-            'pro_manager_name_english' => 'required|string',
-            'pro_manager_name_farsi'   => 'required|string',
-            'pro_manager_name_pashto'  => 'required|string',
-            'pro_manager_contact'      => 'required|string|max:20',
-            'pro_manager_email'        => 'required|email',
+            // 'pro_manager_name_english' => 'required|string',
+            // 'pro_manager_name_farsi'   => 'required|string',
+            // 'pro_manager_name_pashto'  => 'required|string',
+            // 'pro_manager_contact'      => 'required|string|max:20',
+            // 'pro_manager_email'        => 'required|email',
 
 
             // project details
@@ -104,25 +106,25 @@ class ProjectStoreRequest extends FormRequest
             "preamble_farsi" =>  "required|min:5",
             "preamble_english" =>  "required|min:5",
 
-            "termin_english" =>  "required|min:5",
-            "termin_pashto" =>  "required|min:5",
-            "termin_farsi" =>  "required|min:5",
+            "abbreviat_english" =>  "required|min:5",
+            "abbreviat_pashto" =>  "required|min:5",
+            "abbreviat_farsi" =>  "required|min:5",
 
-            "prev_proj_activi_english" =>  "required|min:5",
-            "prev_proj_activi_farsi" =>  "required|min:5",
-            "prev_proj_activi_pashto" =>  "required|min:5",
+            "exper_in_health_english" =>  "required|min:5",
+            "exper_in_health_farsi" =>  "required|min:5",
+            "exper_in_health_pashto" =>  "required|min:5",
 
             "project_intro_english" =>  "required|min:5",
             "project_intro_pashto" =>  "required|min:5",
             "project_intro_farsi" =>  "required|min:5",
 
-            "project_goals_english" =>  "required|min:5",
-            "project_goals_pashto" =>  "required|min:5",
-            "project_goals_farsi" =>  "required|min:5",
+            "goals_english" =>  "required|min:5",
+            "goals_pashto" =>  "required|min:5",
+            "goals_farsi" =>  "required|min:5",
 
-            "project_object_english" =>  "required|min:5",
-            "project_object_farsi" =>  "required|min:5",
-            "project_object_pashto" =>  "required|min:5",
+            "objective_english" =>  "required|min:5",
+            "objective_farsi" =>  "required|min:5",
+            "objective_pashto" =>  "required|min:5",
 
             "expected_outcome_english" =>  "required|min:5",
             "expected_outcome_farsi" =>  "required|min:5",
@@ -137,9 +139,9 @@ class ProjectStoreRequest extends FormRequest
             "main_activities_pashto" =>  "required|min:5",
 
 
-            "operational_plan_english" =>  "required|min:5",
-            "operational_plan_pashto" =>  "required|min:5",
-            "operational_plan_farsi" =>  "required|min:5",
+            "action_plan_english" =>  "required|min:5",
+            "action_plan_pashto" =>  "required|min:5",
+            "action_plan_farsi" =>  "required|min:5",
 
         ];
     }
