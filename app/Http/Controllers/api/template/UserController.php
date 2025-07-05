@@ -135,25 +135,7 @@ class UserController extends Controller
             JSON_UNESCAPED_UNICODE
         );
     }
-    public function validateEmailContact(Request $request)
-    {
-        $request->validate(
-            [
-                "email" => "required",
-                "contact" => "required",
-            ]
-        );
-        $email = Email::where("value", '=', $request->email)->first();
-        $contact = Contact::where("value", '=', $request->contact)->first();
-        // Check if both models are found
-        $emailExists = $email !== null;
-        $contactExists = $contact !== null;
 
-        return response()->json([
-            'email_found' => $emailExists,
-            'contact_found' => $contactExists,
-        ], 200, [], JSON_UNESCAPED_UNICODE);
-    }
     public function store(UserRegisterRequest $request)
     {
         $request->validated();

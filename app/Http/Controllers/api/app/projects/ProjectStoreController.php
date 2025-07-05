@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\api\app\projects;
 
+use App\Enums\CountryEnum;
 use App\Models\Email;
 use App\Models\Contact;
 use App\Models\Project;
@@ -65,19 +66,13 @@ class ProjectStoreController extends Controller
         $authUser = $request->user();
         $user_id = $authUser->id;
 
-
-
-
         DB::beginTransaction();
         $project_manager = null;
 
         // If no project_manager_id is provided, create new
         if (!$request->project_manager_id) {
             // 1. Email Check
-
-
             $request->validate([
-
                 'pro_manager_name_english' => 'required|string',
                 'pro_manager_name_farsi'   => 'required|string',
                 'pro_manager_name_pashto'  => 'required|string',
@@ -116,7 +111,7 @@ class ProjectStoreController extends Controller
 
                 ProjectManagerTran::create([
                     'project_manager_id' => $project_manager->id,
-                    'fullname' => $request->get($field),
+                    'full_name' => $request->get($field),
                     'language_name' => $code,
                 ]);
             }
@@ -125,10 +120,6 @@ class ProjectStoreController extends Controller
             $project_manager = ProjectManager::findOrFail($request->project_manager_id);
         }
 
-        // Get NGO representer
-        $representer = Representer::where('ngo_id', $user_id)
-            ->where('is_active', true)
-            ->firstOrFail();
 
         // Create the main Project
         $project = Project::create([
@@ -140,17 +131,13 @@ class ProjectStoreController extends Controller
             'currency_id' => $request->currency['id'],
             'donor_id' => $request->donor['id'],
             'project_manager_id' => $project_manager->id,
-            'country_id' => 2, // hardcoded — optional improvement: make dynamic
+            'country_id' => CountryEnum::afghanistan->value, // hardcoded — optional improvement: make dynamic
             'registration_no' => '',
             'ngo_id' => $user_id,
 
         ]);
         $project->registration_no = 'IRD-P-' . $project->id;
         $project->save();
-        ProjectRepresenter::create([
-            'project_id' => $project->id,
-            'representer_id' => $representer->id,
-        ]);
 
         // Store Project Translations
         $translationFields = [
@@ -283,6 +270,6 @@ class ProjectStoreController extends Controller
         return response()->json([
             'message' => 'Project created successfully.',
             'project' => $data,
-        ], 201);
+        ], 200);
     }
 }

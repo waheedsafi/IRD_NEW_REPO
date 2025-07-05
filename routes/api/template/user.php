@@ -18,6 +18,5 @@ Route::prefix('v1')->middleware(["authorized:" . 'user:api'])->group(function ()
     Route::post('/user/update/information', [UserController::class, 'updateInformation'])->middleware(['accessUserCheck', "userHasSubEditPermission:" . PermissionEnum::users->value . "," . SubPermissionEnum::user_information->value]);
     Route::post('/user/store', [UserController::class, 'store'])->middleware(["userHasMainAddPermission:" . PermissionEnum::users->value]);
     Route::delete('/user/{id}', [UserController::class, 'destroy'])->middleware(["userHasMainDeletePermission:" . PermissionEnum::users->value]);
-    Route::post('/user/validate/email/contact', [UserController::class, "validateEmailContact"]);
     Route::post('/user/accpunt/change-password', [UserController::class, 'changePassword'])->middleware(['accessUserCheck']);
 });
