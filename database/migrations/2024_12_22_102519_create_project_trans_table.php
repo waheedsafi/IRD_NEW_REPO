@@ -25,6 +25,7 @@ return new class extends Migration
             $table->text('goals');
             $table->text('objectives');
             $table->text('expected_outcome');
+            $table->text('project_structure');
             $table->text('expected_impact');
             $table->text('subject');
             $table->text('main_activities');
