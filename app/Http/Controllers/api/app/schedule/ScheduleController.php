@@ -15,12 +15,15 @@ class ScheduleController extends Controller
     {
         $count = $request->count ?? 10;
 
+
         // Decode the string '[1,2]' → array [1, 2]
+
         $ids = $request->input('ids');
         if (is_string($ids)) {
             $decoded = json_decode($ids, true);
             $ids = is_array($decoded) ? $decoded : [];
         }
+
 
         $locale = App::getLocale();
 
@@ -39,24 +42,31 @@ class ScheduleController extends Controller
                 ->get();
         }
 
+
         $fetchedCount = $projectsFromIds->count();
         $remainingCount = $count - $fetchedCount;
 
-        // 2. Fetch more projects if needed
+
         $remainingProjects = collect();
+
         if ($remainingCount > 0) {
-            $remainingProjects = DB::table('projects as pro')
+            $query = DB::table('projects as pro')
                 ->join('project_statuses as pros', 'pro.id', '=', 'pros.project_id')
                 ->join('project_trans as prot', function ($join) use ($locale) {
                     $join->on('prot.project_id', '=', 'pro.id')
                         ->where('prot.language_name', $locale);
                 })
                 ->where('pros.status_id', StatusEnum::pending_for_schedule->value)
-                ->whereNotIn('pro.id', $ids)
-                ->select('pro.id', 'prot.name')
-                ->limit($remainingCount)
-                ->get();
+                ->select('pro.id', 'prot.name');
+
+            if ($remainingCount != $count) {
+                $query->whereNotIn('pro.id', $ids);
+            }
+
+            $remainingProjects = $query->limit($remainingCount)->get();
         }
+
+
 
         // 3. Merge both and return
         $projects = $projectsFromIds->merge($remainingProjects);
