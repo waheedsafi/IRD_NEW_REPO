@@ -33,4 +33,5 @@ require __DIR__ . '/api/app/project/projectPdf.php';
 require __DIR__ . '/api/app/dashboard/dashboard.php';
 
 require __DIR__ . '/api/app/file/file.php';
+require __DIR__ . '/api/app/schedule/schedule.php';
 require __DIR__ . '/api/app/checklist/checklist.php';
