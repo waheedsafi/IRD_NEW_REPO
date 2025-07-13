@@ -11,11 +11,7 @@ use Illuminate\Support\Facades\DB as FacadesDB;
 
 class ScheduleController extends Controller
 {
-
-    //
-
-
-    public function specialProject(Request $request)
+    public function prepareSchedule(Request $request)
     {
         $count = $request->count ?? 10;
 
