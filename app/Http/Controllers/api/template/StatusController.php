@@ -9,11 +9,12 @@ use Illuminate\Support\Facades\DB;
 
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
+use App\Models\DonorStatus;
 
 class StatusController extends Controller
 {
 
-    public function ngoStatusTypes()
+    public function blockStatus()
     {
         $locale = App::getLocale();
         $includes = [StatusEnum::block->value];
@@ -49,7 +50,8 @@ class StatusController extends Controller
             ($previousStatus->status_id === StatusEnum::active->value ||
                 $previousStatus->status_id === StatusEnum::block->value)
         ) {
-
+            // Begin transaction
+            DB::beginTransaction();
             // Deactivate the old status
             $previousStatus->is_active = false;
             $previousStatus->save();
@@ -68,8 +70,10 @@ class StatusController extends Controller
             $data = [
                 'ngo_status_id' => $newStatus->id,
                 'is_active' => true,
+                'username' => $authUser->username,
                 'created_at' => $newStatus->created_at,
             ];
+            DB::commit();
 
             return response()->json([
                 'message' => __('app_translation.success'),
@@ -109,6 +113,64 @@ class StatusController extends Controller
             'statuses' => $result,
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
+
+    public function changeDonorStatus(Request $request)
+    {
+        // Validate request
+        $validatedData = $request->validate([
+            'donor_id' => 'required|integer',
+            'status_id' => 'required|integer',
+            'comment' => 'required|string',
+        ]);
+
+        $authUser = $request->user();
+
+        // Fetch the currently active status for this NGO
+        $previousStatus = DonorStatus::where('donor_id', $validatedData['donor_id'])
+            ->where('is_active', true)
+            ->first();
+
+        // Check if the current active status allows transition
+        if (
+            $previousStatus &&
+            ($previousStatus->status_id === StatusEnum::active->value ||
+                $previousStatus->status_id === StatusEnum::block->value)
+        ) {
+            // Begin transaction
+            DB::beginTransaction();
+            // Deactivate the old status
+            $previousStatus->is_active = false;
+            $previousStatus->save();
+
+            // Create a new status entry
+            $newStatus = DonorStatus::create([
+                'status_id' => $validatedData['status_id'],
+                'donor_id' => $validatedData['donor_id'],
+                'comment' => $validatedData['comment'],
+                'is_active' => true,
+                'user_id' => $authUser->id,
+            ]);
+
+            // Prepare response
+            $data = [
+                'donor_status_id' => $newStatus->id,
+                'is_active' => 1,
+                'created_at' => $newStatus->created_at,
+            ];
+            DB::commit();
+
+            return response()->json([
+                'message' => __('app_translation.success'),
+                'status' => $data
+            ], 200, [], JSON_UNESCAPED_UNICODE);
+        } else {
+            // Not authorized to change status
+            return response()->json([
+                'message' => __('app_translation.unauthorized')
+            ], 422, [], JSON_UNESCAPED_UNICODE);
+        }
+    }
+
     public function agreementStatuses($id)
     {
         $locale = App::getLocale();

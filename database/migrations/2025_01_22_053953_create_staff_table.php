@@ -20,7 +20,6 @@ return new class extends Migration
             $table->string('contact', 32)->unique();
             $table->string('email', 64)->unique();
             $table->string('profile');
-
             $table->timestamps();
         });
     }

@@ -16,4 +16,5 @@ interface StorageRepositoryInterface
      */
     public function documentStore($agreement_id, $ngo_id, $pending_task_id, ?callable $callback);
     public function projectDocumentStore($project_id, $ngo_id, $pending_task_id, ?callable $callback);
+    public function scheduleDocumentStore($schedule_id, $pending_task_id, ?callable $callback);
 }

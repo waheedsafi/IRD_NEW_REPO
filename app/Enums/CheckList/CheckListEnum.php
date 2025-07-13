@@ -24,4 +24,8 @@ enum CheckListEnum: int
     case mou_fa = 16;                          // Memorandum of Understanding (Farsi)
     case mou_ps = 17;
     case project_ministry_of_economy_work_permit = 18;
+
+
+        // Schedule
+    case schedule_deputy_document = 19;
 }

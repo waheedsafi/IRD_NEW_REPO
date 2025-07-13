@@ -17,13 +17,14 @@ Route::prefix('v1')->middleware(["multiAuthorized:" . 'user:api,ngo:api'])->grou
   Route::get('ngo-checklist/{id}', [CheckListController::class, 'checklist']);
   Route::get('ngo/common-checklist/{id}', [CheckListController::class, 'commonChecklist']);
   Route::get('ngo/register/signed/form/checklist', [CheckListController::class, 'missingRegisterSignedForm']);
-  Route::get('ngo/validation/checklist/{id}', [CheckListController::class, 'validationChecklist']);
+  // Route::get('ngo/validation/checklist/{id}', [CheckListController::class, 'validationChecklist']);
 
   Route::get('checklists/project-registeration', [CheckListController::class, 'projectRegisteration']);
+  Route::get('checklists/validation/{id}', [CheckListController::class, 'validationChecklist']);
 });
 
 Route::prefix('v1')->middleware(["authorized:" . 'user:api'])->group(function () {
   Route::post('checklist/store', [CheckListController::class, 'store'])->middleware(["userHasSubAddPermission:" . PermissionEnum::configurations->value . "," . SubPermissionEnum::configurations_checklist->value]);
-  Route::delete('checklist/{id}', [CheckListController::class, 'destroy'])->middleware(["userHasSubDeletePermission:" . PermissionEnum::configurations->value . "," . SubPermissionEnum::configurations_checklist->value]);;
-  Route::post('checklist/update', [CheckListController::class, 'update'])->middleware(["userHasSubEditPermission:" . PermissionEnum::configurations->value . "," . SubPermissionEnum::configurations_checklist->value]);;
+  Route::delete('checklist/{id}', [CheckListController::class, 'destroy'])->middleware(["userHasSubDeletePermission:" . PermissionEnum::configurations->value . "," . SubPermissionEnum::configurations_checklist->value]);
+  Route::post('checklist/update', [CheckListController::class, 'update'])->middleware(["userHasSubEditPermission:" . PermissionEnum::configurations->value . "," . SubPermissionEnum::configurations_checklist->value]);
 });

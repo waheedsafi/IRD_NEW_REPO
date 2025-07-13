@@ -46,7 +46,7 @@ class SubPermissionSeeder extends Seeder
     }
     public function subDonorPermissions()
     {
-        foreach (SubPermissionEnum::Donor as $id => $role) {
+        foreach (SubPermissionEnum::DONOR as $id => $role) {
             SubPermission::factory()->create([
                 "id" => $id,
                 "permission" => PermissionEnum::donor->value,

@@ -84,15 +84,11 @@ enum SubPermissionEnum: int
     ];
 
 
-    // donor
-
-    public const Donor = [
-        76 => "donor_status",
-        77 => 'donor_information',
-        78 => 'project',
-        79 => 'donor_update_account_password'
-
-
-
+        // donor
+    case donor_information = 101;
+    case donor_status = 102;
+    public const DONOR = [
+        101 => "donor_information",
+        102 => "donor_status",
     ];
 }

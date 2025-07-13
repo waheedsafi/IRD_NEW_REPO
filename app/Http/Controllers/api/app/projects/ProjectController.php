@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\api\app\projects;
 
+use App\Enums\Status\StatusEnum;
 use Illuminate\Http\Request;
 use App\Enums\Type\TaskTypeEnum;
 use App\Traits\Helper\FilterTrait;
@@ -39,11 +40,19 @@ class ProjectController extends Controller
                 $join->on('pro.id', '=', 'prot.project_id')
                     ->where('prot.language_name', $locale);
             })
-            ->leftJoin('donor_trans  as dont', function ($join) use ($locale) {
+            ->join('project_statuses as ps', function ($join) {
+                $join->on('ps.project_id', '=', 'pro.id')
+                    ->where('ps.is_active', true);
+            })
+            ->join('status_trans as st', function ($join)  use ($locale) {
+                $join->on('st.status_id', '=', 'ps.status_id')
+                    ->where('st.language_name', $locale);
+            })
+            ->join('donor_trans as dont', function ($join) use ($locale) {
                 $join->on('dont.donor_id', 'pro.donor_id')
                     ->where('dont.language_name', $locale);
             })
-            ->leftJoin('currency_trans as curt', function ($join) use ($locale) {
+            ->join('currency_trans as curt', function ($join) use ($locale) {
                 $join->on('pro.currency_id', 'curt.currency_id')
                     ->where('curt.language_name', $locale);
             })
@@ -56,6 +65,8 @@ class ProjectController extends Controller
                 'pro.donor_registration_no',
                 'prot.name as project_name',
                 'dont.name as donor',
+                'st.name as status',
+                'ps.status_id',
                 'pro.created_at'
             );
         $this->applyDate($query, $request, 'pro.created_at', 'pro.created_at');
@@ -130,5 +141,29 @@ class ProjectController extends Controller
                 'total_in_direct_beneficiaries' => $result->total_in_direct_beneficiaries,
             ],
         ], 200, [], JSON_UNESCAPED_UNICODE);
+    }
+    public function projectsWithName()
+    {
+        $locale = App::getLocale();
+        $result = DB::table('projects as p')
+            ->join(
+                'project_trans as pt',
+                function ($join) use ($locale) {
+                    $join->on('p.id', '=', 'pt.project_id')
+                        ->where('pt.language_name', $locale);
+                }
+            )
+            ->join('project_statuses as ps', function ($join) use ($locale) {
+                $join->on('p.id', '=', 'ps.project_id')
+                    ->where('ps.is_active', true);
+            })
+            ->whereIn('ps.status_id', [StatusEnum::has_comment->value, StatusEnum::pending_for_schedule->value])
+            ->select(
+                'p.id',
+                'pt.name',
+            )
+            ->get();
+
+        return response()->json($result, 200, [], JSON_UNESCAPED_UNICODE);
     }
 }

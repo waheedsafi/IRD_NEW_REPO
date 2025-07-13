@@ -10,7 +10,6 @@ use App\Models\CheckList;
 use App\Models\CheckListTrans;
 use App\Models\CheckListType;
 use App\Models\CheckListTypeTrans;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class CheckListSeeder extends Seeder
@@ -24,6 +23,7 @@ class CheckListSeeder extends Seeder
         $this->CheckListType();
         $this->ngoRegisterationCheckList();
         $this->projectCheckList();
+        $this->scheduleCheckList();
     }
 
     protected function CheckListType()
@@ -99,6 +99,24 @@ class CheckListSeeder extends Seeder
         ]);
         CheckListTypeTrans::create([
             'value' => "د پروژې غځول",
+            'check_list_type_id' => $checklist->id,
+            'language_name' => LanguageEnum::pashto,
+        ]);
+        $checklist = CheckListType::create([
+            'id' => CheckListTypeEnum::scheduling,
+        ]);
+        CheckListTypeTrans::create([
+            'value' => "Scheduling",
+            'check_list_type_id' => $checklist->id,
+            'language_name' => LanguageEnum::default,
+        ]);
+        CheckListTypeTrans::create([
+            'value' => "زمان‌بندی",
+            'check_list_type_id' => $checklist->id,
+            'language_name' => LanguageEnum::farsi,
+        ]);
+        CheckListTypeTrans::create([
+            'value' => "مهالویش",
             'check_list_type_id' => $checklist->id,
             'language_name' => LanguageEnum::pashto,
         ]);
@@ -456,5 +474,33 @@ class CheckListSeeder extends Seeder
                 'language_name' => LanguageEnum::pashto,
             ]);
         }
+    }
+    protected function scheduleCheckList()
+    {
+        $checklist = CheckList::create([
+            'id' => CheckListEnum::schedule_deputy_document,
+            'check_list_type_id' => CheckListTypeEnum::scheduling,
+            'acceptable_extensions' => "pdf,jpeg,png,jpg",
+            'acceptable_mimes' => "application/pdf,image/jpeg,image/png,image/jpg",
+            'accept' => ".pdf,.jpeg,.png,.jpg",
+            'description' => "",
+            'file_size' => 2048,
+            'user_id' => RoleEnum::super,
+        ]);
+        CheckListTrans::create([
+            'check_list_id' => $checklist->id,
+            'value' => "Official document for the schedule",
+            'language_name' => LanguageEnum::default,
+        ]);
+        CheckListTrans::create([
+            'check_list_id' => $checklist->id,
+            'value' => "سند مقام برای زمان‌بندی",
+            'language_name' => LanguageEnum::farsi,
+        ]);
+        CheckListTrans::create([
+            'check_list_id' => $checklist->id,
+            'value' => "د مهالویش لپاره رسمي سند",
+            'language_name' => LanguageEnum::pashto,
+        ]);
     }
 }

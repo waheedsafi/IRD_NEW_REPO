@@ -32,7 +32,7 @@ class UserPermissionSeeder extends Seeder
             "permission" => "ngo"
         ]);
         $this->addNgoSubPermissions($userPermission, RoleEnum::super->value);
-        UserPermission::factory()->create([
+        $userPermission = UserPermission::factory()->create([
             "view" => true,
             "edit" => true,
             "delete" => true,
@@ -40,6 +40,8 @@ class UserPermissionSeeder extends Seeder
             "user_id" => RoleEnum::super->value,
             "permission" => "donor"
         ]);
+        $this->addDonorSubPermissions($userPermission, RoleEnum::super->value);
+
         UserPermission::factory()->create([
             "view" => true,
             "edit" => true,
@@ -138,7 +140,7 @@ class UserPermissionSeeder extends Seeder
         ]);
         $this->addNgoSubPermissions($userPermission, RoleEnum::admin->value);
 
-        UserPermission::factory()->create([
+        $userPermission = UserPermission::factory()->create([
             "view" => true,
             "edit" => true,
             "delete" => true,
@@ -146,6 +148,8 @@ class UserPermissionSeeder extends Seeder
             "user_id" => RoleEnum::admin->value,
             "permission" => "donor"
         ]);
+        $this->addDonorSubPermissions($userPermission, RoleEnum::super->value);
+
         UserPermission::factory()->create([
             "view" => true,
             "edit" => true,
@@ -318,6 +322,19 @@ class UserPermissionSeeder extends Seeder
             if ($id == SubPermissionEnum::ngo_update_account_password && $user_role != RoleEnum::super->value) {
                 continue;
             }
+            UserPermissionSub::factory()->create([
+                "edit" => true,
+                "delete" => true,
+                "add" => true,
+                "view" => true,
+                "user_permission_id" => $userPermission->id,
+                "sub_permission_id" => $id,
+            ]);
+        }
+    }
+    public function addDonorSubPermissions($userPermission, $user_role)
+    {
+        foreach (SubPermissionEnum::DONOR as $id => $role) {
             UserPermissionSub::factory()->create([
                 "edit" => true,
                 "delete" => true,

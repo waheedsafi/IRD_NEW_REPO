@@ -49,10 +49,12 @@ class RolePermissionSeeder extends Seeder
         ]);
         $this->rolePermissionSubNgo($rolePer->id, RoleEnum::super->value);
 
-        RolePermission::factory()->create([
+        $rolePer = RolePermission::factory()->create([
             "role" => RoleEnum::super,
             "permission" => "donor"
         ]);
+        $this->rolePermissionSubDonor($rolePer->id, RoleEnum::super->value);
+
         RolePermission::factory()->create([
             "role" => RoleEnum::super,
             "permission" => "projects"
@@ -106,6 +108,8 @@ class RolePermissionSeeder extends Seeder
             "role" => RoleEnum::admin,
             "permission" => "donor"
         ]);
+        $rolePer = $this->rolePermissionSubDonor($rolePer->id, RoleEnum::super->value);
+
         $rolePer = RolePermission::factory()->create([
             "role" => RoleEnum::admin,
             "permission" => "management/news"
@@ -230,6 +234,15 @@ class RolePermissionSeeder extends Seeder
     public function rolePermissionSubConfigurations($role_permission_id)
     {
         foreach (SubPermissionEnum::CONFIGURATIONS as $id => $role) {
+            RolePermissionSub::factory()->create([
+                "role_permission_id" => $role_permission_id,
+                "sub_permission_id" => $id
+            ]);
+        }
+    }
+    public function rolePermissionSubDonor($role_permission_id)
+    {
+        foreach (SubPermissionEnum::DONOR as $id => $role) {
             RolePermissionSub::factory()->create([
                 "role_permission_id" => $role_permission_id,
                 "sub_permission_id" => $id

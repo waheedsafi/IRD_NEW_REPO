@@ -41,12 +41,13 @@ use App\Models\RolePermission;
 use App\Models\StatusTypeTran;
 use App\Models\UserPermission;
 use App\Enums\CheckListTypeEnum;
+use App\Enums\Status\StatusEnum;
 use App\Enums\SubPermissionEnum;
 use App\Models\RolePermissionSub;
 use App\Enums\DestinationTypeEnum;
 use App\Enums\Type\StatusTypeEnum;
-use App\Models\PendingTaskContent;
 
+use App\Models\PendingTaskContent;
 use App\Traits\Helper\HelperTrait;
 use Illuminate\Support\Facades\DB;
 use App\Models\PendingTaskDocument;
@@ -212,6 +213,17 @@ class TestController extends Controller
     }
     public function index(Request $request)
     {
+        $locale = App::getLocale();
+        $includes = [StatusEnum::block->value];
+        $statuses = DB::table('statuses as st')
+            ->whereIn('st.id', $includes)
+            ->leftjoin('status_trans as stt', function ($join) use ($locale) {
+                $join->on('stt.status_id', '=', 'st.id')
+                    ->where('stt.language_name', $locale);
+            })
+            ->select('st.id', 'stt.name')->get();
+
+        return response()->json($statuses);
         $this->currency();
     }
 }

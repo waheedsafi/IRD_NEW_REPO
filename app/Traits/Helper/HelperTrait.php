@@ -82,7 +82,14 @@ trait HelperTrait
     {
         return "ngos/ngo_{$ngo_id}/projects/project_{$project_id}/checlist_{$check_list_id}/" . $fileName;
     }
-
+    public function scheduleRegisterFolder($schedule_id)
+    {
+        return storage_path() . "/app/private/schedule/{$schedule_id}/";
+    }
+    public function scheduleRegisterDBPath($schedule_id, $fileName)
+    {
+        return "schedule/{$schedule_id}/" . $fileName;
+    }
     public function ngoRegisterFolder($ngo_id, $agreement_id, $check_list_id)
     {
         return storage_path() . "/app/private/ngos/ngo_{$ngo_id}/register/agreement_{$agreement_id}/checlist_{$check_list_id}/";

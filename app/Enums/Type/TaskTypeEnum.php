@@ -8,4 +8,5 @@ enum TaskTypeEnum: int
     case project_registeration = 2;
     case ngo_agreement_extend = 3;
     case project_extend = 4;
+    case scheduling = 5;
 }

@@ -108,4 +108,48 @@ class FileController extends Controller
             "status" => true,
         ]);
     }
+    // 1. Upload files in case does not have task_id
+    public function singleFileUpload(Request $request)
+    {
+        $receiver = new FileReceiver("file", $request, HandlerFactory::classFromRequest($request));
+
+        if (!$receiver->isUploaded()) {
+            throw new UploadMissingFileException();
+        }
+
+        $save = $receiver->receive();
+
+        if ($save->isFinished()) {
+            $task_type = $request->task_type;
+            $check_list_id = $request->checklist_id;
+            $identifier = $request->identifier;
+            $file = $save->getFile();
+
+            // 1. Validate checklist
+            $validationResult = $this->checkFileWithList($file, $request->checklist_id);
+            if ($validationResult !== true) {
+                $filePath = $file->getRealPath();
+                unlink($filePath);
+                return $validationResult; // Return validation errors
+            }
+            // 2. Delete all previous PendingTask for current user_id, user_type and task_type
+            $this->pendingTaskRepository->destroyPendingTask($request->user(), $task_type, null);
+            // 3. Store new Pendding Document Task
+            return $this->pendingTaskRepository->fileStore(
+                $save->getFile(),
+                $request,
+                $task_type,
+                $check_list_id,
+                $identifier
+            );
+        }
+
+        // If not finished, send current progress.
+        $handler = $save->handler();
+
+        return response()->json([
+            "done" => $handler->getPercentageDone(),
+            "status" => true,
+        ]);
+    }
 }
