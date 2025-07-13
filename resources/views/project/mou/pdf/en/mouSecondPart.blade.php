@@ -96,19 +96,6 @@
 
         <div class="min-contents">
 
-            {{-- Use heading tags with tocentry inside for clickable anchors --}}
-            {{-- <h1 class="first-page-text" id="mou-section-1">
-                {!! '<tocentry content="Memorandum of Understanding" level="1" />' !!}
-                Memorandum of Understanding
-            </h1>
-
-            <h2 class="first-page-text" id="mou-section-2">
-                {!! '<tocentry content="Between MoPH and NGO" level="3" />' !!}
-                Between<br>
-                The Ministry of Public Health<br>
-                {{ $ngo_name }}
-            </h2> --}}
-
             {{-- artical one --}}
             <p class="content-text" id="mou-section-3">
 
@@ -266,27 +253,28 @@
 
             {{ $introduction_current_project }}
             <br>
-            <table width="90%" style="border-collapse: collapse; margin: 20px auto; font-size: 14px;">
-                <thead>
-                    <tr style="background-color: #f2f2f2;">
-                        <th style="border: 1px solid black; padding: 8px;">Province</th>
-                        <th style="border: 1px solid black; padding: 8px;">Health Facilities</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($health_facilities as $facilities)
-                        <tr>
-                            <td style="border: 1px solid black; padding: 8px;">
-                                {{ $facilities['province'] }}
-                            </td>
-                            <td style="border: 1px solid black; padding: 8px;">
-                                {{ $facilities['facilities'] }}
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+            <div class="page"></div>
 
+            <div class="landscape-only">
+                <table width="90%" style="border-collapse: collapse; margin: 20px auto; font-size: 14px;">
+                    <thead>
+                        <tr style="background-color: #f2f2f2;">
+                            <th style="border: 1px solid black; padding: 8px;">Province</th>
+                            <th style="border: 1px solid black; padding: 8px;">Health Facilities</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($health_facilities as $facilities)
+                            <tr>
+                                <td style="border: 1px solid black; padding: 8px;">{{ $facilities['province'] }}</td>
+                                <td style="border: 1px solid black; padding: 8px;">{{ $facilities['facilities'] }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="page"></div>
             <br>
             {!! '<tocentry content="Goals" level="3" />' !!}
             <h5>

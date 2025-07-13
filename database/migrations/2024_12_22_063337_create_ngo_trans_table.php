@@ -22,6 +22,7 @@ return new class extends Migration
                 ->onUpdate('cascade')
                 ->onDelete('no action');
             $table->string('name', 128);
+            $table->longText('introduction')->nullable();
             $table->longText('vision')->nullable();
             $table->longText('mission')->nullable();
             $table->longText('general_objective')->nullable();
