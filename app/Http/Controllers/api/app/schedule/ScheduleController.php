@@ -200,7 +200,10 @@ class ScheduleController extends Controller
 
         DB::commit();
 
-        return 'success';
+        return response()->json([
+            'message' => __('app_translation.success'),
+
+        ], 200);
     }
 
     public function edit($id)
@@ -209,7 +212,7 @@ class ScheduleController extends Controller
         $schedule = DB::table('schedules')->where('id', $id)->first();
 
         if (!$schedule) {
-            return response()->json(['message' => 'Schedule not found'], 404);
+            return response()->json(['message' => __('app_translation.not_found')], 404);
         }
 
         // Fetch schedule items
