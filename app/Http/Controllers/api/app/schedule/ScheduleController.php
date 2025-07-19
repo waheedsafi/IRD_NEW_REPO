@@ -44,7 +44,7 @@ class ScheduleController extends Controller
                 $join->on('scht.schedule_status_id', 'sch.schedule_status_id')
                     ->where('scht.language_name', $locale);
             })
-            ->select('sch.id', 'scht.value as schedule_status', 'sch.date')->get();
+            ->select('sch.id', 'scht.value as status', 'sch.date')->get();
 
 
         return response()->json(
@@ -150,11 +150,6 @@ class ScheduleController extends Controller
 
             if (isset($item['attachment'])) {
                 $attachment = $item['attachment'];
-
-
-
-
-
                 $directorDocumentsId = [];
                 $document =  $this->storageRepository->scheduleDocumentStore($schedule->id,  $attachment['pending_id'], function ($documentData) use (&$directorDocumentsId, $scheduleItem) {
                     $checklist_id = $documentData['check_list_id'];
