@@ -51,6 +51,9 @@ interface PendingTaskRepositoryInterface
      */
     public function destroyPendingTask($authUser, $task_type, $task_type_id);
 
+
+
+
     /**
      * Returns the pending task if not exist returns null
      * $authUser: Authticated user is needed to determine who addedd the task
@@ -93,4 +96,8 @@ interface PendingTaskRepositoryInterface
      * @return \App\Models\PendingTaskDocument 
      */
     public function pendingTask(Request $request, $task_type, $task_type_id): array;
+
+
+
+    public function destroyPendingTaskById($pending_id);
 }

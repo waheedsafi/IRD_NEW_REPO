@@ -232,4 +232,27 @@ class PendingTaskRepository implements PendingTaskRepositoryInterface
             'content' => null
         ];
     }
+
+    public function destroyPendingTaskById($pending_id)
+    {
+
+        $task = PendingTask::where('id', $pending_id)
+            ->first();
+        if ($task) {
+            $pending_document = PendingTaskDocument::where(
+                "pending_task_id",
+                $task->id
+            )->first();
+            if ($pending_document) {
+                // 1. Delete prevoius record
+                try {
+                    // To continue operation if file not exist
+                    $this->deleteTempFile($pending_document->path);
+                } catch (Exception $err) {
+                }
+            }
+            $task->delete();
+        }
+        return true;
+    }
 }
