@@ -17,6 +17,10 @@ return new class extends Migration
             $table->foreign('project_id')->references('id')->on('projects')
                 ->onUpdate('cascade')
                 ->onDelete('no action');
+            $table->unsignedBigInteger('schedule_id');
+            $table->foreign('schedule_id')->references('id')->on('schedules')
+                ->onUpdate('cascade')
+                ->onDelete('no action');
             $table->time('start_time');
             $table->time('end_time');
             $table->timestamps();
