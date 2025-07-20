@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\Status\ScheduleStatusEnum;
 use App\Models\ScheduleStatus;
 use App\Models\ScheduleStatusTrans;
 use Illuminate\Database\Seeder;
@@ -17,7 +18,9 @@ class ScheduleSeeder extends Seeder
     }
     public function statuses()
     {
-        $item = ScheduleStatus::factory()->create([]);
+        $item = ScheduleStatus::factory()->create([
+            'id' => ScheduleStatusEnum::Scheduled->value
+        ]);
         ScheduleStatusTrans::factory()->create([
             "value" => "Scheduled",
             "language_name" => "en",
@@ -33,7 +36,10 @@ class ScheduleSeeder extends Seeder
             "language_name" => "ps",
             "schedule_status_id" => $item->id
         ]);
-        $item = ScheduleStatus::factory()->create([]);
+        $item = ScheduleStatus::factory()->create([
+            'id' => ScheduleStatusEnum::Cancelled->value
+
+        ]);
         ScheduleStatusTrans::factory()->create([
             "value" => "Cancelled",
             "language_name" => "en",
@@ -49,7 +55,10 @@ class ScheduleSeeder extends Seeder
             "language_name" => "ps",
             "schedule_status_id" => $item->id
         ]);
-        $item = ScheduleStatus::factory()->create([]);
+        $item = ScheduleStatus::factory()->create([
+            'id' => ScheduleStatusEnum::Postponed->value
+
+        ]);
         ScheduleStatusTrans::factory()->create([
             "value" => "Postponed",
             "language_name" => "en",
@@ -65,7 +74,10 @@ class ScheduleSeeder extends Seeder
             "language_name" => "ps",
             "schedule_status_id" => $item->id
         ]);
-        $item = ScheduleStatus::factory()->create([]);
+        $item = ScheduleStatus::factory()->create([
+            'id' => ScheduleStatusEnum::Completed->value
+
+        ]);
         ScheduleStatusTrans::factory()->create([
             "value" => "Completed",
             "language_name" => "en",

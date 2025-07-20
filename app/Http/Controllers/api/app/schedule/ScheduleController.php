@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\api\app\schedule;
 
+use App\Enums\Status\SchedualStatusEnum;
+use App\Enums\Status\ScheduleStatusEnum;
 use App\Models\Schedule;
 use App\Models\ScheduleItem;
 use Illuminate\Http\Request;
@@ -13,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB as FacadesDB;
 use App\Http\Requests\app\schedule\ScheduleRequest;
+use App\Http\Requests\app\schedule\ScheduleUpdateRequest;
 use App\Models\Document as ModelsDocument;
 use App\Repositories\Storage\StorageRepositoryInterface;
 use App\Repositories\PendingTask\PendingTaskRepositoryInterface;
@@ -144,8 +147,8 @@ class ScheduleController extends Controller
             'dinner_end' => $request['dinner_end'],
             'presentation_before_lunch' => $request['presentation_count'] - $request['presentations_after_lunch'],
             'presentation_after_lunch' => $request['presentations_after_lunch'],
-            'is_hour_24' => true,
-            'schedule_status_id' => 1 // change according to your statuses
+            'is_hour_24' => $request['time_format24h'] ?? false,
+            'schedule_status_id' => ScheduleStatusEnum::Scheduled->value // change according to your statuses
         ]);
 
         foreach ($request['scheduleItems'] as $item) {
@@ -208,6 +211,7 @@ class ScheduleController extends Controller
 
     public function edit($id)
     {
+        $locale = App::getLocale();
         // Fetch the schedule
         $schedule = DB::table('schedules')->where('id', $id)->first();
 
@@ -216,8 +220,16 @@ class ScheduleController extends Controller
         }
 
         // Fetch schedule items
-        $scheduleItems = DB::table('schedule_items')
+        $scheduleItems = DB::table('schedule_items as schi')
+            ->join('project_trans as prot', function ($join) use ($locale) {
+                $join->on('schi.project_id', '=', 'prot.project_id')
+                    ->where('prot.language_name', $locale);
+            })
             ->where('schedule_id', $id)
+            ->select(
+                'prot.name as project_name',
+                'schi.*'
+            )
             ->get();
 
         $formattedItems = [];
@@ -233,7 +245,7 @@ class ScheduleController extends Controller
                 $doc = DB::table('documents')->where('id', $scheduleDocument->document_id)->first();
                 if ($doc) {
                     $document = [
-                        'pending_id' => $doc->id, // You may store actual pending_id elsewhere
+                        'document_id' => $doc->id, // You may store actual  elsewhere
                         'name' => $doc->actual_name,
                         'size' => $doc->size,
                         'check_list_id' => $doc->check_list_id,
@@ -256,6 +268,7 @@ class ScheduleController extends Controller
                     'gap_end' => $gapEnd
                 ],
                 'projectId' => $item->project_id,
+                'project_name' => $item->project_name,
                 'attachment' => $document,
                 'selected' => false
             ];
@@ -274,9 +287,124 @@ class ScheduleController extends Controller
             'presentation_length' => $schedule->presentation_lenght,
             'presentation_count' => $schedule->representators_count,
             'presentations_after_lunch' => $schedule->presentation_after_lunch,
+            'time_format24h' => $schedule->is_hour_24,
             'scheduleItems' => $formattedItems
         ];
 
         return response()->json($data);
+    }
+
+    public function update(ScheduleUpdateRequest $request, $id)
+    {
+        $authUser = $request->user();
+        DB::beginTransaction();
+
+
+        $schedule = Schedule::findOrFail($id);
+
+        // Update schedule
+        $schedule->update([
+            'date' => Carbon::parse($request['date'])->toDateString() ?? now()->toDateString(),
+            'start_time' => $request['start_time'] ?? '08:00',
+            'end_time' => $request['end_time'],
+            'representators_count' => $request['presentation_count'],
+            'presentation_lenght' => $request['presentation_length'],
+            'gap_between' => $request['gap_between'],
+            'lunch_start' => $request['lunch_start'],
+            'lunch_end' => $request['lunch_end'],
+            'dinner_start' => $request['dinner_start'],
+            'dinner_end' => $request['dinner_end'],
+            'presentation_before_lunch' => $request['presentation_count'] - $request['presentations_after_lunch'],
+            'presentation_after_lunch' => $request['presentations_after_lunch'],
+            'is_hour_24' => $request['time_format24h'] ?? false,
+            'schedule_status_id' => ScheduleStatusEnum::Scheduled->value,
+        ]);
+
+        $existingItemIds = ScheduleItem::where('schedule_id', $id)->pluck('id')->toArray();
+        $processedItemIds = [];
+
+        foreach ($request['scheduleItems'] as $item) {
+            $scheduleItem = null;
+
+            if (!empty($item['id']) && in_array($item['id'], $existingItemIds)) {
+                $scheduleItem = ScheduleItem::find($item['id']);
+                if ($scheduleItem && $scheduleItem->project_id === $item['projectId']) {
+                    $scheduleItem->update([
+                        'start_time' => $item['slot']['presentation_start'],
+                        'end_time' => $item['slot']['presentation_end'],
+                    ]);
+                } else {
+                    $scheduleItem->delete();
+                    $scheduleItem = $this->createScheduleItem($schedule->id, $item);
+                }
+            } else {
+                $scheduleItem = $this->createScheduleItem($schedule->id, $item);
+            }
+
+            if ($scheduleItem) {
+                $processedItemIds[] = $scheduleItem->id;
+
+                if (isset($item['attachment'])) {
+                    $this->handleAttachment($item['attachment'], $schedule->id, $scheduleItem->id);
+                }
+
+                $this->updateProjectStatus($authUser, $item['projectId']);
+            }
+        }
+
+        // Optionally delete removed schedule items here if needed
+        // ScheduleItem::where('schedule_id', $id)->whereNotIn('id', $processedItemIds)->delete();
+
+        DB::commit();
+
+        return response()->json([
+            'message' => __('app_translation.success'),
+        ]);
+    }
+    private function createScheduleItem($scheduleId, $item)
+    {
+        return ScheduleItem::create([
+            'project_id' => $item['projectId'],
+            'schedule_id' => $scheduleId,
+            'start_time' => $item['slot']['presentation_start'],
+            'end_time' => $item['slot']['presentation_end'],
+        ]);
+    }
+
+    private function updateProjectStatus($authUser, $projectId)
+    {
+        ProjectStatus::where('project_id', $projectId)->update(['is_active' => false]);
+
+        ProjectStatus::create([
+            'is_active' => true,
+            'project_id' => $projectId,
+            'status_id' => StatusEnum::scheduled->value,
+            'comment' => 'Schedule for the presentation',
+            'userable_type' => $authUser->role_id,
+            'userable_id' => $authUser->id,
+        ]);
+    }
+    private function handleAttachment(array $attachment, $scheduleId, $scheduleItemId)
+    {
+        $directorDocumentsId = [];
+
+        $this->storageRepository->scheduleDocumentStore($scheduleId, $attachment['pending_id'], function ($docData) use (&$directorDocumentsId, $scheduleItemId) {
+            $document = Document::create([
+                'actual_name' => $docData['actual_name'],
+                'size' => $docData['size'],
+                'path' => $docData['path'],
+                'type' => $docData['type'],
+                'check_list_id' => $docData['check_list_id'],
+            ]);
+
+            $directorDocumentsId[] = $document->id;
+
+            ScheduleDocument::create([
+                'document_id' => $document->id,
+                'schedule_item_id' => $scheduleItemId,
+            ]);
+        });
+
+        $this->pendingTaskRepository->destroyPendingTaskById($attachment['pending_id']);
     }
 }
