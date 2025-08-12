@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\api\app\projects;
 
+use App\Enums\CheckList\CheckListEnum;
 use App\Enums\CheckListTypeEnum;
 use App\Models\Email;
 use App\Models\Contact;
@@ -235,7 +236,20 @@ class ProjectStoreController extends Controller
                 'message' => __('app_translation.task_not_found')
             ], 404);
         }
-        $this->validateCheckList($task, [], CheckListTypeEnum::project_registeration);
+
+        $exclude = [
+            CheckListEnum::project_presentation->value,
+            CheckListEnum::mou_en->value,
+            CheckListEnum::mou_fa->value,
+            CheckListEnum::mou_ps->value,
+        ];
+        $checklistValidate = $this->validateCheckList($task, $exclude, CheckListTypeEnum::project_registeration);
+
+        return response()->json([
+            'errors' => $checklistValidate,
+            'message' => __('app_translation.checklist_not_found'),
+        ], 404, [], JSON_UNESCAPED_UNICODE);
+
         $documentsId = [];
         $this->storageRepository->projectDocumentStore($project->id, $user_id, $task->id, function ($documentData) use (&$documentsId) {
             $checklist_id = $documentData['check_list_id'];
