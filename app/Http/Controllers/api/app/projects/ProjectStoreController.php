@@ -27,6 +27,8 @@ use App\Http\Controllers\Controller;
 use App\Models\ProjectDistrictDetail;
 use App\Models\ProjectDistrictDetailTran;
 use App\Http\Requests\app\project\ProjectStoreRequest;
+use App\Models\Manager;
+use App\Models\ManagerTran;
 use App\Repositories\Storage\StorageRepositoryInterface;
 use App\Repositories\Approval\ApprovalRepositoryInterface;
 use App\Repositories\Director\DirectorRepositoryInterface;
@@ -101,7 +103,7 @@ class ProjectStoreController extends Controller
             }
 
             // 3. Create Project Manager
-            $project_manager = ProjectManager::create([
+            $project_manager = Manager::create([
                 'email_id' => $email->id,
                 'contact_id' => $contact->id,
                 'ngo_id' => $user_id,
@@ -111,15 +113,15 @@ class ProjectStoreController extends Controller
             foreach (LanguageEnum::LANGUAGES as $code => $lang) {
                 $field = 'pro_manager_name_' . $lang;
 
-                ProjectManagerTran::create([
-                    'project_manager_id' => $project_manager->id,
+                ManagerTran::create([
+                    'manager_id' => $project_manager->id,
                     'full_name' => $request->get($field),
                     'language_name' => $code,
                 ]);
             }
         } else {
             // Use existing
-            $project_manager = ProjectManager::findOrFail($request->manager['id']);
+            $project_manager = Manager::findOrFail($request->manager['id']);
         }
 
 
@@ -132,7 +134,6 @@ class ProjectStoreController extends Controller
             'donor_registration_no' => $request->donor_register_no,
             'currency_id' => $request->currency['id'],
             'donor_id' => $request->donor['id'],
-            'project_manager_id' => $project_manager->id,
             'country_id' => CountryEnum::afghanistan->value, // hardcoded — optional improvement: make dynamic
             'registration_no' => '',
             'ngo_id' => $user_id,
@@ -141,6 +142,11 @@ class ProjectStoreController extends Controller
         $project->registration_no = 'IRD-P-' . $project->id;
         $project->save();
 
+        ProjectManager::create([
+            'manager_id' => $project_manager->id,
+            'project_id' => $project->id,
+            'is_active' => true,
+        ]);
         // Store Project Translations
         $translationFields = [
             'preamble'           => 'preamble',
