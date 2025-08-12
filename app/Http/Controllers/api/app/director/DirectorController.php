@@ -296,7 +296,7 @@ class DirectorController extends Controller
         $director->nid_no = $request->nid;
         $director->nid_type_id = $request->identity_type['id'];
         $director->gender_id = $request->gender['id'];
-        $director->country_id = $request->nationality['id'];
+        $director->nationality_id = $request->nationality['id'];
         // Update Address translations
         $addressTrans = AddressTran::where('address_id', $address->id)->get();
         foreach ($addressTrans as $addressTran) {
