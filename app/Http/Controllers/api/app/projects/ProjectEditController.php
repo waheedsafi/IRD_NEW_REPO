@@ -218,8 +218,6 @@ class ProjectEditController extends Controller
     public function structure($id)
     {
         $locale = App::getLocale();
-
-
         // 1. Get project and project_manager_id in one query
         $project = DB::table('projects as pro')->where('pro.id', $id)
             ->join('project_managers as pm', 'pro.id', 'pm.project_id')
