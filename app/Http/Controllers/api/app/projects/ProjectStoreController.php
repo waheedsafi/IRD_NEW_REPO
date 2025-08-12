@@ -163,8 +163,8 @@ class ProjectStoreController extends Controller
             'vission'   => 'vission', //
             'terminologies' => 'abbreviat',
             'name' => 'project_name',
-            'prev_proj_activi' => 'exper_in_health',
-            'project_structure' => 'project_structure'
+            'project_structure' => 'project_structure',
+            'organization_senior_manangement' => 'organization_sen_man',
         ];
 
         foreach (LanguageEnum::LANGUAGES as $code => $lang) {
