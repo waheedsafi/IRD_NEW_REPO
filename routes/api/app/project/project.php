@@ -7,7 +7,7 @@ use App\Http\Controllers\api\app\projects\ProjectController;
 use App\Http\Controllers\api\app\projects\ProjectEditController;
 use App\Http\Controllers\api\app\projects\ProjectStoreController;
 
-Route::get('/projects/details/{id}', [ProjectEditController::class, 'budget']);
+Route::get('/projects/details/{id}', [ProjectEditController::class, 'checklist']);
 
 Route::get('/projects', [ProjectController::class, 'index']);
 Route::prefix('v1')->middleware(["multiAuthorized:" . 'ngo:api,user:api'])->group(function () {
@@ -19,6 +19,8 @@ Route::prefix('v1')->middleware(["multiAuthorized:" . 'ngo:api,user:api'])->grou
 
     Route::get('/projects/details/{id}', [ProjectEditController::class, 'details']);
     Route::get('/projects/budget/{id}', [ProjectEditController::class, 'budget']);
+    Route::get('/projects/organization/structure/{id}', [ProjectEditController::class, 'structure']);
+    Route::get('/projects/checklist/{id}', [ProjectEditController::class, 'checklist']);
 });
 Route::prefix('v1')->middleware(["multiAuthorized:" . 'user:api'])->group(function () {
     Route::get('/projects/with/name', [ProjectController::class, "projectsWithName"]);
