@@ -245,10 +245,14 @@ class ProjectStoreController extends Controller
         ];
         $checklistValidate = $this->validateCheckList($task, $exclude, CheckListTypeEnum::project_registeration);
 
-        return response()->json([
-            'errors' => $checklistValidate,
-            'message' => __('app_translation.checklist_not_found'),
-        ], 404, [], JSON_UNESCAPED_UNICODE);
+        if ($checklistValidate) {
+
+            return response()->json([
+                'errors' => $checklistValidate,
+                'message' => __('app_translation.checklist_not_found'),
+            ], 404, [], JSON_UNESCAPED_UNICODE);
+        }
+
 
         $documentsId = [];
         $this->storageRepository->projectDocumentStore($project->id, $user_id, $task->id, function ($documentData) use (&$documentsId) {
