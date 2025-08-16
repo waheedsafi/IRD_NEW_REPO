@@ -66,7 +66,6 @@ class ProjectStoreController extends Controller
         $this->storageRepository = $storageRepository;
     }
 
-
     public function store(ProjectStoreRequest $request)
     {
         $authUser = $request->user();
