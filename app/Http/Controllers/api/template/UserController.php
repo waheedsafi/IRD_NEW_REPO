@@ -8,18 +8,19 @@ use App\Enums\RoleEnum;
 use App\Models\Contact;
 use App\Models\ModelJob;
 use Illuminate\Http\Request;
+use App\Enums\Status\StatusEnum;
 use App\Traits\Helper\HelperTrait;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use App\Repositories\User\UserRepositoryInterface;
+
 use App\Http\Requests\template\user\UpdateUserRequest;
 use App\Http\Requests\template\user\UserRegisterRequest;
-
 use App\Http\Requests\template\user\UpdateUserPasswordRequest;
 use App\Repositories\Permission\PermissionRepositoryInterface;
-use Illuminate\Support\Facades\Http;
 
 class UserController extends Controller
 {
@@ -48,10 +49,13 @@ class UserController extends Controller
             ->leftJoin('contacts as c', 'c.id', '=', 'u.contact_id')
             ->join('emails as e', 'e.id', '=', 'u.email_id')
             ->join('roles as r', 'r.id', '=', 'u.role_id')
-
             ->leftjoin('model_job_trans as mjt', function ($join) use ($locale) {
                 $join->on('mjt.model_job_id', '=', 'u.job_id')
                     ->where('mjt.language_name', $locale);
+            })
+            ->leftjoin('user_statuses as us', function ($join) use ($locale) {
+                $join->on('us.user_id', '=', 'u.id')
+                    ->where('us.is_active', true);
             })
             ->select(
                 "u.id",
@@ -60,6 +64,7 @@ class UserController extends Controller
                 "u.created_at",
                 "e.value AS email",
                 "c.value AS contact",
+                "us.status_id",
                 "mjt.value as job"
             );
 
@@ -367,20 +372,33 @@ class UserController extends Controller
     }
     public function userCount()
     {
-        $statistics = DB::select("
+        $active = StatusEnum::active->value;
+        $block = StatusEnum::block->value;
+
+        $statistics =  DB::select("
             SELECT
-                COUNT(*) AS userCount,
+                COUNT(u.id) AS userCount,
                 (SELECT COUNT(*) FROM users WHERE DATE(created_at) = CURDATE()) AS todayCount,
-                (SELECT COUNT(*) FROM users WHERE status = 1) AS activeUserCount,
-                (SELECT COUNT(*) FROM users WHERE status = 0) AS inActiveUserCount
-            FROM users
-        ");
+                (
+                    SELECT COUNT(*)
+                    FROM users u2
+                    INNER JOIN user_statuses us ON us.user_id = u2.id
+                    WHERE us.status_id = ?
+                ) AS activeUserCount,
+                (
+                    SELECT COUNT(*)
+                    FROM users u3
+                    INNER JOIN user_statuses us ON us.user_id = u3.id
+                    WHERE us.status_id = ?
+                ) AS inActiveUserCount
+            FROM users u
+        ", [$active, $block]);
         return response()->json([
             'counts' => [
                 "userCount" => $statistics[0]->userCount,
                 "todayCount" => $statistics[0]->todayCount,
-                "activeUserCount" => $statistics[0]->activeUserCount,
-                "inActiveUserCount" =>  $statistics[0]->inActiveUserCount
+                "activeUserCount" => $statistics[0]->inActiveUserCount,
+                "inActiveUserCount" => $statistics[0]->inActiveUserCount,
             ],
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }

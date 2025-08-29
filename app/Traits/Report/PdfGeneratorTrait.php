@@ -11,7 +11,6 @@ trait PdfGeneratorTrait
 {
     public function generatePdf()
     {
-
         $configVariables = new ConfigVariables();
         $fontDirs = $configVariables->getDefaults()['fontDir'];
         $fontVariables = new FontVariables();
@@ -61,9 +60,6 @@ trait PdfGeneratorTrait
         $mpdf->SetHTMLFooter($footerHtml, 'E'); // Even pages
         $mpdf->SetHTMLFooter($footerHtml, 'O'); // Odd pages
     }
-
-
-
     public function pdfFilePart($mpdf, $view, $data = [])
     {
         // Directly pass the associative $data array to the view method

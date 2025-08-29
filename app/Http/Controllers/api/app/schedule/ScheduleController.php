@@ -153,12 +153,6 @@ class ScheduleController extends Controller
         foreach ($request['scheduleItems'] as $item) {
             $scheduleItem = $this->createScheduleItem($schedule->id, $item);
 
-            ScheduleItemStatus::create([
-                'schedule_item_id' => $scheduleItem->id,
-                'schedule_status_id' => ScheduleStatusEnum::Scheduled->value,
-                'discription' => 'Schedule the project'
-            ]);
-
             $this->updateProjectStatus($authUser, $item['projectId']);
 
             if (!empty($item['attachment'])) {
