@@ -32,8 +32,12 @@ trait PdfGeneratorTrait
             'mode' => 'utf-8',
             'autoScriptToLang' => true,
             'autoLangToFont' => true,
-            'margin_bottom' => 50,  // Increase bottom margin to make space for the footer
+            // 'margin_bottom' => 50,  // Increase bottom margin to make space for the footer
+
         ]);
+
+
+
 
         return $mpdf;
     }
