@@ -7,26 +7,6 @@ use Illuminate\Support\Facades\Log;
 
 class ScheduleRequest extends FormRequest
 {
-
-
-    protected function prepareForValidation()
-    {
-        // Get the raw contents field from the request (this is your JSON string)
-        $jsonData = $this->input('content');
-
-        // Decode the JSON string into an array
-        if ($jsonData) {
-            $decodedData = json_decode($jsonData, true);
-
-            // If the JSON is valid, merge the decoded data into the request
-            if (json_last_error() === JSON_ERROR_NONE) {
-                $this->merge($decodedData);
-            } else {
-                // Log or handle error if JSON is invalid
-                Log::error('Invalid JSON data received', ['data' => $jsonData]);
-            }
-        }
-    }
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -43,7 +23,25 @@ class ScheduleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'date' => 'required|date',
+            'start_time' => 'required|string',
+            'end_time' => 'required|string',
+            'dinner_start' => 'nullable|string',
+            'dinner_end' => 'nullable|string',
+            'gap_between' => 'required|integer',
+            'lunch_start' => 'nullable|string',
+            'lunch_end' => 'nullable|string',
+            'presentation_length' => 'required|integer',
+            'presentation_count' => 'required|integer',
+            'presentations_after_lunch' => 'nullable|integer',
+            'presentations_before_lunch' => 'nullable|integer',
+            'is_hour_24' => 'required|boolean',
+            'scheduleItems' => 'required|array',
+            'scheduleItems.*.projectId' => 'required|integer',
+            'scheduleItems.*.slot.id' => 'nullable|integer',
+            'scheduleItems.*.slot.presentation_start' => 'required|string',
+            'scheduleItems.*.slot.presentation_end' => 'required|string',
+            'scheduleItems.*.selected' => 'nullable|boolean',
         ];
     }
 }
